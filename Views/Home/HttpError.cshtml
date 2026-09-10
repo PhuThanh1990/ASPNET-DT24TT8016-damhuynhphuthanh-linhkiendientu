@@ -1,0 +1,27 @@
+@{
+    var statusCode = ViewData["StatusCode"] as int? ?? 404;
+    var isNotFound = statusCode == 404;
+
+    ViewData["Title"] = isNotFound ? "Không tìm thấy trang" : $"Lỗi {statusCode}";
+}
+
+<div class="container">
+    <div class="empty-state my-5">
+        <div class="empty-icon">@(isNotFound ? "🔍" : "⚠️")</div>
+        <h1 class="h3 text-body mb-2">@statusCode</h1>
+
+        @if (isNotFound)
+        {
+            <p class="mb-4">Trang hoặc sản phẩm bạn tìm không tồn tại, hoặc đã ngừng kinh doanh.</p>
+        }
+        else
+        {
+            <p class="mb-4">Đã có lỗi xảy ra khi xử lý yêu cầu của bạn.</p>
+        }
+
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+            <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+            <a class="btn btn-outline-secondary" asp-controller="Product" asp-action="Index">Xem sản phẩm</a>
+        </div>
+    </div>
+</div>

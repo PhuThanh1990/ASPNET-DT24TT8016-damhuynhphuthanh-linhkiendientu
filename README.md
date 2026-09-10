@@ -91,8 +91,11 @@ Mặc định ứng dụng chạy tại `https://localhost:7036` và `http://loc
 ├── Data/
 │   ├── ApplicationDbContext.cs  # EF Core DbContext
 │   └── Configurations/          # Fluent API config cho từng entity
+├── Helpers/                     # Helper hiển thị (định dạng giá, ảnh mặc định)
 ├── Migrations/                  # EF Core migrations
-├── Models/                      # Entities + ViewModels
+├── Models/                      # Entities
+│   └── ViewModels/              # ViewModel cho các trang khách hàng
+├── ViewComponents/              # View component (menu danh mục ở navbar)
 ├── Views/                       # Razor views
 ├── wwwroot/                     # CSS, JS, ảnh, thư viện client
 ├── docs/
@@ -133,6 +136,16 @@ dotnet ef migrations list                 # xem danh sách
 dotnet ef migrations script -o out.sql    # xem SQL sinh ra mà không cần database
 ```
 
+## Route phía khách hàng
+
+| URL | Action | Ghi chú |
+| --- | --- | --- |
+| `/` | `Home/Index` | Trang chủ: banner, danh mục, sản phẩm nổi bật & mới nhất |
+| `/san-pham` | `Product/Index` | Danh sách sản phẩm |
+| `/san-pham/{slug}` | `Product/Details` | Chi tiết sản phẩm, tra theo `Slug` (UNIQUE) |
+
+Sai đường dẫn hoặc slug không tồn tại sẽ trả về trang 404 `Home/HttpError`.
+
 ## Tài liệu
 
 - [Thiết kế database](docs/database-schema.md) — bảng, khóa, quan hệ, index. **Đọc file này trước khi tạo entity.**
@@ -148,4 +161,11 @@ dotnet ef migrations script -o out.sql    # xem SQL sinh ra mà không cần dat
 | CORE-05 | Thiết kế database schema | ✅ |
 | CORE-06 | Models `Category`, `Brand` | ✅ |
 | CORE-07 | Models `Product`, `ProductImage` | ✅ |
-| CORE-08+ | Identity, Order, UI... | ⏳ Chưa làm |
+| CUS-01 | Customer Layout | ✅ |
+| CUS-02 | Navbar & Footer responsive | ✅ |
+| CUS-03 | Home Page | ✅ |
+| CUS-04 | Product Card (partial dùng lại được) | ✅ |
+| CUS-05 | Trang danh sách sản phẩm | ✅ |
+| CUS-06 | Trang chi tiết sản phẩm | ✅ |
+| CUS-07+ | Search / Filter / Sort / Paging | ⏳ Chưa làm |
+| CORE-08+ | Identity, Cart, Order, Admin... | ⏳ Chưa làm |
