@@ -1,30 +1,93 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@{
+    // Dùng để tô sáng menu đang mở.
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var isHome = currentController == "Home" && currentAction == "Index";
+    var isProduct = currentController == "Product";
+}
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ElectronicStore</title>
+    <meta name="description" content="ElectronicStore - cửa hàng linh kiện điện tử: CPU, RAM, VGA, mainboard, ổ cứng, nguồn máy tính." />
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/customer.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ElectronicStore.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ElectronicStore</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+        <!-- Thanh thông tin trên cùng: ẩn trên màn hình nhỏ cho gọn -->
+        <div class="shop-topbar d-none d-lg-block">
+            <div class="container d-flex justify-content-between py-1">
+                <span>Hotline: <a href="tel:19001234">1900 1234</a> &nbsp;|&nbsp; Email: <a href="mailto:hotro@electronicstore.vn">hotro@electronicstore.vn</a></span>
+                <span>Giao hàng toàn quốc &nbsp;|&nbsp; Bảo hành chính hãng</span>
+            </div>
+        </div>
+
+        <nav class="navbar navbar-expand-lg shop-navbar">
+            <div class="container">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    Electronic<span>Store</span>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Mở menu">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav me-lg-3">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link @(isHome ? "active" : null)" asp-controller="Home" asp-action="Index">Trang chủ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link @(isProduct ? "active" : null)" asp-controller="Product" asp-action="Index">Sản phẩm</a>
+                        </li>
+                        @* Danh mục lấy từ database; không có danh mục nào thì không hiện menu này *@
+                        @await Component.InvokeAsync("CategoryMenu")
+                    </ul>
+
+                    <!-- CUS-02: chỉ là giao diện tìm kiếm, xử lý từ khóa thuộc task sau -->
+                    <form class="d-flex shop-search my-2 my-lg-0 me-lg-auto" role="search"
+                          asp-controller="Product" asp-action="Index" method="get">
+                        <input class="form-control" type="search" name="keyword" maxlength="100"
+                               placeholder="Tìm CPU, RAM, VGA, SSD..." aria-label="Tìm sản phẩm" />
+                        <button class="btn btn-accent ms-2 flex-shrink-0" type="submit" aria-label="Tìm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242 1.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z" />
+                            </svg>
+                        </button>
+                    </form>
+
+                    <ul class="navbar-nav align-items-lg-center">
+                        <!-- Placeholder: Đăng nhập/Đăng ký sẽ nối vào khi có Identity -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1" aria-hidden="true">
+                                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z" />
+                                </svg>
+                                Tài khoản
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><span class="dropdown-item disabled">Đăng nhập</span></li>
+                                <li><span class="dropdown-item disabled">Đăng ký</span></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><span class="dropdown-item-text text-muted small">Chức năng đăng nhập đang được phát triển</span></li>
+                            </ul>
+                        </li>
+                        <!-- Placeholder: giỏ hàng chưa có logic, sẽ làm ở task Cart -->
+                        <li class="nav-item">
+                            <a class="nav-link position-relative disabled" href="#" aria-disabled="true" title="Giỏ hàng đang được phát triển">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1" aria-hidden="true">
+                                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .49.598l-1 5a.5.5 0 0 1-.465.401l-9.397.472L4.415 11H13a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+                                </svg>
+                                Giỏ hàng
+                                <span class="badge rounded-pill bg-secondary shop-cart-badge">0</span>
+                            </a>
                         </li>
                     </ul>
                     <partial name="_LoginPartial" />
@@ -32,17 +95,60 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
+    <main role="main" class="shop-main py-4">
+        @RenderBody()
+    </main>
+
+    <footer class="shop-footer pt-4 mt-4">
         <div class="container">
-            &copy; 2026 - ElectronicStore - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="row g-4">
+                <div class="col-12 col-md-6 col-lg-4">
+                    <h6 class="text-uppercase">ElectronicStore</h6>
+                    <p class="mb-2 small">
+                        Cửa hàng linh kiện điện tử: CPU, mainboard, RAM, VGA, ổ cứng, nguồn và phụ kiện máy tính.
+                        Hàng chính hãng, bảo hành đầy đủ.
+                    </p>
+                    <p class="small mb-0">Đồ án môn ASP.NET Core MVC.</p>
+                </div>
+
+                <div class="col-6 col-md-3 col-lg-2">
+                    <h6 class="text-uppercase">Liên kết</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-1"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="mb-1"><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
+                        <li class="mb-1"><a asp-controller="Home" asp-action="Privacy">Chính sách bảo mật</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-6 col-md-3 col-lg-3">
+                    <h6 class="text-uppercase">Hỗ trợ</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-1">Hướng dẫn mua hàng</li>
+                        <li class="mb-1">Chính sách bảo hành</li>
+                        <li class="mb-1">Chính sách đổi trả</li>
+                        <li class="mb-1">Vận chuyển &amp; thanh toán</li>
+                    </ul>
+                </div>
+
+                <div class="col-12 col-lg-3">
+                    <h6 class="text-uppercase">Liên hệ</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-1">123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh</li>
+                        <li class="mb-1">Hotline: <a href="tel:19001234">1900 1234</a></li>
+                        <li class="mb-1">Email: <a href="mailto:hotro@electronicstore.vn">hotro@electronicstore.vn</a></li>
+                        <li class="mb-1">Giờ mở cửa: 8:00 - 21:00 (T2 - CN)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom d-flex flex-column flex-sm-row justify-content-between align-items-center gap-1 mt-4 py-3">
+                <span>&copy; @DateTime.Now.Year ElectronicStore. Đồ án sinh viên.</span>
+                <span>Thông tin liên hệ ở trên chỉ là dữ liệu mẫu.</span>
+            </div>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

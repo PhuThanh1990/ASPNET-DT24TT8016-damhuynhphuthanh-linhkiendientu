@@ -95,9 +95,16 @@ Mặc định ứng dụng chạy tại `https://localhost:7036` và `http://loc
 │   ├── DbInitializer.cs         # Migrate + seed role, admin, catalog
 │   ├── CatalogSeedData.cs       # Dữ liệu catalog mẫu
 │   └── Configurations/          # Fluent API config cho từng entity
+├── Helpers/                     # Helper hiển thị (định dạng giá, ảnh mặc định)
 ├── Migrations/                  # EF Core migrations
+<<<<<<< HEAD
 ├── Models/                      # Entities + enum
 │   └── ViewModels/              # ViewModel cho form (có DataAnnotation validation)
+=======
+├── Models/                      # Entities
+│   └── ViewModels/              # ViewModel cho các trang khách hàng
+├── ViewComponents/              # View component (menu danh mục ở navbar)
+>>>>>>> kien/main
 ├── Views/                       # Razor views
 ├── wwwroot/                     # CSS, JS, ảnh, thư viện client
 ├── docs/
@@ -181,6 +188,16 @@ dotnet ef migrations list                 # xem danh sách
 dotnet ef migrations script -o out.sql    # xem SQL sinh ra mà không cần database
 ```
 
+## Route phía khách hàng
+
+| URL | Action | Ghi chú |
+| --- | --- | --- |
+| `/` | `Home/Index` | Trang chủ: banner, danh mục, sản phẩm nổi bật & mới nhất |
+| `/san-pham` | `Product/Index` | Danh sách sản phẩm |
+| `/san-pham/{slug}` | `Product/Details` | Chi tiết sản phẩm, tra theo `Slug` (UNIQUE) |
+
+Sai đường dẫn hoặc slug không tồn tại sẽ trả về trang 404 `Home/HttpError`.
+
 ## Tài liệu
 
 - [Thiết kế database](docs/database-schema.md) — bảng, khóa, quan hệ, index. **Đọc file này trước khi tạo entity.**
@@ -196,6 +213,7 @@ dotnet ef migrations script -o out.sql    # xem SQL sinh ra mà không cần dat
 | CORE-05 | Thiết kế database schema | ✅ |
 | CORE-06 | Models `Category`, `Brand` | ✅ |
 | CORE-07 | Models `Product`, `ProductImage` | ✅ |
+<<<<<<< HEAD
 | CORE-08 | Setup ASP.NET Core Identity | ✅ |
 | CORE-09 | Role `Admin` / `Customer` | ✅ |
 | CORE-10 | Seed admin, category, brand, product | ✅ |
@@ -205,3 +223,13 @@ dotnet ef migrations script -o out.sql    # xem SQL sinh ra mà không cần dat
 | CORE-14 | Model `Address` | ✅ |
 | CORE-15 | Models `Order`, `OrderDetail` | ✅ |
 | CORE-16+ | Catalog UI, Cart, Checkout, Admin CRUD... | ⏳ Chưa làm |
+=======
+| CUS-01 | Customer Layout | ✅ |
+| CUS-02 | Navbar & Footer responsive | ✅ |
+| CUS-03 | Home Page | ✅ |
+| CUS-04 | Product Card (partial dùng lại được) | ✅ |
+| CUS-05 | Trang danh sách sản phẩm | ✅ |
+| CUS-06 | Trang chi tiết sản phẩm | ✅ |
+| CUS-07+ | Search / Filter / Sort / Paging | ⏳ Chưa làm |
+| CORE-08+ | Identity, Cart, Order, Admin... | ⏳ Chưa làm |
+>>>>>>> kien/main
