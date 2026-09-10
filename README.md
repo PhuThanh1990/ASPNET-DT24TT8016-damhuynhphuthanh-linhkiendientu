@@ -195,8 +195,22 @@ dotnet ef migrations script -o out.sql    # xem SQL sinh ra mà không cần dat
 | `/` | `Home/Index` | Trang chủ: banner, danh mục, sản phẩm nổi bật & mới nhất |
 | `/san-pham` | `Product/Index` | Danh sách sản phẩm |
 | `/san-pham/{slug}` | `Product/Details` | Chi tiết sản phẩm, tra theo `Slug` (UNIQUE) |
+| `/gio-hang` | `Cart/Index` | Giỏ hàng (lưu trong Session) |
+
+Danh sách sản phẩm nhận các tham số query string, kết hợp được với nhau và luôn được giữ
+lại trên link phân trang:
+
+| Tham số | Ví dụ | Ý nghĩa |
+| --- | --- | --- |
+| `keyword` | `?keyword=esp32` | Tìm theo tên sản phẩm, mã SKU hoặc tên thương hiệu |
+| `category` | `?category=cam-bien` | Lọc theo slug danh mục |
+| `brand` | `?brand=espressif` | Lọc theo slug thương hiệu |
+| `sort` | `?sort=price-asc` | `newest` (mặc định), `price-asc`, `price-desc`, `name` |
+| `page` | `?page=2` | Trang hiện tại, 12 sản phẩm mỗi trang |
 
 Sai đường dẫn hoặc slug không tồn tại sẽ trả về trang 404 `Home/HttpError`.
+Giá trị `category` / `brand` / `sort` / `page` không hợp lệ thì trang vẫn hiển thị bình
+thường (0 kết quả hoặc quay về giá trị mặc định), không báo lỗi.
 
 ## Tài liệu
 
@@ -230,6 +244,14 @@ Sai đường dẫn hoặc slug không tồn tại sẽ trả về trang 404 `Ho
 | CUS-04 | Product Card (partial dùng lại được) | ✅ |
 | CUS-05 | Trang danh sách sản phẩm | ✅ |
 | CUS-06 | Trang chi tiết sản phẩm | ✅ |
-| CUS-07+ | Search / Filter / Sort / Paging | ⏳ Chưa làm |
-| CORE-08+ | Identity, Cart, Order, Admin... | ⏳ Chưa làm |
+| CUS-07 | Hiển thị thông số kỹ thuật (JSON) | ✅ |
+| CUS-08 | Search sản phẩm | ✅ |
+| CUS-09 | Filter theo Category / Brand | ✅ |
+| CUS-10 | Sort theo giá và mới nhất | ✅ |
+| CUS-11 | Pagination server-side | ✅ |
+| CUS-12 | Add to Cart (Session) | ✅ |
+| CUS-13 | Trang Shopping Cart | ✅ |
+| CUS-14 | Update quantity / Remove item | ✅ |
+| CUS-15 | Subtotal & Total giỏ hàng | ✅ |
+| CUS-16+ | Checkout, đặt hàng, thanh toán | ⏳ Chưa làm |
 >>>>>>> kien/main

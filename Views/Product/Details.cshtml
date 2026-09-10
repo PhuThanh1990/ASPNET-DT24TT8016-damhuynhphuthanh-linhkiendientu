@@ -14,7 +14,6 @@
             @if (!string.IsNullOrWhiteSpace(Model.CategoryName))
             {
                 <li class="breadcrumb-item">
-                    @* TODO (CUS-07): link này sẽ lọc theo danh mục. *@
                     <a asp-controller="Product" asp-action="Index" asp-route-category="@Model.CategorySlug">@Model.CategoryName</a>
                 </li>
             }
@@ -57,7 +56,10 @@
                     <span>Mã SP: <span class="fw-semibold">@Model.Sku</span></span>
                     @if (!string.IsNullOrWhiteSpace(Model.BrandName))
                     {
-                        <span class="ms-3">Thương hiệu: <span class="fw-semibold">@Model.BrandName</span></span>
+                        <span class="ms-3">
+                            Thương hiệu:
+                            <a class="fw-semibold" asp-controller="Product" asp-action="Index" asp-route-brand="@Model.BrandSlug">@Model.BrandName</a>
+                        </span>
                     }
                     @if (!string.IsNullOrWhiteSpace(Model.CategoryName))
                     {
@@ -94,17 +96,32 @@
                     <p class="text-muted">@Model.ShortDescription</p>
                 }
 
-                <!-- Nút mua hàng: logic giỏ hàng thuộc task Cart nên tạm khóa -->
-                <div class="d-flex flex-wrap gap-2 mt-4">
-                    <button type="button" class="btn btn-accent btn-lg" disabled
-                            title="Chức năng giỏ hàng đang được phát triển">
+                @* CUS-12 — chỉ productId và quantity được gửi lên, giá do server tự đọc lại. *@
+                <form class="d-flex flex-wrap align-items-center gap-2 mt-4"
+                      asp-controller="Cart" asp-action="Add" method="post">
+                    <input type="hidden" name="productId" value="@Model.Id" />
+
+                    <label class="form-label mb-0" for="quantity">Số lượng</label>
+                    <input class="form-control cart-qty" id="quantity" type="number" name="quantity"
+                           value="1" min="1" max="@Model.StockQuantity" disabled="@(!Model.InStock)" />
+
+                    <button type="submit" class="btn btn-accent btn-lg" disabled="@(!Model.InStock)">
                         Thêm vào giỏ hàng
                     </button>
                     <a class="btn btn-outline-secondary btn-lg" asp-controller="Product" asp-action="Index">
                         Xem sản phẩm khác
                     </a>
-                </div>
-                <p class="product-meta mt-2 mb-0">Chức năng đặt hàng sẽ được bổ sung ở phần Giỏ hàng.</p>
+                </form>
+                <p class="product-meta mt-2 mb-0">
+                    @if (Model.InStock)
+                    {
+                        @:Thanh toán sẽ được bổ sung ở bước Checkout.
+                    }
+                    else
+                    {
+                        @:Sản phẩm đang hết hàng nên chưa thể thêm vào giỏ.
+                    }
+                </p>
             </div>
         </div>
     </div>

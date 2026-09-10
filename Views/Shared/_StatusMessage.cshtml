@@ -1,0 +1,22 @@
+@{
+    // Thông báo một lần sau khi POST (thêm/sửa/xóa giỏ hàng) rồi redirect.
+    var message = TempData["StatusMessage"] as string;
+    var messageType = TempData["StatusMessageType"] as string ?? "info";
+
+    // Chỉ cho phép các kiểu alert đã biết, để giá trị lạ không chèn được class linh tinh.
+    string[] allowedTypes = ["success", "warning", "danger", "info"];
+    if (!allowedTypes.Contains(messageType))
+    {
+        messageType = "info";
+    }
+}
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <div class="container mt-3">
+        <div class="alert alert-@messageType alert-dismissible fade show mb-0" role="alert">
+            @message
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+    </div>
+}
