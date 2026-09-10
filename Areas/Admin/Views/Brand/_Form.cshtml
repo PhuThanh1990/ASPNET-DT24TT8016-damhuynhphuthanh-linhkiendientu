@@ -1,0 +1,38 @@
+@model BrandFormViewModel
+@* Shared body of the brand Create and Edit forms. *@
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" autocomplete="off" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Slug" class="form-label"></label>
+        <input asp-for="Slug" class="form-control" autocomplete="off" placeholder="vd: corsair" />
+        <span asp-validation-for="Slug" class="text-danger"></span>
+        <div class="form-text">Dùng trong URL. Tự động chuẩn hóa khi lưu: chữ thường, bỏ dấu, cách nhau bằng dấu "-".</div>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-8">
+        <label asp-for="LogoUrl" class="form-label"></label>
+        <input asp-for="LogoUrl" class="form-control" autocomplete="off" placeholder="/images/brands/corsair.png" />
+        <span asp-validation-for="LogoUrl" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4 d-flex align-items-end">
+        <div class="form-check">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label asp-for="IsActive" class="form-check-label"></label>
+        </div>
+    </div>
+</div>

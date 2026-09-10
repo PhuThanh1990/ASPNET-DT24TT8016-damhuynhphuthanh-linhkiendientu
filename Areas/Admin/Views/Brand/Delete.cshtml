@@ -1,0 +1,50 @@
+@model BrandDeleteViewModel
+@{
+    ViewData["Title"] = "Xóa thương hiệu";
+}
+
+<div class="admin-page-header">
+    <h1>Xóa thương hiệu</h1>
+    <a class="btn btn-outline-secondary" asp-action="Index">Quay lại danh sách</a>
+</div>
+
+<div class="admin-card">
+    <dl class="row mb-4">
+        <dt class="col-sm-3">Tên</dt>
+        <dd class="col-sm-9">@Model.Name</dd>
+
+        <dt class="col-sm-3">Slug</dt>
+        <dd class="col-sm-9"><code>@Model.Slug</code></dd>
+
+        <dt class="col-sm-3">Số sản phẩm</dt>
+        <dd class="col-sm-9">@Model.ProductCount</dd>
+    </dl>
+
+    @if (Model.CanDelete)
+    {
+        <div class="alert alert-warning" role="alert">
+            Bạn có chắc muốn xóa thương hiệu này? Thao tác không thể hoàn tác.
+        </div>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">Xóa thương hiệu</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Hủy</a>
+            </div>
+        </form>
+    }
+    else
+    {
+        <div class="alert alert-danger" role="alert">
+            <strong>Không thể xóa thương hiệu này.</strong>
+            Đang có @Model.ProductCount sản phẩm thuộc thương hiệu. Sản phẩm sẽ không bị xóa theo thương hiệu.
+            Hãy chuyển chúng sang thương hiệu khác, hoặc bỏ chọn "Đang hoạt động" ở màn hình sửa để ẩn thương hiệu.
+        </div>
+
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" asp-action="Index">Quay lại danh sách</a>
+            <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">Mở màn hình sửa</a>
+        </div>
+    }
+</div>

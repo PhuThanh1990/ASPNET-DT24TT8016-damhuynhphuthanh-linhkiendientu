@@ -1,0 +1,35 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="admin-page-header">
+    <h1>Dashboard</h1>
+</div>
+
+<div class="admin-card">
+    <p class="mb-3">Khu vực quản trị của ElectronicStore. Chọn một mục ở menu bên trái để bắt đầu.</p>
+
+    <div class="row g-3">
+        <div class="col-sm-6 col-lg-4">
+            <a class="btn btn-outline-primary w-100" asp-area="Admin" asp-controller="Category" asp-action="Index">
+                Quản lý danh mục
+            </a>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <a class="btn btn-outline-primary w-100" asp-area="Admin" asp-controller="Brand" asp-action="Index">
+                Quản lý thương hiệu
+            </a>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <a class="btn btn-outline-primary w-100" asp-area="Admin" asp-controller="Product" asp-action="Index">
+                Quản lý sản phẩm
+            </a>
+        </div>
+    </div>
+
+    <hr class="my-4" />
+
+    <p class="text-muted small mb-0">
+        Thống kê (số đơn hàng, doanh thu, sản phẩm sắp hết hàng...) thuộc task sau, chưa làm ở ADM-01 → ADM-09.
+    </p>
+</div>
