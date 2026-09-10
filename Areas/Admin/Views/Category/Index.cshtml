@@ -1,0 +1,75 @@
+@model IReadOnlyList<CategoryListItemViewModel>
+@{
+    ViewData["Title"] = "Danh mục";
+}
+
+<div class="admin-page-header">
+    <h1>Danh mục</h1>
+    <a class="btn btn-primary" asp-action="Create">+ Thêm danh mục</a>
+</div>
+
+<div class="admin-card">
+    @if (Model.Count == 0)
+    {
+        <div class="admin-empty">
+            <p class="mb-3">Chưa có danh mục nào.</p>
+            <a class="btn btn-primary" asp-action="Create">Tạo danh mục đầu tiên</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Id</th>
+                        <th scope="col">Tên</th>
+                        <th scope="col">Slug</th>
+                        <th scope="col">Danh mục cha</th>
+                        <th scope="col" class="text-end">Sản phẩm</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Ngày tạo</th>
+                        <th scope="col" class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>@item.Name</td>
+                            <td><code>@item.Slug</code></td>
+                            <td>@(item.ParentCategoryName ?? "—")</td>
+                            <td class="text-end">@item.ProductCount</td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge text-bg-success">Hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary">Đã ẩn</span>
+                                }
+                            </td>
+                            <td>@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@item.Id">Sửa</a>
+                                @if (item.CanDelete)
+                                {
+                                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id">Xóa</a>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger" disabled
+                                            title="Đang có @item.ProductCount sản phẩm và @item.ChildCategoryCount danh mục con">
+                                        Xóa
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

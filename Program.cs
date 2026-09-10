@@ -30,6 +30,13 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
+// Area route must be registered before the default route, otherwise "/Admin/Category"
+// is swallowed by {controller}/{action} and resolves to a non-existent AdminController.
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}")
+    .WithStaticAssets();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
