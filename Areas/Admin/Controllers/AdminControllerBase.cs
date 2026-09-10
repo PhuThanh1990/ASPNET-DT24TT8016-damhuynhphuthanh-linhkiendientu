@@ -1,22 +1,17 @@
+using ElectronicStore.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ElectronicStore.Areas.Admin.Controllers;
 
 /// <summary>
-/// Base class for every controller of the Admin area. It carries the <c>[Area]</c>
-/// attribute and is the single place where authorization is switched on.
+/// Base class for every controller of the Admin area. It keeps the area name and the role
+/// requirement in one place, so an admin screen added later only has to inherit from it and
+/// can never be shipped without protection. Anonymous visitors are sent to the login page,
+/// signed-in customers get /Account/AccessDenied.
 /// </summary>
-/// <remarks>
-/// ADM-03 was blocked while the project had no Identity, so this attribute shipped commented
-/// out. CORE-08/09 delivered Identity (<c>IdentityDbContext</c>, the AspNet* tables and the
-/// <c>Admin</c>/<c>Customer</c> roles) and Program.cs runs <c>UseAuthentication()</c> before
-/// <c>UseAuthorization()</c>, so the guard is now switched on as that note prescribed.
-/// Every Admin controller inherits from this type, so no other file has to change:
-/// anonymous visitors are sent to the login page, signed-in customers to
-/// <c>/Account/AccessDenied</c>.
-/// </remarks>
-[Microsoft.AspNetCore.Authorization.Authorize(Roles = AdminArea.AdminRole)]
 [Area(AdminArea.Name)]
+[Authorize(Roles = AppRoles.Admin)]
 public abstract class AdminControllerBase : Controller
 {
     /// <summary>

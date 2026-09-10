@@ -1,5 +1,6 @@
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
+using ElectronicStore.Areas.Admin.Services;
 using ElectronicStore.Data;
 using ElectronicStore.Models;
 using ElectronicStore.Services;
@@ -63,6 +64,12 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     options.IdleTimeout = TimeSpan.FromHours(2);
 });
+
+// Admin area services.
+// ProductImageStorage writes uploaded images under wwwroot and hands back their URL.
+builder.Services.AddScoped<ProductImageStorage>();
+// Order status changes go through the Core IOrderService registered above; the Admin area
+// has no order service of its own.
 
 // Mặc định Razor encode mọi ký tự ngoài bảng Latin cơ bản thành &#x...; nên tên sản phẩm
 // tiếng Việt và ký hiệu ₫ bị "bẩn" trong HTML. Cho phép toàn bộ Unicode để giữ nguyên chữ.

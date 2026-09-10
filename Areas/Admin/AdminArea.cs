@@ -1,8 +1,10 @@
+using ElectronicStore.Models;
+
 namespace ElectronicStore.Areas.Admin;
 
 /// <summary>
-/// Constants shared by every piece of the Admin area, so the area name and the role
-/// name are written down exactly once.
+/// Constants shared by every piece of the Admin area, so the area name is written down
+/// exactly once.
 /// </summary>
 public static class AdminArea
 {
@@ -10,9 +12,8 @@ public static class AdminArea
     public const string Name = "Admin";
 
     /// <summary>
-    /// Role that guards the whole area, enforced in
-    /// <see cref="Controllers.AdminControllerBase"/>. Same value as
-    /// <see cref="Models.AppRoles.Admin"/>, which is what the seeder creates.
+    /// Role guarding the area. Aliases <see cref="AppRoles.Admin"/> rather than repeating
+    /// the literal, so the seeder, the controllers and the views cannot drift apart.
     /// </summary>
-    public const string AdminRole = "Admin";
+    public const string AdminRole = AppRoles.Admin;
 }
