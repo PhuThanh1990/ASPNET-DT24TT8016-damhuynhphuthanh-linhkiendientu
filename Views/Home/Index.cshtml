@@ -56,7 +56,6 @@
                 @foreach (var category in Model.Categories)
                 {
                     <div class="col">
-                        @* TODO (CUS-07): tham số "category" sẽ dùng để lọc danh sách sản phẩm. *@
                         <a class="category-card" asp-controller="Product" asp-action="Index" asp-route-category="@category.Slug">
                             @if (!string.IsNullOrWhiteSpace(category.ImageUrl))
                             {

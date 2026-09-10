@@ -1,0 +1,167 @@
+@model CartViewModel
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+<div class="container">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Giỏ hàng</li>
+        </ol>
+    </nav>
+
+    <h1 class="section-title mb-3">Giỏ hàng</h1>
+
+    @* Giỏ hàng tự sửa khi sản phẩm hết hàng / đổi giá — nói rõ cho khách biết. *@
+    @if (Model.Notices.Count > 0)
+    {
+        <div class="alert alert-warning">
+            <ul class="mb-0 ps-3">
+                @foreach (var notice in Model.Notices)
+                {
+                    <li>@notice</li>
+                }
+            </ul>
+        </div>
+    }
+
+    @if (Model.IsEmpty)
+    {
+        <div class="empty-state">
+            <div class="empty-icon">🛒</div>
+            <h2 class="h5 text-body">Giỏ hàng đang trống</h2>
+            <p class="mb-3">Hãy chọn vài linh kiện để bắt đầu nhé.</p>
+            <a class="btn btn-primary" asp-controller="Product" asp-action="Index">Tiếp tục mua hàng</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            <!-- Danh sách sản phẩm trong giỏ -->
+            <div class="col-12 col-lg-8">
+                <div class="bg-white border rounded-3 p-2 p-md-3">
+                    <div class="table-responsive">
+                        <table class="table align-middle cart-table mb-0">
+                            <thead>
+                                <tr class="small text-muted">
+                                    <th scope="col">Sản phẩm</th>
+                                    <th scope="col" class="d-none d-md-table-cell text-end">Đơn giá</th>
+                                    <th scope="col" class="text-center">Số lượng</th>
+                                    <th scope="col" class="text-end">Thành tiền</th>
+                                    <th scope="col"><span class="visually-hidden">Xóa</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <img class="cart-thumb"
+                                                     src="@DisplayHelper.ImageOrPlaceholder(item.ImageUrl)"
+                                                     alt="@item.Name" loading="lazy" />
+                                                <div>
+                                                    <a class="fw-semibold text-decoration-none"
+                                                       asp-controller="Product" asp-action="Details" asp-route-slug="@item.Slug">
+                                                        @item.Name
+                                                    </a>
+                                                    <div class="product-meta d-md-none">@item.UnitPrice.ToVnd()</div>
+                                                    <div class="product-meta">Còn @item.StockQuantity sản phẩm</div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td class="d-none d-md-table-cell text-end">@item.UnitPrice.ToVnd()</td>
+
+                                        <td>
+                                            @*
+                                                CUS-14 — một form cho cả giảm / tăng / nhập tay.
+                                                Nút "−" và "+" gửi kèm delta nên chạy được cả khi tắt JavaScript.
+                                            *@
+                                            <form class="d-flex justify-content-center align-items-center gap-1"
+                                                  asp-controller="Cart" asp-action="Update" method="post">
+                                                <input type="hidden" name="productId" value="@item.ProductId" />
+
+                                                <button class="btn btn-outline-secondary btn-sm" type="submit"
+                                                        name="delta" value="-1" aria-label="Giảm số lượng">&minus;</button>
+
+                                                <input class="form-control form-control-sm cart-qty" type="number"
+                                                       name="quantity" value="@item.Quantity"
+                                                       min="0" max="@item.StockQuantity" aria-label="Số lượng" />
+
+                                                <button class="btn btn-outline-secondary btn-sm" type="submit"
+                                                        name="delta" value="1" aria-label="Tăng số lượng">+</button>
+
+                                                <button class="btn btn-outline-primary btn-sm" type="submit">Cập nhật</button>
+                                            </form>
+                                        </td>
+
+                                        <td class="text-end fw-semibold text-nowrap">@item.LineTotal.ToVnd()</td>
+
+                                        <td class="text-end">
+                                            <form asp-controller="Cart" asp-action="Remove" method="post">
+                                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                                <button class="btn btn-sm btn-outline-danger" type="submit" title="Xóa khỏi giỏ hàng">
+                                                    Xóa
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <a class="btn btn-outline-secondary mt-3" asp-controller="Product" asp-action="Index">
+                    &larr; Tiếp tục mua hàng
+                </a>
+            </div>
+
+            <!-- CUS-15 — tổng tiền -->
+            <div class="col-12 col-lg-4">
+                <div class="bg-white border rounded-3 p-3 p-lg-4 cart-summary">
+                    <h2 class="h6 fw-bold mb-3">Tóm tắt đơn hàng</h2>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Số lượng</span>
+                        <span>@Model.TotalQuantity sản phẩm</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Tạm tính</span>
+                        <span>@Model.SubTotal.ToVnd()</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Phí vận chuyển</span>
+                        <span class="text-muted small">Tính khi thanh toán</span>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold">Tổng cộng</span>
+                        <span class="detail-price">@Model.Total.ToVnd()</span>
+                    </div>
+
+                    <!-- Thanh toán là CUS-16, chưa làm ở task này -->
+                    <button type="button" class="btn btn-accent w-100" disabled
+                            title="Chức năng thanh toán đang được phát triển">
+                        Tiến hành thanh toán
+                    </button>
+
+                    <p class="product-meta mt-3 mb-0">
+                        Giá hiển thị được lấy lại từ hệ thống mỗi lần mở giỏ hàng. Khi đặt hàng,
+                        đơn hàng sẽ được tính theo giá và tồn kho tại thời điểm thanh toán.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    }
+
+</div>

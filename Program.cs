@@ -50,6 +50,20 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 
 builder.Services.AddControllersWithViews();
 
+// CUS-12 — giỏ hàng sống trong Session. AddDistributedMemoryCache là bộ nhớ trong của
+// chính tiến trình web: đủ cho đồ án, nếu sau này chạy nhiều instance thì đổi sang Redis
+// hoặc SQL Server session store mà không phải sửa code giỏ hàng.
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.Name = ".ElectronicStore.Session";
+    options.Cookie.HttpOnly = true;
+
+    // Giỏ hàng cần cookie này để hoạt động nên nó thuộc nhóm "essential".
+    options.Cookie.IsEssential = true;
+    options.IdleTimeout = TimeSpan.FromHours(2);
+});
+
 // Mặc định Razor encode mọi ký tự ngoài bảng Latin cơ bản thành &#x...; nên tên sản phẩm
 // tiếng Việt và ký hiệu ₫ bị "bẩn" trong HTML. Cho phép toàn bộ Unicode để giữ nguyên chữ.
 builder.Services.Configure<WebEncoderOptions>(options =>
@@ -79,6 +93,9 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Phải nằm trước khi map endpoint thì controller mới đọc được HttpContext.Session.
+app.UseSession();
+
 app.MapStaticAssets();
 
 // SEO-friendly catalog URLs, matching the slug convention in docs/database-schema.md:
@@ -94,6 +111,12 @@ app.MapControllerRoute(
     name: "productDetail",
     pattern: "san-pham/{slug}",
     defaults: new { controller = "Product", action = "Details" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+    name: "cart",
+    pattern: "gio-hang",
+    defaults: new { controller = "Cart", action = "Index" })
     .WithStaticAssets();
 
 app.MapControllerRoute(

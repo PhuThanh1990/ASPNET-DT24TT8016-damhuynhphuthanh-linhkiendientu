@@ -3,8 +3,11 @@
     CUS-04 — Card sản phẩm dùng lại được.
     Gọi ở view khác bằng: <partial name="_ProductCard" model="item" />
     Đã xử lý sẵn: không có ảnh, thiếu brand/category, hết hàng.
-    Nút "Thêm vào giỏ" thuộc task Cart nên chưa có ở đây.
 *@
+@{
+    // Thêm vào giỏ xong quay lại đúng trang đang đứng (kèm bộ lọc / số trang).
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
 <div class="card product-card">
     <a class="product-thumb-link" asp-controller="Product" asp-action="Details" asp-route-slug="@Model.Slug">
         <img class="product-thumb"
@@ -64,9 +67,21 @@
             }
         </div>
 
-        <a class="btn btn-outline-primary btn-sm mt-auto w-100"
-           asp-controller="Product" asp-action="Details" asp-route-slug="@Model.Slug">
-            Xem chi tiết
-        </a>
+        <div class="mt-auto d-grid gap-2">
+            @* CUS-12 — form POST bình thường, chỉ gửi lên productId + quantity. *@
+            <form asp-controller="Cart" asp-action="Add" method="post">
+                <input type="hidden" name="productId" value="@Model.Id" />
+                <input type="hidden" name="quantity" value="1" />
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <button class="btn btn-accent btn-sm w-100" type="submit" disabled="@(!Model.InStock)">
+                    Thêm vào giỏ
+                </button>
+            </form>
+
+            <a class="btn btn-outline-primary btn-sm"
+               asp-controller="Product" asp-action="Details" asp-route-slug="@Model.Slug">
+                Xem chi tiết
+            </a>
+        </div>
     </div>
 </div>
