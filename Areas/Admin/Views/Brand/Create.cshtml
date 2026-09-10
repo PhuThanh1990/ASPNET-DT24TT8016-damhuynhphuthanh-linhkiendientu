@@ -1,0 +1,25 @@
+@model BrandFormViewModel
+@{
+    ViewData["Title"] = "Thêm thương hiệu";
+}
+
+<div class="admin-page-header">
+    <h1>Thêm thương hiệu</h1>
+    <a class="btn btn-outline-secondary" asp-action="Index">Quay lại danh sách</a>
+</div>
+
+<div class="admin-card">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <partial name="_Form" model="Model" />
+
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Tạo thương hiệu</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

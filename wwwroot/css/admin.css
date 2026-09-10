@@ -1,0 +1,189 @@
+/* Admin area styling (ADM-02). Kept to a single small stylesheet on top of Bootstrap
+   so the project does not pull in a heavy admin template. */
+
+:root {
+    --admin-sidebar-width: 230px;
+    --admin-header-height: 56px;
+    --admin-dark: #1f2937;
+    --admin-dark-soft: #111827;
+    --admin-accent: #0d6efd;
+}
+
+.admin-body {
+    background-color: #f4f6f9;
+    min-height: 100vh;
+}
+
+/* ---------- Header ---------- */
+.admin-header {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    height: var(--admin-header-height);
+    padding: 0 1rem;
+    background-color: var(--admin-dark-soft);
+    color: #f8f9fa;
+}
+
+.admin-brand {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.05rem;
+    text-decoration: none;
+}
+
+.admin-brand-tag {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    background-color: var(--admin-accent);
+    border-radius: .25rem;
+    padding: .1rem .35rem;
+    vertical-align: middle;
+}
+
+.admin-header-link {
+    color: #cbd5e1;
+    font-size: .875rem;
+    text-decoration: none;
+}
+
+.admin-header-link:hover {
+    color: #fff;
+}
+
+.admin-header-user {
+    color: #94a3b8;
+    font-size: .8rem;
+}
+
+/* ---------- Shell + sidebar ---------- */
+.admin-shell {
+    display: flex;
+    align-items: stretch;
+    min-height: calc(100vh - var(--admin-header-height));
+}
+
+.admin-sidebar {
+    flex: 0 0 var(--admin-sidebar-width);
+    width: var(--admin-sidebar-width);
+    background-color: var(--admin-dark);
+}
+
+.admin-sidebar-body {
+    padding: 1rem .75rem;
+}
+
+.admin-nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.admin-nav-link {
+    display: block;
+    padding: .55rem .75rem;
+    border-radius: .375rem;
+    color: #cbd5e1;
+    font-size: .925rem;
+    text-decoration: none;
+}
+
+.admin-nav-link:hover {
+    background-color: rgba(255, 255, 255, .08);
+    color: #fff;
+}
+
+.admin-nav-link.active {
+    background-color: var(--admin-accent);
+    color: #fff;
+    font-weight: 500;
+}
+
+.admin-nav-link.disabled {
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.admin-nav-link.disabled:hover {
+    background-color: transparent;
+    color: #64748b;
+}
+
+.admin-badge-soon {
+    font-size: .65rem;
+    text-transform: uppercase;
+    border: 1px solid #475569;
+    border-radius: .25rem;
+    padding: 0 .3rem;
+    margin-left: .25rem;
+}
+
+/* ---------- Main content ---------- */
+.admin-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 1.5rem;
+}
+
+.admin-page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-bottom: 1.25rem;
+}
+
+.admin-page-header h1 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.admin-card {
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: .5rem;
+    padding: 1.25rem;
+}
+
+.admin-empty {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: #6b7280;
+}
+
+.admin-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: .25rem;
+    border: 1px solid #e5e7eb;
+    background-color: #f8f9fa;
+}
+
+.admin-thumb-empty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .65rem;
+    color: #9ca3af;
+}
+
+/* Below lg the sidebar becomes a Bootstrap offcanvas, so it must not hold layout width. */
+@media (max-width: 991.98px) {
+    .admin-sidebar {
+        flex: 0 0 auto;
+        width: var(--admin-sidebar-width);
+    }
+
+    .admin-main {
+        padding: 1rem;
+    }
+}

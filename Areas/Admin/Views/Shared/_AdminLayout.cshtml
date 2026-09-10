@@ -1,0 +1,100 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+
+    string NavClass(string controller) =>
+        string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
+            ? "admin-nav-link active"
+            : "admin-nav-link";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin | ElectronicStore</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+    <header class="admin-header">
+        <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button"
+                data-bs-toggle="offcanvas" data-bs-target="#adminSidebar" aria-controls="adminSidebar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <a class="admin-brand" asp-area="Admin" asp-controller="Home" asp-action="Index">
+            ElectronicStore <span class="admin-brand-tag">Admin</span>
+        </a>
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <a class="admin-header-link" asp-area="" asp-controller="Home" asp-action="Index" target="_blank">
+                Xem website
+            </a>
+            @* Chỗ đặt tên người đăng nhập / nút đăng xuất khi CORE-08/09 xong (xem ADM-03). *@
+            <span class="admin-header-user">Chưa đăng nhập</span>
+        </div>
+    </header>
+
+    <div class="admin-shell">
+        <nav class="admin-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="adminSidebar"
+             aria-label="Điều hướng quản trị">
+            <div class="offcanvas-header d-lg-none">
+                <h5 class="offcanvas-title">Menu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
+                        data-bs-target="#adminSidebar" aria-label="Đóng"></button>
+            </div>
+            <div class="offcanvas-body admin-sidebar-body">
+                <ul class="admin-nav">
+                    <li>
+                        <a class="@NavClass("Home")" asp-area="Admin" asp-controller="Home" asp-action="Index">
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a class="@NavClass("Category")" asp-area="Admin" asp-controller="Category" asp-action="Index">
+                            Danh mục
+                        </a>
+                    </li>
+                    <li>
+                        <a class="@NavClass("Brand")" asp-area="Admin" asp-controller="Brand" asp-action="Index">
+                            Thương hiệu
+                        </a>
+                    </li>
+                    <li>
+                        <a class="@NavClass("Product")" asp-area="Admin" asp-controller="Product" asp-action="Index">
+                            Sản phẩm
+                        </a>
+                    </li>
+                    <li>
+                        @* Placeholder: module Order thuộc task khác, chưa có controller nên để disabled. *@
+                        <span class="admin-nav-link disabled" aria-disabled="true">
+                            Đơn hàng <span class="admin-badge-soon">sắp có</span>
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="admin-main">
+            @if (TempData["SuccessMessage"] is string successMessage)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @successMessage
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] is string errorMessage)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @errorMessage
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+                </div>
+            }
+
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
