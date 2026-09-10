@@ -59,4 +59,8 @@ public class Product
     public Brand Brand { get; set; } = null!;
 
     public ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
+
+    /// <summary>Order lines that reference this product. Read-only in practice: each line
+    /// carries its own name/price snapshot, so this is only used for sales statistics.</summary>
+    public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 }

@@ -9,6 +9,7 @@ Website thương mại điện tử bán **linh kiện điện tử**, xây dự
 | .NET SDK | 10.0 (LTS) — bắt buộc, xem `global.json` |
 | ASP.NET Core MVC | 10.0 |
 | Entity Framework Core | 10.0.12 (provider SQL Server) |
+| ASP.NET Core Identity | 10.0.12 |
 | Database | SQL Server |
 | Frontend | Bootstrap 5 + JavaScript |
 
@@ -87,12 +88,16 @@ Mặc định ứng dụng chạy tại `https://localhost:7036` và `http://loc
 ## Cấu trúc thư mục
 
 ```
+├── Areas/Admin/                 # Khu vực Admin (chỉ role Admin truy cập được)
 ├── Controllers/                 # MVC controllers
 ├── Data/
-│   ├── ApplicationDbContext.cs  # EF Core DbContext
+│   ├── ApplicationDbContext.cs  # EF Core DbContext (IdentityDbContext)
+│   ├── DbInitializer.cs         # Migrate + seed role, admin, catalog
+│   ├── CatalogSeedData.cs       # Dữ liệu catalog mẫu
 │   └── Configurations/          # Fluent API config cho từng entity
 ├── Migrations/                  # EF Core migrations
-├── Models/                      # Entities + ViewModels
+├── Models/                      # Entities + enum
+│   └── ViewModels/              # ViewModel cho form (có DataAnnotation validation)
 ├── Views/                       # Razor views
 ├── wwwroot/                     # CSS, JS, ảnh, thư viện client
 ├── docs/
@@ -103,6 +108,44 @@ Mặc định ứng dụng chạy tại `https://localhost:7036` và `http://loc
 ├── global.json                  # Pin phiên bản .NET SDK cho cả nhóm
 └── ElectronicStore.sln
 ```
+
+## Tài khoản và phân quyền
+
+Hệ thống dùng **ASP.NET Core Identity** (email làm username). Có 2 role: `Admin` và `Customer`.
+
+- Đăng ký ở `/Account/Register` → tài khoản **luôn** nhận role `Customer`. Không có cách nào
+  tự chọn role `Admin` từ form.
+- Đăng nhập `/Account/Login`, đăng xuất bằng POST từ thanh điều hướng.
+- Khu vực `Areas/Admin` yêu cầu role `Admin`; ai không đủ quyền bị đưa về `/Account/AccessDenied`.
+
+### Tài khoản Admin mặc định
+
+Email lấy từ `SeedAdmin:Email` trong `appsettings.json`
+(mặc định `admin@electronicstore.local`). **Mật khẩu không nằm trong repo.**
+
+Cách đặt mật khẩu admin cho máy của bạn:
+
+```bash
+dotnet user-secrets set "SeedAdmin:Password" "<mat-khau-cua-ban>"
+```
+
+Nếu chưa đặt:
+
+| Môi trường | Hành vi |
+| --- | --- |
+| Development | Dùng mật khẩu dev có sẵn trong `Data/DbInitializer.cs` (`Admin@123456`) và ghi cảnh báo ra log. Chỉ để chạy thử trên máy cá nhân |
+| Ngoài Development | **Không tạo** tài khoản admin, chỉ ghi cảnh báo. Không có mật khẩu mặc định nào lọt ra production |
+
+> ⚠️ Mật khẩu dev ở trên là công khai trong source. Đừng dùng nó cho bất kỳ máy chủ nào
+> có người khác truy cập được.
+
+### Dữ liệu seed
+
+Khi chạy ở Development, `Data/DbInitializer.cs` tự động: apply migration → tạo role
+`Admin`/`Customer` → tạo admin mặc định → seed 5 category, 4 brand và 5 sản phẩm mẫu
+(ESP32 DevKit, Arduino Uno R3, DHT22, HC-SR04, Module Relay 5V).
+
+Seed đối chiếu theo `Slug` nên **chạy lại nhiều lần không tạo dữ liệu trùng**.
 
 ## Migration
 
@@ -118,12 +161,17 @@ Migration hiện có:
 | Migration | Nội dung |
 | --- | --- |
 | `AddCatalogModels` | Tạo 4 bảng `Categories`, `Brands`, `Products`, `ProductImages` |
+| `AddIdentityAndOrderFoundation` | Tạo các bảng Identity (`AspNetUsers`, `AspNetRoles`, ...) và `Addresses`, `Orders`, `OrderDetails` |
 
 Áp dụng lên database local (chỉ chạy khi đã cấu hình connection string ở trên):
 
 ```bash
 dotnet ef database update
 ```
+
+> Ở môi trường **Development**, `dotnet run` đã tự gọi `Database.MigrateAsync()` rồi seed
+> dữ liệu, nên thường không cần chạy tay lệnh trên. Môi trường khác thì phải chạy tay —
+> ứng dụng không tự migrate ngoài Development.
 
 Các lệnh hay dùng:
 
@@ -148,4 +196,12 @@ dotnet ef migrations script -o out.sql    # xem SQL sinh ra mà không cần dat
 | CORE-05 | Thiết kế database schema | ✅ |
 | CORE-06 | Models `Category`, `Brand` | ✅ |
 | CORE-07 | Models `Product`, `ProductImage` | ✅ |
-| CORE-08+ | Identity, Order, UI... | ⏳ Chưa làm |
+| CORE-08 | Setup ASP.NET Core Identity | ✅ |
+| CORE-09 | Role `Admin` / `Customer` | ✅ |
+| CORE-10 | Seed admin, category, brand, product | ✅ |
+| CORE-11 | Migration + database ban đầu | ✅ |
+| CORE-12 | Register / Login / Logout | ✅ |
+| CORE-13 | Authorization theo role | ✅ |
+| CORE-14 | Model `Address` | ✅ |
+| CORE-15 | Models `Order`, `OrderDetail` | ✅ |
+| CORE-16+ | Catalog UI, Cart, Checkout, Admin CRUD... | ⏳ Chưa làm |

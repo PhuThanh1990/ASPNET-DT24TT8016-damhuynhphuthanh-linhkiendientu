@@ -9,10 +9,13 @@ Tài liệu thiết kế database cho website bán linh kiện điện tử.
 > | --- | --- | --- |
 > | `Categories`, `Brands` | CORE-06 | ✅ đã triển khai |
 > | `Products`, `ProductImages` | CORE-07 | ✅ đã triển khai |
-> | `AspNetUsers` (Identity) | CORE-08+ | ⏳ chưa làm |
-> | `Addresses`, `Orders`, `OrderDetails`, `Reviews` | CORE-08+ | ⏳ chưa làm |
+> | `AspNetUsers` + các bảng Identity | CORE-08 | ✅ đã triển khai |
+> | `Addresses` | CORE-14 | ✅ đã triển khai |
+> | `Orders`, `OrderDetails` | CORE-15 | ✅ đã triển khai |
+> | `Reviews` | CORE-16+ | ⏳ chưa làm |
 >
-> Migration đã tạo cho phần Catalog: `Migrations/*_AddCatalogModels.cs`.
+> Migration: `*_AddCatalogModels.cs` (catalog) và `*_AddIdentityAndOrderFoundation.cs`
+> (Identity + Address + Order).
 
 - **DBMS:** SQL Server
 - **ORM:** Entity Framework Core 10 (Code First + Migrations)
@@ -74,9 +77,10 @@ Tóm tắt quan hệ:
 
 ## 3. ApplicationUser (bảng `AspNetUsers`)
 
-> Bảng này do **ASP.NET Core Identity** sinh ra ở task sau (CORE-06+).
-> `ApplicationUser` là class kế thừa `IdentityUser` để thêm field riêng của dự án.
-> **CORE-05 không tạo bảng này**, chỉ chốt trước cấu trúc để các bảng khác biết kiểu khóa ngoại.
+> Bảng này do **ASP.NET Core Identity** sinh ra (CORE-08). `ApplicationUser` kế thừa
+> `IdentityUser` và chỉ thêm field riêng của dự án; toàn bộ cột chuẩn của Identity
+> (`AspNetRoles`, `AspNetUserRoles`, `AspNetUserClaims`, `AspNetUserLogins`,
+> `AspNetUserTokens`, `AspNetRoleClaims`) giữ nguyên mặc định.
 
 **PK:** `Id` — `nvarchar(450)` (GUID dạng chuỗi do Identity sinh).
 
@@ -283,12 +287,12 @@ Sổ địa chỉ giao hàng của khách.
 | --- | --- | --- | --- |
 | `Id` | `int` | ✅ | PK |
 | `UserId` | `nvarchar(450)` | ✅ | **FK → AspNetUsers.Id** |
-| `ReceiverName` | `nvarchar(100)` | ✅ | Người nhận (có thể khác chủ tài khoản) |
-| `ReceiverPhone` | `nvarchar(20)` | ✅ | |
-| `Province` | `nvarchar(100)` | ✅ | Tỉnh / Thành phố |
-| `District` | `nvarchar(100)` | ✅ | Quận / Huyện |
+| `FullName` | `nvarchar(100)` | ✅ | Người nhận (có thể khác chủ tài khoản) |
+| `PhoneNumber` | `nvarchar(20)` | ✅ | |
+| `AddressLine` | `nvarchar(255)` | ✅ | Số nhà, tên đường |
 | `Ward` | `nvarchar(100)` | ✅ | Phường / Xã |
-| `StreetAddress` | `nvarchar(255)` | ✅ | Số nhà, tên đường |
+| `District` | `nvarchar(100)` | ✅ | Quận / Huyện |
+| `Province` | `nvarchar(100)` | ✅ | Tỉnh / Thành phố |
 | `IsDefault` | `bit` | ✅ | Mặc định `0`. Địa chỉ chọn sẵn khi checkout |
 | `CreatedAt` | `datetime2` | ✅ | |
 | `UpdatedAt` | `datetime2` | ❌ | |
@@ -298,6 +302,9 @@ Sổ địa chỉ giao hàng của khách.
 **Index:**
 - `INDEX (UserId)`
 - `UNIQUE INDEX (UserId) WHERE IsDefault = 1` — mỗi user chỉ có 1 địa chỉ mặc định
+
+> Entity có thêm property `FullAddress` ghép 4 phần địa chỉ thành 1 dòng. Đây **không phải
+> cột** (`builder.Ignore`), chỉ để checkout copy sang `Order.ShippingAddress`.
 
 ---
 
@@ -311,24 +318,21 @@ Sổ địa chỉ giao hàng của khách.
 | `OrderCode` | `nvarchar(20)` | ✅ | **UNIQUE** — mã hiển thị cho khách, vd `DH20260910-0007` |
 | `UserId` | `nvarchar(450)` | ✅ | **FK → AspNetUsers.Id** |
 | `AddressId` | `int` | ❌ | **FK → Addresses.Id** — chỉ để truy vết, dữ liệu thật đã snapshot bên dưới |
-| `ReceiverName` | `nvarchar(100)` | ✅ | 🔒 Snapshot |
-| `ReceiverPhone` | `nvarchar(20)` | ✅ | 🔒 Snapshot |
+| `ShippingFullName` | `nvarchar(100)` | ✅ | 🔒 Snapshot người nhận |
+| `ShippingPhone` | `nvarchar(20)` | ✅ | 🔒 Snapshot số điện thoại |
 | `ShippingAddress` | `nvarchar(500)` | ✅ | 🔒 Snapshot — địa chỉ đã ghép đầy đủ thành 1 chuỗi |
-| `SubTotal` | `decimal(18,2)` | ✅ | Tổng tiền hàng = `SUM(OrderDetail.LineTotal)` |
-| `ShippingFee` | `decimal(18,2)` | ✅ | Mặc định `0` |
-| `DiscountAmount` | `decimal(18,2)` | ✅ | Mặc định `0` |
-| `TotalAmount` | `decimal(18,2)` | ✅ | `= SubTotal + ShippingFee - DiscountAmount` |
+| `SubTotal` | `decimal(18,2)` | ✅ | Tổng tiền hàng = `SUM(OrderDetail.LineTotal)`. `CHECK >= 0` |
+| `ShippingFee` | `decimal(18,2)` | ✅ | Mặc định `0`. `CHECK >= 0` |
+| `TotalAmount` | `decimal(18,2)` | ✅ | `= SubTotal + ShippingFee`. `CHECK >= 0` |
 | `Status` | `int` | ✅ | Enum `OrderStatus`, mặc định `Pending` |
-| `PaymentMethod` | `int` | ✅ | Enum `PaymentMethod`, mặc định `COD` |
-| `PaymentStatus` | `int` | ✅ | Enum `PaymentStatus`, mặc định `Unpaid` |
 | `Note` | `nvarchar(500)` | ❌ | Ghi chú của khách |
-| `CancelReason` | `nvarchar(500)` | ❌ | Bắt buộc điền khi chuyển sang `Cancelled` (ràng buộc ở tầng code) |
 | `CreatedAt` | `datetime2` | ✅ | Ngày đặt hàng |
-| `ConfirmedAt` | `datetime2` | ❌ | |
-| `ShippedAt` | `datetime2` | ❌ | |
-| `CompletedAt` | `datetime2` | ❌ | |
-| `CancelledAt` | `datetime2` | ❌ | |
-| `RowVersion` | `rowversion` | ✅ | Chống 2 admin cùng đổi trạng thái 1 đơn (optimistic concurrency) |
+| `UpdatedAt` | `datetime2` | ❌ | Lần cuối admin đổi trạng thái |
+
+> **Đã cố ý để ngoài MVP** (thêm sau bằng 1 migration nhỏ khi thật sự cần):
+> `DiscountAmount` + bảng `Coupon`, `PaymentMethod` / `PaymentStatus` (MVP mặc định COD),
+> `CancelReason`, các mốc thời gian `ConfirmedAt` / `ShippedAt` / `CompletedAt` / `CancelledAt`,
+> và `RowVersion` cho optimistic concurrency.
 
 **Khóa ngoại:**
 
@@ -376,10 +380,6 @@ Pending → Confirmed → Preparing → Shipping → Completed
 - `Completed` và `Cancelled` là trạng thái **kết thúc**, không quay lui.
 - Khi chuyển sang `Cancelled`, phải **cộng trả** `StockQuantity` cho từng sản phẩm trong đơn.
 
-Enum phụ:
-
-- `PaymentMethod`: `COD = 0`, `BankTransfer = 1`
-- `PaymentStatus`: `Unpaid = 0`, `Paid = 1`, `Refunded = 2`
 
 ---
 
@@ -395,8 +395,6 @@ Dòng hàng trong đơn. **Đây là bản ghi lịch sử — sau khi tạo th�
 | `OrderId` | `int` | ✅ | **FK → Orders.Id** |
 | `ProductId` | `int` | ✅ | **FK → Products.Id** — chỉ để link sang trang sản phẩm |
 | `ProductName` | `nvarchar(200)` | ✅ | 🔒 Snapshot tên tại thời điểm mua |
-| `ProductSku` | `nvarchar(50)` | ❌ | 🔒 Snapshot |
-| `ProductImageUrl` | `nvarchar(500)` | ❌ | 🔒 Snapshot ảnh chính, để in lại đơn không phụ thuộc bảng ảnh |
 | `UnitPrice` | `decimal(18,2)` | ✅ | 🔒 Snapshot **giá bán tại thời điểm mua** |
 | `Quantity` | `int` | ✅ | `CHECK (Quantity > 0)` |
 | `LineTotal` | `decimal(18,2)` | ✅ | `= UnitPrice * Quantity` |
@@ -501,11 +499,11 @@ Tạo entity theo đúng thứ tự phụ thuộc để migration không bị l�
 1. ✅ `Category`, `Brand` (không phụ thuộc bảng nào) — CORE-06
 2. ✅ `Product` (phụ thuộc Category, Brand) — CORE-07
 3. ✅ `ProductImage` (phụ thuộc Product) — CORE-07
-4. `ApplicationUser` + Identity (bảng `AspNetUsers`)
-5. `Address` (phụ thuộc User)
-6. `Order` (phụ thuộc User, Address)
-7. `OrderDetail` (phụ thuộc Order, Product)
-8. `Review` (phụ thuộc Product, User)
+4. ✅ `ApplicationUser` + Identity (bảng `AspNetUsers`) — CORE-08
+5. ✅ `Address` (phụ thuộc User) — CORE-14
+6. ✅ `Order` (phụ thuộc User, Address) — CORE-15
+7. ✅ `OrderDetail` (phụ thuộc Order, Product) — CORE-15
+8. `Review` (phụ thuộc Product, User) — CORE-16+
 
 Mỗi entity nên có 1 file cấu hình riêng dạng `IEntityTypeConfiguration<T>` trong
 `Data/Configurations/` — `ApplicationDbContext.OnModelCreating` đã gọi sẵn
