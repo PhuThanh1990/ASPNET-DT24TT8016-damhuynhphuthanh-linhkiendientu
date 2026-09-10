@@ -28,6 +28,8 @@ public class ProductDetailViewModel
 
     public string? BrandName { get; set; }
 
+    public string? BrandSlug { get; set; }
+
     public int ViewCount { get; set; }
 
     /// <summary>Gallery in display order: primary image first. Empty when the product has none.</summary>
