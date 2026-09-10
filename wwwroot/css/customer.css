@@ -312,6 +312,76 @@ body {
     height: auto;
 }
 
+/* ---------- Bộ lọc / tìm kiếm (CUS-08 → CUS-10) ---------- */
+
+.filter-bar {
+    background-color: #fff;
+    border: 1px solid var(--shop-border);
+    border-radius: .625rem;
+    padding: 1rem;
+}
+
+.filter-bar .form-label {
+    color: var(--shop-muted);
+    font-weight: 600;
+}
+
+/* ---------- Phân trang (CUS-11) ---------- */
+
+.pagination .page-link {
+    color: var(--shop-blue);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--shop-blue);
+    border-color: var(--shop-blue);
+    color: #fff;
+}
+
+/* ---------- Giỏ hàng (CUS-13 → CUS-15) ---------- */
+
+.cart-thumb {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    background-color: #fff;
+    border: 1px solid var(--shop-border);
+    border-radius: .5rem;
+    padding: .25rem;
+    flex-shrink: 0;
+}
+
+.cart-table th {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.cart-table td {
+    vertical-align: middle;
+}
+
+/* Ô nhập số lượng: đủ rộng cho 3 chữ số, bỏ mũi tên tăng/giảm mặc định của trình duyệt
+   vì đã có nút "−" và "+" riêng. */
+.cart-qty {
+    width: 4.5rem;
+    text-align: center;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.cart-qty::-webkit-outer-spin-button,
+.cart-qty::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+@media (min-width: 992px) {
+    .cart-summary {
+        position: sticky;
+        top: 1rem;
+    }
+}
+
 /* ---------- Footer ---------- */
 
 .shop-footer {

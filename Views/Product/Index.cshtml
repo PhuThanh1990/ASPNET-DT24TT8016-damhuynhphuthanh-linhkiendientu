@@ -1,6 +1,6 @@
 @model ProductListViewModel
 @{
-    ViewData["Title"] = "Sản phẩm";
+    ViewData["Title"] = Model.HasFilter ? "Kết quả tìm kiếm" : "Sản phẩm";
 }
 
 <div class="container">
@@ -13,16 +13,85 @@
     </nav>
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <h1 class="section-title">Tất cả sản phẩm</h1>
-        @if (Model.TotalCount > 0)
+        <h1 class="section-title">
+            @if (!string.IsNullOrEmpty(Model.Keyword))
+            {
+                @:Kết quả cho "@Model.Keyword"
+            }
+            else if (Model.CategoryName is not null)
+            {
+                @Model.CategoryName
+            }
+            else
+            {
+                @:Tất cả sản phẩm
+            }
+        </h1>
+
+        @if (Model.TotalItems > 0)
         {
-            <span class="text-muted small">@Model.TotalCount sản phẩm</span>
+            <span class="text-muted small">
+                Hiển thị @Model.FirstItemIndex–@Model.LastItemIndex trong @Model.TotalItems sản phẩm
+            </span>
         }
     </div>
 
-    @* Vùng bộ lọc / sắp xếp / phân trang (CUS-07) sẽ được thêm ngay tại đây. *@
+    <!-- CUS-08/09/10: form GET nên mọi lựa chọn nằm trên URL, chia sẻ link được. -->
+    <form class="filter-bar mb-4" method="get" asp-controller="Product" asp-action="Index">
+        <div class="row g-2 align-items-end">
 
-    @if (Model.TotalCount > 0)
+            <div class="col-12 col-lg-4">
+                <label class="form-label small mb-1" for="filterKeyword">Từ khóa</label>
+                <input class="form-control" id="filterKeyword" type="search" name="keyword"
+                       value="@Model.Keyword" maxlength="100"
+                       placeholder="Tên sản phẩm, mã SKU hoặc thương hiệu" />
+            </div>
+
+            <div class="col-6 col-lg-2">
+                <label class="form-label small mb-1" for="filterCategory">Danh mục</label>
+                <select class="form-select" id="filterCategory" name="category">
+                    <option value="">Tất cả</option>
+                    @foreach (var option in Model.Categories)
+                    {
+                        <option value="@option.Slug" selected="@(option.Slug == Model.Category)">@option.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-6 col-lg-2">
+                <label class="form-label small mb-1" for="filterBrand">Thương hiệu</label>
+                <select class="form-select" id="filterBrand" name="brand">
+                    <option value="">Tất cả</option>
+                    @foreach (var option in Model.Brands)
+                    {
+                        <option value="@option.Slug" selected="@(option.Slug == Model.Brand)">@option.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-6 col-lg-2">
+                <label class="form-label small mb-1" for="filterSort">Sắp xếp</label>
+                <select class="form-select" id="filterSort" name="sort">
+                    @foreach (var (value, label) in ProductSortOptions.All)
+                    {
+                        <option value="@value" selected="@(value == Model.Sort)">@label</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-6 col-lg-2 d-flex gap-2">
+                <button class="btn btn-primary flex-grow-1" type="submit">Áp dụng</button>
+                @if (Model.HasFilter)
+                {
+                    <a class="btn btn-outline-secondary" asp-controller="Product" asp-action="Index" title="Xóa bộ lọc">Xóa</a>
+                }
+            </div>
+
+        </div>
+        @* Không có input "page": mỗi lần lọc lại luôn quay về trang 1. *@
+    </form>
+
+    @if (Model.Products.Count > 0)
     {
         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
             @foreach (var product in Model.Products)
@@ -31,6 +100,17 @@
                     <partial name="_ProductCard" model="product" />
                 </div>
             }
+        </div>
+
+        <partial name="_Pagination" model="Model" />
+    }
+    else if (Model.HasFilter)
+    {
+        <div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <h2 class="h5 text-body">Không tìm thấy sản phẩm phù hợp</h2>
+            <p class="mb-3">Thử bỏ bớt bộ lọc hoặc dùng từ khóa ngắn hơn.</p>
+            <a class="btn btn-outline-primary btn-sm" asp-controller="Product" asp-action="Index">Xem tất cả sản phẩm</a>
         </div>
     }
     else

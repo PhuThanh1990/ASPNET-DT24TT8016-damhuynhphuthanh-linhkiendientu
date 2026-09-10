@@ -1,5 +1,5 @@
-using System.Text.Json;
 using ElectronicStore.Data;
+using ElectronicStore.Helpers;
 using ElectronicStore.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +12,9 @@ namespace ElectronicStore.Controllers;
 /// </summary>
 public class ProductController : Controller
 {
+    /// <summary>Số sản phẩm mỗi trang (CUS-11).</summary>
+    private const int PageSize = 12;
+
     private readonly ApplicationDbContext _context;
 
     public ProductController(ApplicationDbContext context)
@@ -20,27 +23,92 @@ public class ProductController : Controller
     }
 
     /// <summary>
-    /// Product list. Search / filter / sort / paging belong to CUS-07: they are applied
-    /// to <c>query</c> below, before the projection, so this action keeps one SQL query.
+    /// Product list with search (CUS-08), category/brand filter (CUS-09), sort (CUS-10)
+    /// and server-side paging (CUS-11).
+    ///
+    /// Thứ tự bắt buộc: IQueryable → search → filter → sort → COUNT → Skip/Take →
+    /// projection. Không có <c>ToListAsync</c> nào trước Skip/Take, nên SQL Server chỉ
+    /// trả về đúng 12 dòng của trang đang xem.
     /// </summary>
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(
+        string? keyword,
+        string? category,
+        string? brand,
+        string? sort,
+        int page = 1)
     {
+        keyword = Normalize(keyword);
+        category = Normalize(category);
+        brand = Normalize(brand);
+        sort = ProductSortOptions.Normalize(sort);
+
         var query = _context.Products
             .AsNoTracking()
             .Where(p => p.IsActive);
 
-        // TODO (CUS-07): .Where(keyword) / .Where(categoryId, brandId, price range) here.
-        // TODO (CUS-07+): ordering option + .Skip()/.Take() for paging here.
+        // --- CUS-08: search ---
+        if (keyword is not null)
+        {
+            // Contains dịch thành LIKE N'%...%' chạy dưới SQL Server. Collation mặc định
+            // của SQL Server không phân biệt hoa thường nên không cần ToLower(), và cũng
+            // không nên dùng ToLower() vì nó làm index trên Name mất tác dụng.
+            query = query.Where(p =>
+                p.Name.Contains(keyword) ||
+                p.Sku.Contains(keyword) ||
+                p.Brand.Name.Contains(keyword));
+        }
+
+        // --- CUS-09: filter theo slug; slug sai chỉ ra 0 kết quả, không lỗi ---
+        if (category is not null)
+        {
+            query = query.Where(p => p.Category.Slug == category);
+        }
+
+        if (brand is not null)
+        {
+            query = query.Where(p => p.Brand.Slug == brand);
+        }
+
+        // --- CUS-10: sort ngay trên IQueryable, luôn có Id làm tiêu chí phụ để thứ tự
+        // ổn định giữa các trang khi nhiều sản phẩm trùng giá / trùng ngày tạo ---
+        query = sort switch
+        {
+            ProductSortOptions.PriceAsc => query.OrderBy(p => p.Price).ThenByDescending(p => p.Id),
+            ProductSortOptions.PriceDesc => query.OrderByDescending(p => p.Price).ThenByDescending(p => p.Id),
+            ProductSortOptions.NameAsc => query.OrderBy(p => p.Name).ThenByDescending(p => p.Id),
+            _ => query.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id),
+        };
+
+        // --- CUS-11: đếm trước, rồi mới cắt trang ---
+        var totalItems = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalItems / (double)PageSize);
+
+        // page <= 0 hoặc vượt quá số trang đều được kéo về khoảng hợp lệ thay vì lỗi.
+        page = Math.Max(page, 1);
+        if (totalPages > 0)
+        {
+            page = Math.Min(page, totalPages);
+        }
 
         var products = await query
-            .OrderByDescending(p => p.CreatedAt)
-            .ThenByDescending(p => p.Id)
+            .Skip((page - 1) * PageSize)
+            .Take(PageSize)
             .Select(ProductCardViewModel.FromProduct)
             .ToListAsync();
 
         var model = new ProductListViewModel
         {
             Products = products,
+            Keyword = keyword,
+            Category = category,
+            Brand = brand,
+            Sort = sort,
+            CurrentPage = page,
+            PageSize = PageSize,
+            TotalItems = totalItems,
+            TotalPages = totalPages,
+            Categories = await LoadCategoryOptionsAsync(),
+            Brands = await LoadBrandOptionsAsync(),
         };
 
         return View(model);
@@ -78,6 +146,7 @@ public class ProductController : Controller
                     CategoryName = p.Category.Name,
                     CategorySlug = p.Category.Slug,
                     BrandName = p.Brand.Name,
+                    BrandSlug = p.Brand.Slug,
                     ViewCount = p.ViewCount,
                     Images = p.ProductImages
                         .OrderByDescending(i => i.IsPrimary)
@@ -99,60 +168,34 @@ public class ProductController : Controller
             return NotFound();
         }
 
-        row.Detail.Specifications = ParseSpecifications(row.SpecificationsJson);
+        // CUS-07 — parse ngoài SQL, JSON hỏng chỉ làm bảng thông số trống.
+        row.Detail.Specifications = SpecificationParser.Parse(row.SpecificationsJson);
 
         return View(row.Detail);
     }
 
-    /// <summary>
-    /// Turns the flat JSON spec object into table rows. Bad or missing JSON is not an
-    /// error for the customer: the page simply shows no specification table.
-    /// </summary>
-    private static List<SpecificationViewModel> ParseSpecifications(string? json)
+    private async Task<IReadOnlyList<FilterOptionViewModel>> LoadCategoryOptionsAsync() =>
+        await _context.Categories
+            .AsNoTracking()
+            .Where(c => c.IsActive)
+            .OrderBy(c => c.SortOrder)
+            .ThenBy(c => c.Name)
+            .Select(c => new FilterOptionViewModel { Name = c.Name, Slug = c.Slug })
+            .ToListAsync();
+
+    private async Task<IReadOnlyList<FilterOptionViewModel>> LoadBrandOptionsAsync() =>
+        await _context.Brands
+            .AsNoTracking()
+            .Where(b => b.IsActive)
+            .OrderBy(b => b.Name)
+            .Select(b => new FilterOptionViewModel { Name = b.Name, Slug = b.Slug })
+            .ToListAsync();
+
+    /// <summary>Trim tham số query string; chuỗi rỗng coi như không truyền.</summary>
+    private static string? Normalize(string? value)
     {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return [];
-        }
+        var trimmed = value?.Trim();
 
-        try
-        {
-            using var document = JsonDocument.Parse(json);
-
-            if (document.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                return [];
-            }
-
-            var specifications = new List<SpecificationViewModel>();
-
-            foreach (var property in document.RootElement.EnumerateObject())
-            {
-                // Values should be strings (docs/database-schema.md § 6.1) but a number
-                // or a boolean slipped in by hand still renders instead of blowing up.
-                var value = property.Value.ValueKind switch
-                {
-                    JsonValueKind.String => property.Value.GetString() ?? string.Empty,
-                    JsonValueKind.Null or JsonValueKind.Undefined => string.Empty,
-                    JsonValueKind.Object or JsonValueKind.Array => string.Empty,
-                    _ => property.Value.ToString(),
-                };
-
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    specifications.Add(new SpecificationViewModel
-                    {
-                        Name = property.Name,
-                        Value = value,
-                    });
-                }
-            }
-
-            return specifications;
-        }
-        catch (JsonException)
-        {
-            return [];
-        }
+        return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 }
