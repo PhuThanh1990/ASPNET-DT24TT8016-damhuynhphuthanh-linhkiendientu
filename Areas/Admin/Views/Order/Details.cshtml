@@ -1,0 +1,170 @@
+@model OrderDetailViewModel
+@{
+    ViewData["Title"] = $"Đơn {Model.OrderCode}";
+}
+
+<div class="admin-page-header">
+    <h1>Đơn @Model.OrderCode</h1>
+    <a class="btn btn-outline-secondary" asp-action="Index">Quay lại danh sách</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="admin-card h-100">
+            <h2 class="h6">Đơn hàng</h2>
+            <dl class="row mb-0">
+                <dt class="col-5">Mã đơn</dt>
+                <dd class="col-7"><code>@Model.OrderCode</code></dd>
+
+                <dt class="col-5">Trạng thái</dt>
+                <dd class="col-7">
+                    <span class="badge @OrderStatusDisplay.BadgeClass(Model.Status)">
+                        @OrderStatusDisplay.DisplayName(Model.Status)
+                    </span>
+                </dd>
+
+                <dt class="col-5">Ngày đặt</dt>
+                <dd class="col-7">@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+
+                @if (Model.UpdatedAt is { } updatedAt)
+                {
+                    <dt class="col-5">Cập nhật</dt>
+                    <dd class="col-7">@updatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+                }
+
+                <dt class="col-5">Tổng tiền</dt>
+                <dd class="col-7"><strong>@Model.TotalAmount.ToVnd()</strong></dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="admin-card h-100">
+            <h2 class="h6">Khách hàng</h2>
+            <dl class="row mb-0">
+                <dt class="col-5">Tên tài khoản</dt>
+                <dd class="col-7">@(string.IsNullOrWhiteSpace(Model.CustomerName) ? "(chưa đặt tên)" : Model.CustomerName)</dd>
+
+                <dt class="col-5">Email</dt>
+                <dd class="col-7">@Model.CustomerEmail</dd>
+
+                <dt class="col-5">Điện thoại</dt>
+                <dd class="col-7">@(string.IsNullOrWhiteSpace(Model.CustomerPhone) ? "—" : Model.CustomerPhone)</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="admin-card h-100">
+            <h2 class="h6">Giao hàng</h2>
+            @* Toàn bộ khối này là snapshot lúc đặt hàng, không đọc lại sổ địa chỉ của khách. *@
+            <dl class="row mb-0">
+                <dt class="col-5">Người nhận</dt>
+                <dd class="col-7">@Model.ShippingFullName</dd>
+
+                <dt class="col-5">Điện thoại</dt>
+                <dd class="col-7">@Model.ShippingPhone</dd>
+
+                <dt class="col-5">Địa chỉ</dt>
+                <dd class="col-7">@Model.ShippingAddress</dd>
+
+                <dt class="col-5">Ghi chú</dt>
+                <dd class="col-7">@(string.IsNullOrWhiteSpace(Model.Note) ? "—" : Model.Note)</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+
+<div class="admin-card mt-3">
+    <h2 class="h6 mb-3">Sản phẩm trong đơn</h2>
+
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th scope="col">Sản phẩm</th>
+                    <th scope="col" class="text-end">Đơn giá</th>
+                    <th scope="col" class="text-end">Số lượng</th>
+                    <th scope="col" class="text-end">Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                @* Tên và giá lấy từ snapshot OrderDetail, không lấy Product.Name/Price hiện tại. *@
+                @foreach (var line in Model.Lines)
+                {
+                    <tr>
+                        <td>
+                            @line.ProductName
+                            @if (line.ProductStillExists)
+                            {
+                                <a class="small ms-2" asp-area="Admin" asp-controller="Product"
+                                   asp-action="Edit" asp-route-id="@line.ProductId">xem sản phẩm</a>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">@line.UnitPrice.ToVnd()</td>
+                        <td class="text-end">@line.Quantity</td>
+                        <td class="text-end text-nowrap">@line.LineTotal.ToVnd()</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-end">Tiền hàng</td>
+                    <td class="text-end text-nowrap">@Model.SubTotal.ToVnd()</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-end">Phí vận chuyển</td>
+                    <td class="text-end text-nowrap">@Model.ShippingFee.ToVnd()</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-end"><strong>Tổng cộng</strong></td>
+                    <td class="text-end text-nowrap"><strong>@Model.TotalAmount.ToVnd()</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<div class="admin-card mt-3">
+    <h2 class="h6 mb-3">Cập nhật trạng thái</h2>
+
+    @* ADM-16: chỉ hiện đúng bước hợp lệ kế tiếp. Các nút dưới đây dựng từ state machine của
+       Core (OrderStatusRules) nên không bao giờ hiện một thao tác mà OrderService sẽ từ chối. *@
+    @if (Model.NextStatus is null && !Model.CanCancel)
+    {
+        <p class="mb-0 text-muted">
+            Đơn đang ở trạng thái kết thúc (<strong>@OrderStatusDisplay.DisplayName(Model.Status)</strong>),
+            không thể chuyển tiếp.
+        </p>
+    }
+    else
+    {
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            @if (Model.NextStatus is { } next)
+            {
+                <form asp-action="Advance" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="target" value="@next" />
+                    <button type="submit" class="btn btn-primary">
+                        @OrderStatusDisplay.ActionLabel(next)
+                    </button>
+                </form>
+                <span class="text-muted small">
+                    @OrderStatusDisplay.DisplayName(Model.Status) → @OrderStatusDisplay.DisplayName(next)
+                </span>
+            }
+
+            @if (Model.CanCancel)
+            {
+                @* Hủy đi qua action riêng vì OrderService phải hoàn trả tồn kho. *@
+                <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" class="d-inline"
+                      onsubmit="return confirm('Hủy đơn @Model.OrderCode? Tồn kho sẽ được hoàn trả.');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger">
+                        @OrderStatusDisplay.ActionLabel(OrderStatus.Cancelled)
+                    </button>
+                </form>
+            }
+        </div>
+    }
+</div>

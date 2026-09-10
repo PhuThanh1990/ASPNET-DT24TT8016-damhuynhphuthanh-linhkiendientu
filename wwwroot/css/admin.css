@@ -187,3 +187,15 @@
         padding: 1rem;
     }
 }
+
+/* ---------- Product screens (ADM-10 .. ADM-13) ---------- */
+.admin-stock-form input[type="number"] {
+    width: 5.5rem;
+}
+
+/* Uniform tiles on the product image screen regardless of the uploaded aspect ratio. */
+.admin-image-tile {
+    height: 150px;
+    object-fit: cover;
+    background-color: #f8f9fa;
+}

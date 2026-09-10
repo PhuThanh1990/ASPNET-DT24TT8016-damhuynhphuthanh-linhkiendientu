@@ -482,3 +482,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Uploaded product images (ADM-12). User content written at runtime under wwwroot;
+# the folder is created on demand and must never be committed.
+/wwwroot/uploads/
