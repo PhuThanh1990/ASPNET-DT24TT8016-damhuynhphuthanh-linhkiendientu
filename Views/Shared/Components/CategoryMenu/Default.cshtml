@@ -1,0 +1,31 @@
+@model IReadOnlyList<CategoryLinkViewModel>
+
+@* Không có danh mục nào đang hoạt động thì bỏ hẳn menu, không hiện dropdown rỗng. *@
+@if (Model.Count > 0)
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Danh mục
+        </a>
+        <ul class="dropdown-menu">
+            @foreach (var category in Model)
+            {
+                @* TODO (CUS-07): tham số "category" sẽ được ProductController.Index đọc để lọc. *@
+                <li>
+                    <a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-category="@category.Slug">
+                        @category.Name
+                    </a>
+                </li>
+
+                @foreach (var child in category.Children)
+                {
+                    <li>
+                        <a class="dropdown-item small ps-4 text-muted" asp-controller="Product" asp-action="Index" asp-route-category="@child.Slug">
+                            @child.Name
+                        </a>
+                    </li>
+                }
+            }
+        </ul>
+    </li>
+}

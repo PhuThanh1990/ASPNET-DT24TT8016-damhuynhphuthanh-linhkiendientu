@@ -1,0 +1,358 @@
+/* ============================================================================
+   customer.css — giao diện phía khách hàng (CUS-01 -> CUS-06)
+   Chỉ dùng Bootstrap 5 + CSS thuần, không thêm framework frontend nào khác.
+   ========================================================================== */
+
+:root {
+    --shop-navy: #0f2540;
+    --shop-navy-dark: #0a1a2e;
+    --shop-blue: #1b6ec2;
+    --shop-blue-dark: #155a9e;
+    --shop-accent: #f97316;
+    --shop-bg: #f4f6f9;
+    --shop-border: #e3e7ee;
+    --shop-muted: #6b7785;
+}
+
+/* ---------- Khung trang: footer luôn nằm dưới cùng ---------- */
+
+html {
+    position: static;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--shop-bg);
+    color: #212b36;
+}
+
+.shop-main {
+    flex: 1 0 auto;
+}
+
+/* ---------- Thanh thông tin trên cùng ---------- */
+
+.shop-topbar {
+    background-color: var(--shop-navy-dark);
+    color: #cfd8e3;
+    font-size: .8125rem;
+}
+
+.shop-topbar a {
+    color: #cfd8e3;
+    text-decoration: none;
+}
+
+.shop-topbar a:hover {
+    color: #fff;
+}
+
+/* ---------- Navbar ---------- */
+
+.shop-navbar {
+    background-color: var(--shop-navy);
+}
+
+.shop-navbar .navbar-brand {
+    font-weight: 700;
+    letter-spacing: .3px;
+    color: #fff;
+}
+
+.shop-navbar .navbar-brand span {
+    color: var(--shop-accent);
+}
+
+.shop-navbar .nav-link {
+    color: #dfe6ef;
+    font-weight: 500;
+}
+
+.shop-navbar .nav-link:hover,
+.shop-navbar .nav-link:focus,
+.shop-navbar .nav-link.active {
+    color: #fff;
+}
+
+.shop-search {
+    max-width: 460px;
+    width: 100%;
+}
+
+.shop-search .form-control:focus {
+    box-shadow: none;
+    border-color: var(--shop-accent);
+}
+
+.btn-accent {
+    background-color: var(--shop-accent);
+    border-color: var(--shop-accent);
+    color: #fff;
+}
+
+.btn-accent:hover,
+.btn-accent:focus {
+    background-color: #ea6a0b;
+    border-color: #ea6a0b;
+    color: #fff;
+}
+
+.shop-cart-badge {
+    font-size: .7rem;
+}
+
+/* ---------- Tiêu đề khối ---------- */
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+    padding-left: .75rem;
+    border-left: 4px solid var(--shop-accent);
+    line-height: 1.2;
+}
+
+/* ---------- Hero / banner ---------- */
+
+.shop-hero {
+    background: linear-gradient(120deg, var(--shop-navy) 0%, #1b3f6b 55%, var(--shop-blue) 100%);
+    color: #fff;
+    border-radius: .75rem;
+    overflow: hidden;
+}
+
+.shop-hero .hero-badge {
+    background-color: rgba(255, 255, 255, .14);
+    border: 1px solid rgba(255, 255, 255, .25);
+    font-size: .8rem;
+}
+
+.shop-hero-stat {
+    background-color: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .15);
+    border-radius: .5rem;
+}
+
+/* ---------- Card danh mục ---------- */
+
+.category-card {
+    display: block;
+    height: 100%;
+    padding: 1rem .75rem;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    background-color: #fff;
+    border: 1px solid var(--shop-border);
+    border-radius: .625rem;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--shop-blue);
+    box-shadow: 0 .5rem 1rem rgba(15, 37, 64, .1);
+    color: inherit;
+}
+
+.category-card .category-thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    margin-bottom: .5rem;
+}
+
+.category-card .category-initial {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto .5rem;
+    border-radius: 50%;
+    background-color: #eaf1fb;
+    color: var(--shop-blue);
+    font-weight: 700;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ---------- Card sản phẩm ---------- */
+
+.product-card {
+    height: 100%;
+    border: 1px solid var(--shop-border);
+    border-radius: .625rem;
+    background-color: #fff;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 .5rem 1.25rem rgba(15, 37, 64, .12);
+}
+
+.product-card .product-thumb-link {
+    display: block;
+    position: relative;
+    background-color: #fff;
+    border-bottom: 1px solid var(--shop-border);
+    border-radius: .625rem .625rem 0 0;
+    overflow: hidden;
+}
+
+.product-card .product-thumb {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: contain;
+    padding: .75rem;
+}
+
+.product-card .product-name {
+    font-size: .95rem;
+    font-weight: 600;
+    line-height: 1.35;
+    min-height: 2.6em;
+}
+
+.product-card .product-name a {
+    color: #17222e;
+    text-decoration: none;
+}
+
+.product-card .product-name a:hover {
+    color: var(--shop-blue);
+}
+
+.product-price {
+    color: #d9480f;
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.product-old-price {
+    color: var(--shop-muted);
+    text-decoration: line-through;
+    font-size: .85rem;
+}
+
+.product-badge-discount {
+    position: absolute;
+    top: .5rem;
+    left: .5rem;
+}
+
+.product-meta {
+    font-size: .78rem;
+    color: var(--shop-muted);
+}
+
+/* ---------- Trạng thái rỗng ---------- */
+
+.empty-state {
+    background-color: #fff;
+    border: 1px dashed var(--shop-border);
+    border-radius: .625rem;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: var(--shop-muted);
+}
+
+.empty-state .empty-icon {
+    font-size: 2rem;
+    line-height: 1;
+    margin-bottom: .5rem;
+}
+
+/* ---------- Trang chi tiết ---------- */
+
+.detail-main-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background-color: #fff;
+    border: 1px solid var(--shop-border);
+    border-radius: .625rem;
+    padding: 1rem;
+}
+
+.detail-thumb {
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+    padding: .25rem;
+    background-color: #fff;
+    border: 1px solid var(--shop-border);
+    border-radius: .5rem;
+    cursor: pointer;
+}
+
+.detail-thumb.active,
+.detail-thumb:hover {
+    border-color: var(--shop-blue);
+}
+
+.detail-price {
+    color: #d9480f;
+    font-weight: 700;
+    font-size: 1.75rem;
+}
+
+.spec-table th {
+    width: 38%;
+    background-color: #f8f9fb;
+    font-weight: 600;
+}
+
+.product-description img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ---------- Footer ---------- */
+
+.shop-footer {
+    flex-shrink: 0;
+    background-color: var(--shop-navy);
+    color: #c6d0dc;
+}
+
+.shop-footer h6 {
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: .4px;
+}
+
+.shop-footer a {
+    color: #c6d0dc;
+    text-decoration: none;
+}
+
+.shop-footer a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.shop-footer .footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, .12);
+    font-size: .85rem;
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 991.98px) {
+    .shop-search {
+        max-width: 100%;
+    }
+
+    .shop-navbar .navbar-nav {
+        padding-top: .5rem;
+    }
+
+    .detail-price {
+        font-size: 1.5rem;
+    }
+}

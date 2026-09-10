@@ -1,0 +1,181 @@
+@model ProductDetailViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    var mainImageUrl = DisplayHelper.ImageOrPlaceholder(Model.PrimaryImage?.ImageUrl);
+    var mainImageAlt = string.IsNullOrWhiteSpace(Model.PrimaryImage?.AltText) ? Model.Name : Model.PrimaryImage!.AltText;
+}
+
+<div class="container">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
+            @if (!string.IsNullOrWhiteSpace(Model.CategoryName))
+            {
+                <li class="breadcrumb-item">
+                    @* TODO (CUS-07): link này sẽ lọc theo danh mục. *@
+                    <a asp-controller="Product" asp-action="Index" asp-route-category="@Model.CategorySlug">@Model.CategoryName</a>
+                </li>
+            }
+            <li class="breadcrumb-item active text-truncate" aria-current="page">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <div class="bg-white border rounded-3 p-3 p-lg-4 mb-4">
+        <div class="row g-4">
+
+            <!-- Ảnh sản phẩm -->
+            <div class="col-12 col-lg-5">
+                <img id="detailMainImage" class="detail-main-image" src="@mainImageUrl" alt="@mainImageAlt" />
+
+                @if (Model.Images.Count > 1)
+                {
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        @for (var i = 0; i < Model.Images.Count; i++)
+                        {
+                            var image = Model.Images[i];
+                            <img class="detail-thumb @(i == 0 ? "active" : null)"
+                                 src="@image.ImageUrl"
+                                 alt="@(string.IsNullOrWhiteSpace(image.AltText) ? Model.Name : image.AltText)"
+                                 data-full="@image.ImageUrl"
+                                 loading="lazy" />
+                        }
+                    </div>
+                }
+                else if (Model.Images.Count == 0)
+                {
+                    <p class="product-meta text-center mt-2 mb-0">Sản phẩm chưa có ảnh</p>
+                }
+            </div>
+
+            <!-- Thông tin chính -->
+            <div class="col-12 col-lg-7">
+                <h1 class="h4 fw-bold mb-2">@Model.Name</h1>
+
+                <div class="product-meta mb-3">
+                    <span>Mã SP: <span class="fw-semibold">@Model.Sku</span></span>
+                    @if (!string.IsNullOrWhiteSpace(Model.BrandName))
+                    {
+                        <span class="ms-3">Thương hiệu: <span class="fw-semibold">@Model.BrandName</span></span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.CategoryName))
+                    {
+                        <span class="ms-3">Danh mục: <span class="fw-semibold">@Model.CategoryName</span></span>
+                    }
+                </div>
+
+                <div class="bg-body-tertiary border rounded-3 p-3 mb-3">
+                    <span class="detail-price">@Model.Price.ToVnd()</span>
+                    @if (Model.HasDiscount)
+                    {
+                        <span class="product-old-price ms-2">@Model.OldPrice.ToVnd()</span>
+                        <span class="badge bg-danger ms-2">-@Model.DiscountPercent%</span>
+                    }
+                </div>
+
+                <div class="mb-3">
+                    @if (Model.InStock)
+                    {
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">
+                            Còn hàng &middot; @Model.StockQuantity sản phẩm
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">
+                            Tạm hết hàng
+                        </span>
+                    }
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.ShortDescription))
+                {
+                    <p class="text-muted">@Model.ShortDescription</p>
+                }
+
+                <!-- Nút mua hàng: logic giỏ hàng thuộc task Cart nên tạm khóa -->
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <button type="button" class="btn btn-accent btn-lg" disabled
+                            title="Chức năng giỏ hàng đang được phát triển">
+                        Thêm vào giỏ hàng
+                    </button>
+                    <a class="btn btn-outline-secondary btn-lg" asp-controller="Product" asp-action="Index">
+                        Xem sản phẩm khác
+                    </a>
+                </div>
+                <p class="product-meta mt-2 mb-0">Chức năng đặt hàng sẽ được bổ sung ở phần Giỏ hàng.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Mô tả chi tiết -->
+        <div class="col-12 col-lg-7">
+            <div class="bg-white border rounded-3 p-3 p-lg-4 h-100">
+                <h2 class="section-title mb-3">Mô tả sản phẩm</h2>
+                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    @* Description do admin nhập, cho phép chứa HTML (xem docs/database-schema.md § 6). *@
+                    <div class="product-description">@Html.Raw(Model.Description)</div>
+                }
+                else if (!string.IsNullOrWhiteSpace(Model.ShortDescription))
+                {
+                    <p class="mb-0">@Model.ShortDescription</p>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Sản phẩm này chưa có mô tả chi tiết.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Thông số kỹ thuật -->
+        <div class="col-12 col-lg-5">
+            <div class="bg-white border rounded-3 p-3 p-lg-4 h-100">
+                <h2 class="section-title mb-3">Thông số kỹ thuật</h2>
+                @if (Model.Specifications.Count > 0)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered spec-table mb-0">
+                            <tbody>
+                                @foreach (var specification in Model.Specifications)
+                                {
+                                    <tr>
+                                        <th scope="row">@specification.Name</th>
+                                        <td>@specification.Value</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Sản phẩm này chưa có thông số kỹ thuật.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        // Đổi ảnh lớn khi bấm vào ảnh nhỏ trong gallery.
+        document.querySelectorAll('.detail-thumb').forEach(function (thumb) {
+            thumb.addEventListener('click', function () {
+                var main = document.getElementById('detailMainImage');
+                if (!main) { return; }
+
+                main.src = thumb.dataset.full;
+                main.alt = thumb.alt;
+
+                document.querySelectorAll('.detail-thumb').forEach(function (other) {
+                    other.classList.remove('active');
+                });
+                thumb.classList.add('active');
+            });
+        });
+    </script>
+}
