@@ -1,44 +1,17 @@
-<<<<<<< HEAD
 using ElectronicStore.Models;
 using Microsoft.AspNetCore.Authorization;
-=======
->>>>>>> phuthanh/main
 using Microsoft.AspNetCore.Mvc;
 
 namespace ElectronicStore.Areas.Admin.Controllers;
 
 /// <summary>
-<<<<<<< HEAD
 /// Base class for every controller of the Admin area. It keeps the area name and the role
 /// requirement in one place, so an admin screen added later only has to inherit from it and
 /// can never be shipped without protection. Anonymous visitors are sent to the login page,
 /// signed-in customers get /Account/AccessDenied.
 /// </summary>
-[Area("Admin")]
-[Authorize(Roles = AppRoles.Admin)]
-public abstract class AdminControllerBase : Controller
-{
-=======
-/// Base class for every controller of the Admin area. It carries the <c>[Area]</c>
-/// attribute and is the single place where authorization is switched on.
-/// </summary>
-/// <remarks>
-/// ADM-03 (protect the area with the <c>Admin</c> role) is BLOCKED by CORE-08/09:
-/// the project has no ASP.NET Core Identity yet — <c>ApplicationDbContext</c> derives
-/// from <c>DbContext</c> (not <c>IdentityDbContext</c>), there is no Identity package
-/// reference and no <c>AspNetUsers</c>/<c>AspNetRoles</c> table in the migrations.
-/// Adding a fake or cookie-only authentication scheme here would be worse than nothing,
-/// so the area is deliberately left open for now.
-///
-/// When Identity is in place, ADM-03 is finished by:
-///   1. uncommenting the <c>[Authorize]</c> attribute below — it is fully qualified, so no
-///      extra <c>using</c> is needed and it compiles against the shared framework as is
-///   2. making sure <c>app.UseAuthentication()</c> runs before <c>app.UseAuthorization()</c>
-///      in Program.cs
-/// Every Admin controller inherits from this type, so no other file has to change.
-/// </remarks>
-// [Microsoft.AspNetCore.Authorization.Authorize(Roles = AdminArea.AdminRole)]
 [Area(AdminArea.Name)]
+[Authorize(Roles = AppRoles.Admin)]
 public abstract class AdminControllerBase : Controller
 {
     /// <summary>
@@ -74,5 +47,4 @@ public abstract class AdminControllerBase : Controller
 
         return slug;
     }
->>>>>>> phuthanh/main
 }

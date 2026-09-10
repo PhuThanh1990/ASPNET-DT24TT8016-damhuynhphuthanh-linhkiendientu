@@ -1,8 +1,10 @@
+using ElectronicStore.Models;
+
 namespace ElectronicStore.Areas.Admin;
 
 /// <summary>
-/// Constants shared by every piece of the Admin area, so the area name and the role
-/// name are written down exactly once.
+/// Constants shared by every piece of the Admin area, so the area name is written down
+/// exactly once.
 /// </summary>
 public static class AdminArea
 {
@@ -10,9 +12,8 @@ public static class AdminArea
     public const string Name = "Admin";
 
     /// <summary>
-    /// Role that will guard the whole area once ASP.NET Core Identity lands (CORE-08/09).
-    /// Declared here already so ADM-03 becomes a one-line change in
-    /// <see cref="Controllers.AdminControllerBase"/> instead of an edit in every controller.
+    /// Role guarding the area. Aliases <see cref="AppRoles.Admin"/> rather than repeating
+    /// the literal, so the seeder, the controllers and the views cannot drift apart.
     /// </summary>
-    public const string AdminRole = "Admin";
+    public const string AdminRole = AppRoles.Admin;
 }

@@ -1,5 +1,6 @@
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
+using ElectronicStore.Areas.Admin.Services;
 using ElectronicStore.Data;
 using ElectronicStore.Models;
 using Microsoft.AspNetCore.Identity;
@@ -44,6 +45,16 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddControllersWithViews();
+
+// Admin area services.
+// ProductImageStorage writes uploaded images under wwwroot and hands back their URL.
+builder.Services.AddScoped<ProductImageStorage>();
+
+// IAdminOrderWorkflow is the seam for order status changes (ADM-16). AdminOrderWorkflow is a
+// stop-gap that performs forward transitions and refuses to cancel, because cancelling has to
+// restore stock and that logic belongs to the Core OrderService (CORE-16 -> CORE-18).
+// When that service merges, swap this single line for its registration.
+builder.Services.AddScoped<IAdminOrderWorkflow, AdminOrderWorkflow>();
 
 // Mặc định Razor encode mọi ký tự ngoài bảng Latin cơ bản thành &#x...; nên tên sản phẩm
 // tiếng Việt và ký hiệu ₫ bị "bẩn" trong HTML. Cho phép toàn bộ Unicode để giữ nguyên chữ.

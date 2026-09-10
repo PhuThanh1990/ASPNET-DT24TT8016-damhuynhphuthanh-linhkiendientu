@@ -1,0 +1,112 @@
+@model ProductImagesViewModel
+@{
+    ViewData["Title"] = $"Ảnh — {Model.ProductName}";
+}
+
+<div class="admin-page-header">
+    <h1>Ảnh sản phẩm</h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.ProductId">Sửa sản phẩm</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">Quay lại danh sách</a>
+    </div>
+</div>
+
+<p class="text-muted">Sản phẩm: <strong>@Model.ProductName</strong></p>
+
+<div class="admin-card mb-3">
+    <h2 class="h6 mb-3">Tải ảnh mới</h2>
+
+    @* enctype is required: without it the browser posts only the file name, not the bytes. *@
+    <form asp-action="Images" asp-route-id="@Model.ProductId" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        <div class="row g-3 align-items-start">
+            <div class="col-md-5">
+                <label asp-for="File" class="form-label"></label>
+                <input asp-for="File" type="file" class="form-control"
+                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+                <span asp-validation-for="File" class="text-danger"></span>
+                <div class="form-text">@ProductImagesViewModel.AllowedDescription</div>
+            </div>
+
+            <div class="col-md-5">
+                <label asp-for="AltText" class="form-label"></label>
+                <input asp-for="AltText" class="form-control" autocomplete="off"
+                       placeholder="Để trống sẽ lấy tên sản phẩm" />
+                <span asp-validation-for="AltText" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end" style="min-height: 62px;">
+                <div class="form-check">
+                    <input asp-for="IsPrimary" class="form-check-input" />
+                    <label asp-for="IsPrimary" class="form-check-label"></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">Tải lên</button>
+        </div>
+    </form>
+</div>
+
+<div class="admin-card">
+    <h2 class="h6 mb-3">Ảnh hiện có (@Model.Images.Count)</h2>
+
+    @if (Model.Images.Count == 0)
+    {
+        <div class="admin-empty">
+            <p class="mb-0">Sản phẩm chưa có ảnh nào. Ảnh đầu tiên tải lên sẽ tự động là ảnh chính.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var image in Model.Images)
+            {
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="card h-100">
+                        <img src="@image.ImageUrl" class="card-img-top admin-image-tile"
+                             alt="@image.AltText" />
+                        <div class="card-body p-2">
+                            @if (image.IsPrimary)
+                            {
+                                <span class="badge text-bg-success mb-2">Ảnh chính</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-light mb-2">Thứ tự @image.SortOrder</span>
+                            }
+
+                            <div class="small text-muted text-truncate" title="@image.AltText">
+                                @(string.IsNullOrWhiteSpace(image.AltText) ? "(không có mô tả)" : image.AltText)
+                            </div>
+                        </div>
+                        <div class="card-footer p-2 d-flex gap-1">
+                            @if (!image.IsPrimary)
+                            {
+                                <form asp-action="SetPrimaryImage" asp-route-id="@Model.ProductId" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="imageId" value="@image.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Đặt làm chính</button>
+                                </form>
+                            }
+                            <form asp-action="DeleteImage" asp-route-id="@Model.ProductId" method="post"
+                                  onsubmit="return confirm('Xóa ảnh này?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="imageId" value="@image.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
