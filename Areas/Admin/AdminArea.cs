@@ -10,9 +10,9 @@ public static class AdminArea
     public const string Name = "Admin";
 
     /// <summary>
-    /// Role that will guard the whole area once ASP.NET Core Identity lands (CORE-08/09).
-    /// Declared here already so ADM-03 becomes a one-line change in
-    /// <see cref="Controllers.AdminControllerBase"/> instead of an edit in every controller.
+    /// Role that guards the whole area, enforced in
+    /// <see cref="Controllers.AdminControllerBase"/>. Same value as
+    /// <see cref="Models.AppRoles.Admin"/>, which is what the seeder creates.
     /// </summary>
     public const string AdminRole = "Admin";
 }

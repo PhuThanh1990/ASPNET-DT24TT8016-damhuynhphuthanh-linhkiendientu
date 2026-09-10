@@ -97,14 +97,10 @@ Mặc định ứng dụng chạy tại `https://localhost:7036` và `http://loc
 │   └── Configurations/          # Fluent API config cho từng entity
 ├── Helpers/                     # Helper hiển thị (định dạng giá, ảnh mặc định)
 ├── Migrations/                  # EF Core migrations
-<<<<<<< HEAD
-├── Models/                      # Entities + enum
-│   └── ViewModels/              # ViewModel cho form (có DataAnnotation validation)
-=======
-├── Models/                      # Entities
-│   └── ViewModels/              # ViewModel cho các trang khách hàng
+├── Models/                      # Entities + enum + quy tắc chuyển trạng thái đơn
+│   └── ViewModels/              # ViewModel cho form và cho trang khách hàng
+├── Services/                    # Nghiệp vụ dùng chung (OrderService)
 ├── ViewComponents/              # View component (menu danh mục ở navbar)
->>>>>>> kien/main
 ├── Views/                       # Razor views
 ├── wwwroot/                     # CSS, JS, ảnh, thư viện client
 ├── docs/
@@ -213,7 +209,6 @@ Sai đường dẫn hoặc slug không tồn tại sẽ trả về trang 404 `Ho
 | CORE-05 | Thiết kế database schema | ✅ |
 | CORE-06 | Models `Category`, `Brand` | ✅ |
 | CORE-07 | Models `Product`, `ProductImage` | ✅ |
-<<<<<<< HEAD
 | CORE-08 | Setup ASP.NET Core Identity | ✅ |
 | CORE-09 | Role `Admin` / `Customer` | ✅ |
 | CORE-10 | Seed admin, category, brand, product | ✅ |
@@ -222,8 +217,10 @@ Sai đường dẫn hoặc slug không tồn tại sẽ trả về trang 404 `Ho
 | CORE-13 | Authorization theo role | ✅ |
 | CORE-14 | Model `Address` | ✅ |
 | CORE-15 | Models `Order`, `OrderDetail` | ✅ |
-| CORE-16+ | Catalog UI, Cart, Checkout, Admin CRUD... | ⏳ Chưa làm |
-=======
+| CORE-16 | `OrderService` | ✅ |
+| CORE-17 | Validate tồn kho khi đặt hàng | ✅ |
+| CORE-18 | Order status workflow + hủy đơn | ✅ |
+| CORE-19+ | Cart, Checkout, Admin Order... | ⏳ Chưa làm |
 | CUS-01 | Customer Layout | ✅ |
 | CUS-02 | Navbar & Footer responsive | ✅ |
 | CUS-03 | Home Page | ✅ |
@@ -231,5 +228,4 @@ Sai đường dẫn hoặc slug không tồn tại sẽ trả về trang 404 `Ho
 | CUS-05 | Trang danh sách sản phẩm | ✅ |
 | CUS-06 | Trang chi tiết sản phẩm | ✅ |
 | CUS-07+ | Search / Filter / Sort / Paging | ⏳ Chưa làm |
-| CORE-08+ | Identity, Cart, Order, Admin... | ⏳ Chưa làm |
->>>>>>> kien/main
+| ADM-01…09 | Admin area, Category/Brand/Product CRUD | ✅ |

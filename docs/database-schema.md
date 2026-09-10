@@ -380,6 +380,27 @@ Pending → Confirmed → Preparing → Shipping → Completed
 - `Completed` và `Cancelled` là trạng thái **kết thúc**, không quay lui.
 - Khi chuyển sang `Cancelled`, phải **cộng trả** `StockQuantity` cho từng sản phẩm trong đơn.
 
+**Nơi thực thi (CORE-16 → CORE-18):**
+
+| Quy tắc | Chỗ cài đặt |
+| --- | --- |
+| Bảng chuyển trạng thái ở trên | `Models/OrderStatusRules.cs` — `CanTransitionTo`, `AllowedNextStatuses` |
+| Khách chỉ hủy khi còn `Pending`; shop hủy được tới trước `Shipping` | `CanBeCancelledByCustomer` / `CanBeCancelledByAdmin` |
+| Tạo đơn, trừ kho, hoàn kho | `Services/OrderService.cs` |
+
+UI nên dựng dropdown trạng thái từ `AllowedNextStatuses()` để không bao giờ hiển thị một
+lựa chọn mà service sẽ từ chối.
+
+**Trừ kho an toàn:** `OrderService` không đọc `StockQuantity` rồi ghi đè. Mỗi sản phẩm được
+trừ bằng **một câu UPDATE có điều kiện**
+(`WHERE Id = @id AND IsActive = 1 AND StockQuantity >= @qty`); 0 dòng bị ảnh hưởng nghĩa là
+khách khác vừa mua mất và cả giao dịch bị rollback. Nhờ vậy `StockQuantity` không bao giờ âm
+mà không cần thêm cột `rowversion`. `CHECK (StockQuantity >= 0)` vẫn là lớp chặn cuối.
+
+**Hoàn kho đúng một lần:** thao tác hủy đổi trạng thái bằng
+`UPDATE ... WHERE Id = @id AND Status = @statusVuaKiemTra`. Chỉ luồng nào đổi được trạng thái
+mới cộng trả tồn kho, nên bấm hủy hai lần không cộng kho hai lần — không cần thêm cột cờ nào.
+
 
 ---
 
