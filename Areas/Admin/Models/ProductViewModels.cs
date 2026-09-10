@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ElectronicStore.Areas.Admin.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -31,11 +32,15 @@ public class ProductListItemViewModel
 }
 
 /// <summary>
-/// Backing model of the product Create form (ADM-09). It carries only the columns an admin
-/// fills in — <c>ViewCount</c>, <c>CreatedAt</c> and <c>UpdatedAt</c> are set by the server,
-/// so they cannot be overposted.
+/// Fields shared by the product Create (ADM-09) and Edit (ADM-10) forms, so both screens
+/// validate identically and can render the same partial.
 /// </summary>
-public class ProductCreateViewModel
+/// <remarks>
+/// Only columns an admin is allowed to set live here. <c>ViewCount</c>, <c>CreatedAt</c> and
+/// <c>UpdatedAt</c> are server owned and absent on purpose: a crafted POST has no field to
+/// bind them to.
+/// </remarks>
+public abstract class ProductFormViewModel
 {
     [Display(Name = "Tên sản phẩm")]
     [Required(ErrorMessage = "Tên sản phẩm là bắt buộc.")]
@@ -47,8 +52,8 @@ public class ProductCreateViewModel
     [StringLength(220, ErrorMessage = "Slug tối đa {1} ký tự.")]
     public string Slug { get; set; } = string.Empty;
 
-    // Sku is NOT NULL and uniquely indexed in the database, so the create form has to ask
-    // for it even though the task description lists it as optional.
+    // Sku is NOT NULL and uniquely indexed in the database, so the form has to ask for it
+    // even though the task description lists it as optional.
     [Display(Name = "SKU")]
     [Required(ErrorMessage = "SKU là bắt buộc.")]
     [StringLength(50, ErrorMessage = "SKU tối đa {1} ký tự.")]
@@ -108,4 +113,76 @@ public class ProductCreateViewModel
     [BindNever]
     [ValidateNever]
     public IEnumerable<SelectListItem> BrandOptions { get; set; } = new List<SelectListItem>();
+}
+
+/// <summary>Backing model of the product Create form (ADM-09).</summary>
+public class ProductCreateViewModel : ProductFormViewModel
+{
+}
+
+/// <summary>Backing model of the product Edit form (ADM-10).</summary>
+public class ProductEditViewModel : ProductFormViewModel
+{
+    public int Id { get; set; }
+}
+
+/// <summary>Confirmation screen before removing a product (ADM-11).</summary>
+public class ProductDeleteViewModel
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+
+    public string Sku { get; set; } = string.Empty;
+
+    public bool IsActive { get; set; }
+
+    /// <summary>How many order lines reference this product.</summary>
+    public int OrderLineCount { get; set; }
+
+    public int ImageCount { get; set; }
+
+    /// <summary>
+    /// A product that has ever been sold is never hard-deleted: <c>OrderDetail.ProductId</c>
+    /// is <c>Restrict</c> and the order history must keep its link (docs § 10).
+    /// </summary>
+    public bool CanHardDelete => OrderLineCount == 0;
+}
+
+/// <summary>One image row on the product image screen (ADM-12).</summary>
+public class ProductImageViewModel
+{
+    public int Id { get; set; }
+
+    public string ImageUrl { get; set; } = string.Empty;
+
+    public string? AltText { get; set; }
+
+    public bool IsPrimary { get; set; }
+
+    public int SortOrder { get; set; }
+}
+
+/// <summary>The product image management screen (ADM-12).</summary>
+public class ProductImagesViewModel
+{
+    public int ProductId { get; set; }
+
+    public string ProductName { get; set; } = string.Empty;
+
+    [ValidateNever]
+    public IReadOnlyList<ProductImageViewModel> Images { get; set; } = [];
+
+    [Display(Name = "File ảnh")]
+    public IFormFile? File { get; set; }
+
+    [Display(Name = "Mô tả ảnh (alt)")]
+    [StringLength(200, ErrorMessage = "Mô tả ảnh tối đa {1} ký tự.")]
+    public string? AltText { get; set; }
+
+    [Display(Name = "Đặt làm ảnh chính")]
+    public bool IsPrimary { get; set; }
+
+    /// <summary>Hint text under the file input, kept in sync with the storage rules.</summary>
+    public static string AllowedDescription => ProductImageStorage.AllowedDescription;
 }

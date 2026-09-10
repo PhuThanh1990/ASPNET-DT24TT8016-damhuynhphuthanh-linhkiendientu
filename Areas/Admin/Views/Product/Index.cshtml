@@ -1,3 +1,4 @@
+@using ElectronicStore.Helpers
 @model IReadOnlyList<ProductListItemViewModel>
 @{
     ViewData["Title"] = "Sản phẩm";
@@ -28,7 +29,7 @@
                         <th scope="col">Danh mục</th>
                         <th scope="col">Thương hiệu</th>
                         <th scope="col" class="text-end">Giá</th>
-                        <th scope="col" class="text-end">Tồn kho</th>
+                        <th scope="col">Tồn kho</th>
                         <th scope="col">Trạng thái</th>
                         <th scope="col">Ngày tạo</th>
                         <th scope="col" class="text-end">Thao tác</th>
@@ -39,28 +40,27 @@
                     {
                         <tr>
                             <td>
-                                @if (!string.IsNullOrWhiteSpace(item.PrimaryImageUrl))
-                                {
-                                    <img class="admin-thumb" src="@item.PrimaryImageUrl" alt="@item.Name" />
-                                }
-                                else
-                                {
-                                    <span class="admin-thumb admin-thumb-empty">Chưa có</span>
-                                }
+                                <img class="admin-thumb" src="@DisplayHelper.ImageOrPlaceholder(item.PrimaryImageUrl)"
+                                     alt="@item.Name" />
                             </td>
                             <td>@item.Name</td>
                             <td><code>@item.Sku</code></td>
                             <td>@item.CategoryName</td>
                             <td>@item.BrandName</td>
-                            <td class="text-end text-nowrap">@item.Price.ToString("N0") ₫</td>
-                            <td class="text-end">
+                            <td class="text-end text-nowrap">@item.Price.ToVnd()</td>
+                            <td>
+                                @* ADM-13: chỉnh nhanh tồn kho ngay tại danh sách. *@
+                                <form asp-action="AdjustStock" asp-route-id="@item.Id" method="post"
+                                      class="d-flex gap-1 align-items-center admin-stock-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="number" name="newQuantity" value="@item.StockQuantity"
+                                           min="0" step="1" class="form-control form-control-sm"
+                                           aria-label="Tồn kho của @item.Name" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Lưu</button>
+                                </form>
                                 @if (item.StockQuantity == 0)
                                 {
-                                    <span class="badge text-bg-warning">Hết hàng</span>
-                                }
-                                else
-                                {
-                                    @item.StockQuantity
+                                    <span class="badge text-bg-warning mt-1">Hết hàng</span>
                                 }
                             </td>
                             <td>
@@ -70,20 +70,35 @@
                                 }
                                 else
                                 {
-                                    <span class="badge text-bg-secondary">Đã ẩn</span>
+                                    <span class="badge text-bg-secondary">Ngừng bán</span>
                                 }
                             </td>
-                            <td>@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-nowrap">@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                             <td class="text-end text-nowrap">
-                                @* Sửa/Xóa sản phẩm thuộc task sau (không nằm trong ADM-08/09). *@
-                                <button type="button" class="btn btn-sm btn-outline-secondary" disabled
-                                        title="Chức năng sửa sản phẩm thuộc task sau">
-                                    Sửa
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger" disabled
-                                        title="Chức năng xóa sản phẩm thuộc task sau">
-                                    Xóa
-                                </button>
+                                <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
+                                    <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@item.Id">Sửa</a>
+                                    <a class="btn btn-sm btn-outline-secondary" asp-action="Images" asp-route-id="@item.Id">Ảnh</a>
+
+                                    @if (item.IsActive)
+                                    {
+                                        <form asp-action="Disable" asp-route-id="@item.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-warning"
+                                                    title="Ẩn khỏi cửa hàng, giữ nguyên dữ liệu và lịch sử đơn">
+                                                Ngừng bán
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Activate" asp-route-id="@item.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-success">Mở bán</button>
+                                        </form>
+                                    }
+
+                                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id">Xóa</a>
+                                </div>
                             </td>
                         </tr>
                     }

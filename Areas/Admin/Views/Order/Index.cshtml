@@ -1,0 +1,88 @@
+@model OrderListViewModel
+@{
+    ViewData["Title"] = "Đơn hàng";
+}
+
+<div class="admin-page-header">
+    <h1>Đơn hàng</h1>
+</div>
+
+<div class="admin-card mb-3">
+    @* ADM-14: lọc theo trạng thái, dùng đúng index (Status, CreatedAt DESC). *@
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-sm @(Model.Status is null ? "btn-primary" : "btn-outline-secondary")"
+           asp-action="Index">
+            Tất cả <span class="badge text-bg-light">@Model.TotalCount</span>
+        </a>
+        @foreach (var status in OrderStatusRules.All)
+        {
+            var count = Model.CountsByStatus.TryGetValue(status, out var c) ? c : 0;
+            <a class="btn btn-sm @(Model.Status == status ? "btn-primary" : "btn-outline-secondary")"
+               asp-action="Index" asp-route-status="@status">
+                @OrderStatusRules.DisplayName(status) <span class="badge text-bg-light">@count</span>
+            </a>
+        }
+    </div>
+</div>
+
+<div class="admin-card">
+    @if (Model.Orders.Count == 0)
+    {
+        <div class="admin-empty">
+            <p class="mb-0">
+                @if (Model.Status is { } filtered)
+                {
+                    <text>Không có đơn hàng nào ở trạng thái "@OrderStatusRules.DisplayName(filtered)".</text>
+                }
+                else
+                {
+                    <text>Chưa có đơn hàng nào.</text>
+                }
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Mã đơn</th>
+                        <th scope="col">Khách hàng</th>
+                        <th scope="col">Người nhận</th>
+                        <th scope="col" class="text-end">Số món</th>
+                        <th scope="col" class="text-end">Tổng tiền</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Ngày đặt</th>
+                        <th scope="col" class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model.Orders)
+                    {
+                        <tr>
+                            <td><code>@order.OrderCode</code></td>
+                            <td>
+                                <div>@(string.IsNullOrWhiteSpace(order.CustomerName) ? "(chưa đặt tên)" : order.CustomerName)</div>
+                                <div class="small text-muted">@order.CustomerEmail</div>
+                            </td>
+                            <td>@order.ShippingFullName</td>
+                            <td class="text-end">@order.ItemCount</td>
+                            <td class="text-end text-nowrap">@order.TotalAmount.ToVnd()</td>
+                            <td>
+                                <span class="badge @OrderStatusRules.BadgeClass(order.Status)">
+                                    @OrderStatusRules.DisplayName(order.Status)
+                                </span>
+                            </td>
+                            <td class="text-nowrap">@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-secondary"
+                                   asp-action="Details" asp-route-id="@order.Id">Chi tiết</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
