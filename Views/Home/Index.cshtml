@@ -1,8 +1,144 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Trang chủ";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container">
+
+    <!-- Hero / banner -->
+    <section class="shop-hero p-4 p-lg-5 mb-4">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <span class="badge hero-badge mb-3">Linh kiện chính hãng &middot; Bảo hành đầy đủ</span>
+                <h1 class="fw-bold mb-3">Xây dựng cấu hình máy tính của bạn</h1>
+                <p class="mb-4 opacity-75">
+                    CPU, mainboard, RAM, VGA, ổ cứng SSD, nguồn và tản nhiệt — đầy đủ linh kiện
+                    cho một dàn máy chơi game, làm đồ họa hay học tập.
+                </p>
+                <a class="btn btn-accent btn-lg" asp-controller="Product" asp-action="Index">
+                    Xem tất cả sản phẩm
+                </a>
+            </div>
+            <div class="col-lg-5">
+                <div class="row g-2 text-center">
+                    <div class="col-4">
+                        <div class="shop-hero-stat p-3 h-100">
+                            <div class="fw-bold fs-5">100%</div>
+                            <div class="small opacity-75">Chính hãng</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="shop-hero-stat p-3 h-100">
+                            <div class="fw-bold fs-5">36</div>
+                            <div class="small opacity-75">Tháng bảo hành</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="shop-hero-stat p-3 h-100">
+                            <div class="fw-bold fs-5">24h</div>
+                            <div class="small opacity-75">Giao nhanh</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Danh mục nổi bật -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="section-title">Danh mục nổi bật</h2>
+        </div>
+
+        @if (Model.Categories.Count > 0)
+        {
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                @foreach (var category in Model.Categories)
+                {
+                    <div class="col">
+                        @* TODO (CUS-07): tham số "category" sẽ dùng để lọc danh sách sản phẩm. *@
+                        <a class="category-card" asp-controller="Product" asp-action="Index" asp-route-category="@category.Slug">
+                            @if (!string.IsNullOrWhiteSpace(category.ImageUrl))
+                            {
+                                <img class="category-thumb" src="@category.ImageUrl" alt="@category.Name" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="category-initial">@category.Name.Substring(0, 1).ToUpper()</div>
+                            }
+                            <div class="fw-semibold">@category.Name</div>
+                            <div class="product-meta">@category.ProductCount sản phẩm</div>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📂</div>
+                <p class="mb-0">Chưa có danh mục nào. Danh mục sẽ hiện ở đây sau khi được thêm vào hệ thống.</p>
+            </div>
+        }
+    </section>
+
+    @if (Model.FeaturedProducts.Count > 0)
+    {
+        <!-- Sản phẩm nổi bật -->
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="section-title">Sản phẩm nổi bật</h2>
+                <a class="btn btn-sm btn-outline-secondary" asp-controller="Product" asp-action="Index">Xem tất cả</a>
+            </div>
+
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                @foreach (var product in Model.FeaturedProducts)
+                {
+                    <div class="col">
+                        <partial name="_ProductCard" model="product" />
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    @if (Model.LatestProducts.Count > 0)
+    {
+        <!-- Sản phẩm mới nhất -->
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="section-title">Sản phẩm mới nhất</h2>
+                <a class="btn btn-sm btn-outline-secondary" asp-controller="Product" asp-action="Index">Xem tất cả</a>
+            </div>
+
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                @foreach (var product in Model.LatestProducts)
+                {
+                    <div class="col">
+                        <partial name="_ProductCard" model="product" />
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    @if (!Model.HasAnyProduct)
+    {
+        <!-- Database chưa có sản phẩm nào -->
+        <section class="mb-5">
+            <div class="empty-state">
+                <div class="empty-icon">🛠️</div>
+                <h3 class="h5 text-body">Cửa hàng chưa có sản phẩm</h3>
+                <p class="mb-0">Dữ liệu sản phẩm sẽ hiển thị ngay khi được thêm vào database.</p>
+            </div>
+        </section>
+    }
+
+    <!-- CTA cuối trang -->
+    <section class="text-center bg-white border rounded-3 p-4 mb-2">
+        <h2 class="h5 fw-bold mb-2">Chưa tìm được linh kiện phù hợp?</h2>
+        <p class="text-muted mb-3">Xem toàn bộ danh sách linh kiện đang có tại cửa hàng.</p>
+        <a class="btn btn-primary" asp-controller="Product" asp-action="Index">Xem tất cả sản phẩm</a>
+    </section>
+
 </div>
