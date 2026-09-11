@@ -83,6 +83,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 // is what lets PlaceOrder/Cancel wrap their work in a single transaction.
 builder.Services.AddScoped<IOrderService, OrderService>();
 
+// CUS-16 — Cart và Checkout dùng chung một chỗ đối chiếu giỏ hàng với database.
+builder.Services.AddScoped<ICartService, CartService>();
+
 builder.Services.AddControllersWithViews();
 
 // CUS-12 — giỏ hàng sống trong Session. AddDistributedMemoryCache là bộ nhớ trong của
@@ -158,6 +161,30 @@ app.MapControllerRoute(
     name: "cart",
     pattern: "gio-hang",
     defaults: new { controller = "Cart", action = "Index" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+    name: "checkout",
+    pattern: "thanh-toan",
+    defaults: new { controller = "Checkout", action = "Index" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+    name: "checkoutSuccess",
+    pattern: "dat-hang-thanh-cong/{id:int}",
+    defaults: new { controller = "Checkout", action = "Success" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+    name: "myOrders",
+    pattern: "don-hang",
+    defaults: new { controller = "Order", action = "Index" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+    name: "myOrderDetails",
+    pattern: "don-hang/{id:int}",
+    defaults: new { controller = "Order", action = "Details" })
     .WithStaticAssets();
 
 app.MapControllerRoute(

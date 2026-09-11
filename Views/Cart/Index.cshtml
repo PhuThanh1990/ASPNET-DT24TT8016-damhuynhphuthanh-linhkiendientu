@@ -148,11 +148,16 @@
                         <span class="detail-price">@Model.Total.ToVnd()</span>
                     </div>
 
-                    <!-- Thanh toán là CUS-16, chưa làm ở task này -->
-                    <button type="button" class="btn btn-accent w-100" disabled
-                            title="Chức năng thanh toán đang được phát triển">
+                    @* CUS-16 — khách chưa đăng nhập vẫn bấm được, trang Checkout sẽ tự
+                       đưa sang màn hình đăng nhập rồi quay lại đúng chỗ này. *@
+                    <a class="btn btn-accent w-100" asp-area="" asp-controller="Checkout" asp-action="Index">
                         Tiến hành thanh toán
-                    </button>
+                    </a>
+
+                    @if (User.Identity?.IsAuthenticated != true)
+                    {
+                        <p class="product-meta mt-2 mb-0">Bạn cần đăng nhập để hoàn tất đặt hàng.</p>
+                    }
 
                     <p class="product-meta mt-3 mb-0">
                         Giá hiển thị được lấy lại từ hệ thống mỗi lần mở giỏ hàng. Khi đặt hàng,
