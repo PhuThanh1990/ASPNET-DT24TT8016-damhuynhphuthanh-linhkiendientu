@@ -1,35 +1,307 @@
+@model DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
 }
 
 <div class="admin-page-header">
     <h1>Dashboard</h1>
+    <a class="btn btn-outline-secondary btn-sm" asp-area="Admin" asp-controller="Order" asp-action="Index">
+        Xem tất cả đơn hàng
+    </a>
 </div>
 
-<div class="admin-card">
-    <p class="mb-3">Khu vực quản trị của ElectronicStore. Chọn một mục ở menu bên trái để bắt đầu.</p>
-
-    <div class="row g-3">
-        <div class="col-sm-6 col-lg-4">
-            <a class="btn btn-outline-primary w-100" asp-area="Admin" asp-controller="Category" asp-action="Index">
-                Quản lý danh mục
-            </a>
-        </div>
-        <div class="col-sm-6 col-lg-4">
-            <a class="btn btn-outline-primary w-100" asp-area="Admin" asp-controller="Brand" asp-action="Index">
-                Quản lý thương hiệu
-            </a>
-        </div>
-        <div class="col-sm-6 col-lg-4">
-            <a class="btn btn-outline-primary w-100" asp-area="Admin" asp-controller="Product" asp-action="Index">
-                Quản lý sản phẩm
-            </a>
+@* ───────── ADM-17: KPI cards ───────── *@
+<div class="row g-3 admin-kpi-row">
+    <div class="col-6 col-lg-3">
+        <div class="admin-kpi">
+            <div class="admin-kpi-label">Tổng đơn hàng</div>
+            <div class="admin-kpi-value">@Model.Kpi.TotalOrders</div>
+            <div class="admin-kpi-foot text-muted">@Model.Kpi.CancelledOrders đơn đã hủy</div>
         </div>
     </div>
 
-    <hr class="my-4" />
+    <div class="col-6 col-lg-3">
+        <div class="admin-kpi admin-kpi-warning">
+            <div class="admin-kpi-label">Chờ xác nhận</div>
+            <div class="admin-kpi-value">@Model.Kpi.PendingOrders</div>
+            <div class="admin-kpi-foot">
+                @if (Model.Kpi.PendingOrders > 0)
+                {
+                    <a asp-area="Admin" asp-controller="Order" asp-action="Index"
+                       asp-route-status="@OrderStatus.Pending">Xử lý ngay</a>
+                }
+                else
+                {
+                    <span class="text-muted">Không có đơn nào chờ</span>
+                }
+            </div>
+        </div>
+    </div>
 
-    <p class="text-muted small mb-0">
-        Thống kê (số đơn hàng, doanh thu, sản phẩm sắp hết hàng...) thuộc task sau, chưa làm ở ADM-01 → ADM-09.
-    </p>
+    <div class="col-6 col-lg-3">
+        <div class="admin-kpi admin-kpi-success">
+            <div class="admin-kpi-label">Đơn hoàn tất</div>
+            <div class="admin-kpi-value">@Model.Kpi.CompletedOrders</div>
+            <div class="admin-kpi-foot text-muted">Cơ sở tính doanh thu</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="admin-kpi admin-kpi-primary">
+            <div class="admin-kpi-label">Doanh thu</div>
+            <div class="admin-kpi-value admin-kpi-value-sm">@Model.Kpi.TotalRevenue.ToVnd()</div>
+            <div class="admin-kpi-foot text-muted">Chỉ đơn hoàn tất, không tính đơn hủy</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="admin-kpi">
+            <div class="admin-kpi-label">Sản phẩm</div>
+            <div class="admin-kpi-value">@Model.Kpi.TotalProducts</div>
+            <div class="admin-kpi-foot text-muted">@Model.Kpi.ActiveProducts đang bán</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="admin-kpi @(Model.Kpi.OutOfStockProducts > 0 ? "admin-kpi-danger" : string.Empty)">
+            <div class="admin-kpi-label">Hết hàng</div>
+            <div class="admin-kpi-value">@Model.Kpi.OutOfStockProducts</div>
+            <div class="admin-kpi-foot">
+                @if (Model.Kpi.OutOfStockProducts > 0)
+                {
+                    <a asp-area="Admin" asp-controller="Product" asp-action="Index">Cập nhật tồn kho</a>
+                }
+                else
+                {
+                    <span class="text-muted">Tồn kho ổn định</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="admin-kpi">
+            <div class="admin-kpi-label">Khách hàng</div>
+            <div class="admin-kpi-value">@Model.Kpi.TotalCustomers</div>
+            <div class="admin-kpi-foot text-muted">Tài khoản có quyền Customer</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="admin-kpi">
+            <div class="admin-kpi-label">Doanh thu @Model.Revenue.Days ngày</div>
+            <div class="admin-kpi-value admin-kpi-value-sm">@Model.Revenue.Total.ToVnd()</div>
+            <div class="admin-kpi-foot text-muted">Theo biểu đồ bên dưới</div>
+        </div>
+    </div>
 </div>
+
+@* ───────── ADM-18: revenue over time ───────── *@
+<div class="admin-card mt-3">
+    <div class="admin-card-header">
+        <h2 class="h6 mb-0">Doanh thu theo ngày</h2>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Khoảng thời gian">
+            @foreach (var option in RevenueChartViewModel.DayOptions)
+            {
+                <a class="btn @(Model.Revenue.Days == option ? "btn-primary" : "btn-outline-secondary")"
+                   asp-action="Index" asp-route-days="@option">@option ngày</a>
+            }
+        </div>
+    </div>
+
+    @if (Model.Revenue.IsEmpty)
+    {
+        <div class="admin-empty">
+            <p class="mb-0">
+                Chưa có doanh thu trong @Model.Revenue.Days ngày gần đây.
+                Doanh thu chỉ được tính khi đơn hàng chuyển sang trạng thái
+                <strong>@OrderStatusDisplay.DisplayName(Model.Revenue.RevenueStatus)</strong>.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="admin-chart-wrap">
+            <canvas id="revenueChart" aria-label="Biểu đồ doanh thu theo ngày" role="img"></canvas>
+        </div>
+    }
+</div>
+
+<div class="row g-3 mt-0">
+    @* ───────── ADM-19: best sellers ───────── *@
+    <div class="col-xl-6">
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <h2 class="h6 mb-0">Sản phẩm bán chạy</h2>
+                <span class="text-muted small">Theo số lượng đã bán</span>
+            </div>
+
+            @if (Model.BestSellers.Count == 0)
+            {
+                <div class="admin-empty">
+                    <p class="mb-0">Chưa có sản phẩm nào được bán trong đơn hoàn tất.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col" colspan="2">Sản phẩm</th>
+                                <th scope="col" class="text-end">Đã bán</th>
+                                <th scope="col" class="text-end">Doanh thu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var product in Model.BestSellers)
+                            {
+                                <tr>
+                                    <td class="admin-cell-thumb">
+                                        <img class="admin-thumb-sm"
+                                             src="@DisplayHelper.ImageOrPlaceholder(product.ImageUrl)"
+                                             alt="@product.ProductName" />
+                                    </td>
+                                    <td>
+                                        <a asp-area="Admin" asp-controller="Product" asp-action="Edit"
+                                           asp-route-id="@product.ProductId">@product.ProductName</a>
+                                    </td>
+                                    <td class="text-end">@product.QuantitySold</td>
+                                    <td class="text-end text-nowrap">@product.Revenue.ToVnd()</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* ───────── ADM-19: recent orders ───────── *@
+    <div class="col-xl-6">
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <h2 class="h6 mb-0">Đơn hàng mới nhất</h2>
+                <a class="small" asp-area="Admin" asp-controller="Order" asp-action="Index">Xem tất cả</a>
+            </div>
+
+            @if (Model.RecentOrders.Count == 0)
+            {
+                <div class="admin-empty">
+                    <p class="mb-0">Chưa có đơn hàng nào.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Mã đơn</th>
+                                <th scope="col">Khách hàng</th>
+                                <th scope="col">Ngày đặt</th>
+                                <th scope="col" class="text-end">Tổng tiền</th>
+                                <th scope="col">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-area="Admin" asp-controller="Order" asp-action="Details"
+                                           asp-route-id="@order.Id"><code>@order.OrderCode</code></a>
+                                    </td>
+                                    <td>@(string.IsNullOrWhiteSpace(order.CustomerName) ? "(chưa đặt tên)" : order.CustomerName)</td>
+                                    <td class="text-nowrap">@order.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
+                                    <td class="text-end text-nowrap">@order.TotalAmount.ToVnd()</td>
+                                    <td>
+                                        <span class="badge @OrderStatusDisplay.BadgeClass(order.Status)">
+                                            @OrderStatusDisplay.DisplayName(order.Status)
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* ───────── ADM-20: Chart.js ─────────
+   Loaded only in this section, so the library ships with the dashboard and with no other
+   Admin page. Skipped entirely when there is nothing to draw. *@
+@if (!Model.Revenue.IsEmpty)
+{
+    @section Scripts {
+        <script src="~/lib/chart.js/dist/chart.umd.min.js" asp-append-version="true"></script>
+        <script>
+            (function () {
+                var canvas = document.getElementById('revenueChart');
+                // Defensive: the canvas is only rendered when there is data, and the library
+                // is vendored locally, but neither is worth a console error if it changes.
+                if (!canvas || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                // Json.Serialize escapes <, > and & as \uXXXX, so this stays safe inside a
+                // <script> block even if a label ever contains markup.
+                var labels = @Json.Serialize(Model.Revenue.Labels);
+                var values = @Json.Serialize(Model.Revenue.Values);
+
+                var currency = new Intl.NumberFormat('vi-VN', {
+                    style: 'currency', currency: 'VND', maximumFractionDigits: 0
+                });
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Doanh thu',
+                            data: values,
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, .12)',
+                            borderWidth: 2,
+                            pointRadius: values.length > 45 ? 0 : 3,
+                            pointHoverRadius: 5,
+                            tension: .3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        return currency.format(context.parsed.y || 0);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function (value) {
+                                        // Compact axis: 1.500.000 -> "1,5tr"
+                                        if (value >= 1000000) { return (value / 1000000).toLocaleString('vi-VN') + 'tr'; }
+                                        if (value >= 1000) { return (value / 1000).toLocaleString('vi-VN') + 'k'; }
+                                        return value;
+                                    }
+                                }
+                            },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            })();
+        </script>
+    }
+}

@@ -199,3 +199,92 @@
     object-fit: cover;
     background-color: #f8f9fa;
 }
+
+/* ---------- Dashboard (ADM-17 .. ADM-20) ---------- */
+.admin-kpi-row {
+    margin-bottom: 0;
+}
+
+.admin-kpi {
+    height: 100%;
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    /* Accent stripe; the state modifiers below only repaint this edge. */
+    border-left: 3px solid #cbd5e1;
+    border-radius: .5rem;
+    padding: .875rem 1rem;
+}
+
+.admin-kpi-label {
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #6b7280;
+}
+
+.admin-kpi-value {
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-top: .15rem;
+    /* Long VND amounts must wrap instead of widening the card on a phone. */
+    overflow-wrap: anywhere;
+}
+
+.admin-kpi-value-sm {
+    font-size: 1.25rem;
+}
+
+.admin-kpi-foot {
+    font-size: .75rem;
+    margin-top: .25rem;
+    min-height: 1.1rem;
+}
+
+.admin-kpi-primary { border-left-color: var(--admin-accent); }
+.admin-kpi-success { border-left-color: #198754; }
+.admin-kpi-warning { border-left-color: #ffc107; }
+.admin-kpi-danger  { border-left-color: #dc3545; }
+
+.admin-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+/* Chart.js needs a sized parent when maintainAspectRatio is off, otherwise the canvas
+   grows on every resize event. */
+.admin-chart-wrap {
+    position: relative;
+    height: 320px;
+}
+
+.admin-thumb-sm {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: .25rem;
+    border: 1px solid #e5e7eb;
+    background-color: #f8f9fa;
+}
+
+.admin-cell-thumb {
+    width: 44px;
+}
+
+@media (max-width: 575.98px) {
+    .admin-kpi-value {
+        font-size: 1.4rem;
+    }
+
+    .admin-kpi-value-sm {
+        font-size: 1.05rem;
+    }
+
+    .admin-chart-wrap {
+        height: 240px;
+    }
+}
