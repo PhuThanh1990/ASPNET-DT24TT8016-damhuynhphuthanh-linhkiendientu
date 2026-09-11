@@ -33,6 +33,17 @@ public interface IOrderService
     Task<PagedResult<Order>> GetAdminOrdersAsync(OrderQuery query, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// The shipping fee <see cref="PlaceOrderAsync"/> would charge for this subtotal.
+    /// </summary>
+    /// <remarks>
+    /// A read-only quote, added so the checkout page can show the customer the same total the
+    /// order will end up carrying instead of repeating the fee rule in the UI. It changes
+    /// nothing: the authoritative number is still the one computed while placing the order.
+    /// Same idea as <see cref="OrderStatusRules"/> — the UI asks the owner of the rule.
+    /// </remarks>
+    decimal QuoteShippingFee(decimal subTotal);
+
+    /// <summary>
     /// Moves an order one step along the lifecycle. Rejects any transition the state machine
     /// does not allow. Cancelling is not accepted here because it has to restore stock —
     /// use <see cref="CancelByAdminAsync"/>.

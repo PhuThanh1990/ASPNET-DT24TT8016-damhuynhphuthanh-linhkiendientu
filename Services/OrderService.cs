@@ -262,6 +262,9 @@ public sealed class OrderService : IOrderService
         return ToPagedResultAsync(source, query, cancellationToken);
     }
 
+    /// <inheritdoc />
+    public decimal QuoteShippingFee(decimal subTotal) => CalculateShippingFee(subTotal);
+
     // ---------------------------------------------------------------- lifecycle
 
     public async Task<OrderResult<Order>> UpdateStatusAsync(

@@ -1,0 +1,161 @@
+@model CheckoutViewModel
+@{
+    ViewData["Title"] = "Thanh toán";
+}
+
+<div class="container">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-area="" asp-controller="Cart" asp-action="Index">Giỏ hàng</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Thanh toán</li>
+        </ol>
+    </nav>
+
+    <h1 class="section-title mb-3">Thanh toán</h1>
+
+    @* Giỏ hàng vừa được đối chiếu lại với kho khi mở trang này. *@
+    @if (Model.Cart.Notices.Count > 0)
+    {
+        <div class="alert alert-warning">
+            <p class="fw-semibold mb-2">Đơn hàng vừa có thay đổi, vui lòng kiểm tra lại trước khi đặt:</p>
+            <ul class="mb-0 ps-3">
+                @foreach (var notice in Model.Cart.Notices)
+                {
+                    <li>@notice</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <form asp-area="" asp-controller="Checkout" asp-action="Index" method="post">
+        @* Lỗi nghiệp vụ do IOrderService trả về (hết hàng, sản phẩm ngừng bán...) hiện ở đây. *@
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        <div class="row g-4">
+
+            <!-- Thông tin nhận hàng -->
+            <div class="col-12 col-lg-7">
+                <div class="bg-white border rounded-3 p-3 p-lg-4">
+                    <h2 class="h6 fw-bold mb-3">Thông tin nhận hàng</h2>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" asp-for="FullName"></label>
+                            <input class="form-control" asp-for="FullName" autocomplete="name" />
+                            <span class="text-danger small" asp-validation-for="FullName"></span>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" asp-for="Phone"></label>
+                            <input class="form-control" asp-for="Phone" type="tel" autocomplete="tel"
+                                   placeholder="0912345678" />
+                            <span class="text-danger small" asp-validation-for="Phone"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label" asp-for="AddressLine"></label>
+                            <input class="form-control" asp-for="AddressLine" autocomplete="street-address"
+                                   placeholder="Số nhà, tên đường" />
+                            <span class="text-danger small" asp-validation-for="AddressLine"></span>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" asp-for="Ward"></label>
+                            <input class="form-control" asp-for="Ward" />
+                            <span class="text-danger small" asp-validation-for="Ward"></span>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" asp-for="District"></label>
+                            <input class="form-control" asp-for="District" />
+                            <span class="text-danger small" asp-validation-for="District"></span>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" asp-for="Province"></label>
+                            <input class="form-control" asp-for="Province" />
+                            <span class="text-danger small" asp-validation-for="Province"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label" asp-for="Note"></label>
+                            <textarea class="form-control" asp-for="Note" rows="2"
+                                      placeholder="Ví dụ: giao giờ hành chính"></textarea>
+                            <span class="text-danger small" asp-validation-for="Note"></span>
+                        </div>
+                    </div>
+
+                    <p class="product-meta mt-3 mb-0">
+                        Hình thức thanh toán: thanh toán khi nhận hàng (COD).
+                        Thanh toán online sẽ được bổ sung sau.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Đơn hàng -->
+            <div class="col-12 col-lg-5">
+                <div class="bg-white border rounded-3 p-3 p-lg-4 cart-summary">
+                    <h2 class="h6 fw-bold mb-3">Đơn hàng của bạn</h2>
+
+                    <ul class="list-unstyled checkout-items mb-3">
+                        @foreach (var item in Model.Cart.Items)
+                        {
+                            <li class="d-flex gap-2 align-items-start py-2 border-bottom">
+                                <img class="checkout-thumb"
+                                     src="@DisplayHelper.ImageOrPlaceholder(item.ImageUrl)"
+                                     alt="@item.Name" loading="lazy" />
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold small">@item.Name</div>
+                                    <div class="product-meta">@item.UnitPrice.ToVnd() × @item.Quantity</div>
+                                </div>
+                                <div class="text-end text-nowrap fw-semibold small">@item.LineTotal.ToVnd()</div>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Tạm tính</span>
+                        <span>@Model.SubTotal.ToVnd()</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Phí vận chuyển</span>
+                        @if (Model.ShippingFee <= 0)
+                        {
+                            <span class="text-success">Miễn phí</span>
+                        }
+                        else
+                        {
+                            <span>@Model.ShippingFee.ToVnd()</span>
+                        }
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold">Tổng cộng</span>
+                        <span class="detail-price">@Model.Total.ToVnd()</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-accent w-100 btn-lg">Đặt hàng</button>
+
+                    <a class="btn btn-outline-secondary w-100 mt-2"
+                       asp-area="" asp-controller="Cart" asp-action="Index">Quay lại giỏ hàng</a>
+
+                    <p class="product-meta mt-3 mb-0">
+                        Số tiền trên được hệ thống tính lại từ giá trong kho khi bấm "Đặt hàng",
+                        nên luôn khớp với đơn hàng được tạo.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
