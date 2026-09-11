@@ -1,0 +1,61 @@
+@model CustomerOrderDetailViewModel
+@{
+    ViewData["Title"] = $"Đơn hàng {Model.OrderCode}";
+}
+
+<div class="container">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-area="" asp-controller="Order" asp-action="Index">Đơn hàng của tôi</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.OrderCode</li>
+        </ol>
+    </nav>
+
+    <div class="bg-white border rounded-3 p-3 p-lg-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <h1 class="h5 fw-bold mb-1">Đơn hàng @Model.OrderCode</h1>
+                <div class="product-meta">
+                    Đặt lúc @Model.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")
+                    &middot; @Model.TotalQuantity sản phẩm
+                </div>
+            </div>
+            <span class="badge @Model.StatusBadgeClass fs-6">@Model.StatusText</span>
+        </div>
+
+        @if (Model.CanCancel)
+        {
+            <hr />
+            @* Nút chỉ hiện khi OrderStatusRules cho phép; service vẫn kiểm tra lại khi bấm. *@
+            <form asp-area="" asp-controller="Order" asp-action="Cancel" method="post"
+                  onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?');">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-outline-danger btn-sm">Hủy đơn hàng</button>
+                <span class="product-meta ms-2">Chỉ hủy được khi đơn chưa được shop xác nhận.</span>
+            </form>
+        }
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-5">
+            <div class="bg-white border rounded-3 p-3 p-lg-4 h-100">
+                <h2 class="h6 fw-bold mb-3">Thông tin nhận hàng</h2>
+                <partial name="_OrderShipping" model="Model" />
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-7">
+            <div class="bg-white border rounded-3 p-3 p-lg-4 h-100">
+                <h2 class="h6 fw-bold mb-3">Sản phẩm đã đặt</h2>
+                <partial name="_OrderLines" model="Model" />
+            </div>
+        </div>
+    </div>
+
+    <a class="btn btn-outline-secondary mt-4" asp-area="" asp-controller="Order" asp-action="Index">
+        &larr; Về danh sách đơn hàng
+    </a>
+
+</div>

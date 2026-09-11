@@ -1,0 +1,59 @@
+@model CustomerOrderDetailViewModel
+@*
+    Các dòng hàng của một đơn + phần tiền, dùng chung cho trang Đặt hàng thành công
+    (CUS-18) và trang Chi tiết đơn hàng (CUS-19).
+
+    Tên và đơn giá lấy từ bản chụp trong OrderDetail chứ không tra lại bảng Product, nên
+    shop đổi tên hay đổi giá sau này thì đơn cũ vẫn hiển thị đúng lúc mua. Cũng vì vậy ở
+    đây không có link sang trang sản phẩm: OrderDetail không lưu slug, và đi tra Product
+    để lấy slug là quay lại phụ thuộc dữ liệu hiện tại.
+*@
+<div class="table-responsive">
+    <table class="table align-middle order-lines mb-0">
+        <thead>
+            <tr class="small text-muted">
+                <th scope="col">Sản phẩm</th>
+                <th scope="col" class="d-none d-md-table-cell text-end">Đơn giá</th>
+                <th scope="col" class="text-center">SL</th>
+                <th scope="col" class="text-end">Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var line in Model.Lines)
+            {
+                <tr>
+                    <td>
+                        <span class="fw-semibold">@line.ProductName</span>
+                        <div class="product-meta d-md-none">@line.UnitPrice.ToVnd()</div>
+                    </td>
+                    <td class="d-none d-md-table-cell text-end text-nowrap">@line.UnitPrice.ToVnd()</td>
+                    <td class="text-center">@line.Quantity</td>
+                    <td class="text-end fw-semibold text-nowrap">@line.LineTotal.ToVnd()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="order-totals ms-auto mt-3">
+    <div class="d-flex justify-content-between mb-1">
+        <span class="text-muted">Tạm tính</span>
+        <span>@Model.SubTotal.ToVnd()</span>
+    </div>
+    <div class="d-flex justify-content-between mb-1">
+        <span class="text-muted">Phí vận chuyển</span>
+        @if (Model.ShippingFee <= 0)
+        {
+            <span class="text-success">Miễn phí</span>
+        }
+        else
+        {
+            <span>@Model.ShippingFee.ToVnd()</span>
+        }
+    </div>
+    <hr class="my-2" />
+    <div class="d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Tổng cộng</span>
+        <span class="detail-price">@Model.TotalAmount.ToVnd()</span>
+    </div>
+</div>

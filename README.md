@@ -192,6 +192,10 @@ dotnet ef migrations script -o out.sql    # xem SQL sinh ra mà không cần dat
 | `/san-pham` | `Product/Index` | Danh sách sản phẩm |
 | `/san-pham/{slug}` | `Product/Details` | Chi tiết sản phẩm, tra theo `Slug` (UNIQUE) |
 | `/gio-hang` | `Cart/Index` | Giỏ hàng (lưu trong Session) |
+| `/thanh-toan` | `Checkout/Index` | Trang thanh toán — cần đăng nhập |
+| `/dat-hang-thanh-cong/{id}` | `Checkout/Success` | Xác nhận đặt hàng — chỉ chủ đơn xem được |
+| `/don-hang` | `Order/Index` | Đơn hàng của tôi — cần đăng nhập |
+| `/don-hang/{id}` | `Order/Details` | Chi tiết đơn — chỉ chủ đơn xem được |
 
 Danh sách sản phẩm nhận các tham số query string, kết hợp được với nhau và luôn được giữ
 lại trên link phân trang:
@@ -250,4 +254,9 @@ thường (0 kết quả hoặc quay về giá trị mặc định), không báo
 | CUS-13 | Trang Shopping Cart | ✅ |
 | CUS-14 | Update quantity / Remove item | ✅ |
 | CUS-15 | Subtotal & Total giỏ hàng | ✅ |
-| CUS-16+ | Checkout, đặt hàng, thanh toán | ⏳ Chưa làm |
+| CUS-16 | Trang Checkout | ✅ |
+| CUS-17 | Submit Checkout, tạo Order qua OrderService | ✅ |
+| CUS-18 | Order Success + clear Cart | ✅ |
+| CUS-19 | My Orders, Order Detail, hủy đơn | ✅ |
+| CUS-20 | Responsive, UI polish, test customer flow | ✅ |
+| CUS-21+ | Thanh toán online (VNPay), đánh giá sản phẩm... | ⏳ Chưa làm |
