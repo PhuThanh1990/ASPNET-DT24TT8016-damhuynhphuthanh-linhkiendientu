@@ -4,6 +4,7 @@ using ElectronicStore.Areas.Admin.Services;
 using ElectronicStore.Data;
 using ElectronicStore.Models;
 using ElectronicStore.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.WebEncoders;
@@ -43,6 +44,39 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.ExpireTimeSpan = TimeSpan.FromDays(7);
     options.SlidingExpiration = true;
+
+    // CORE-20 — AccountController checks ApplicationUser.IsActive at sign-in, but that is a
+    // one-off: a cookie issued before the account was disabled stayed valid for the whole
+    // 7 days, so a banned user (an admin included) kept full access. Identity's own security
+    // stamp does not change when IsActive is toggled, so it cannot close this on its own.
+    // Re-checking the flag whenever the cookie is validated makes disabling take effect on
+    // the very next request.
+    options.Events.OnValidatePrincipal = async context =>
+    {
+        // Runs Identity's standard stamp validation first, so "sign out everywhere" and
+        // password changes keep working exactly as before.
+        await SecurityStampValidator.ValidatePrincipalAsync(context);
+
+        if (context.Principal?.Identity?.IsAuthenticated != true)
+        {
+            return;
+        }
+
+        var userManager = context.HttpContext.RequestServices
+            .GetRequiredService<UserManager<ApplicationUser>>();
+
+        var user = await userManager.GetUserAsync(context.Principal);
+
+        // Deleted account or disabled account: drop the cookie instead of trusting it.
+        // Costs one primary-key lookup per authenticated request; if that ever matters,
+        // call UserManager.UpdateSecurityStampAsync when toggling IsActive and this can
+        // fall back to the stamp interval.
+        if (user is null || !user.IsActive)
+        {
+            context.RejectPrincipal();
+            await context.HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+        }
+    };
 });
 
 // Order business rules (CORE-16..18). Scoped so it shares the request's DbContext, which
