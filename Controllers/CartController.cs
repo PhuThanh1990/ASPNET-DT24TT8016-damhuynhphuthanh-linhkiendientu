@@ -1,9 +1,8 @@
-using ElectronicStore.Data;
 using ElectronicStore.Helpers;
 using ElectronicStore.Models;
 using ElectronicStore.Models.ViewModels;
+using ElectronicStore.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ElectronicStore.Controllers;
 
@@ -11,39 +10,38 @@ namespace ElectronicStore.Controllers;
 /// CUS-12 → CUS-15 — giỏ hàng lưu trong Session.
 ///
 /// Nguyên tắc bảo mật của controller này: client chỉ được gửi lên <c>productId</c> và
-/// <c>quantity</c>. Tên, ảnh, giá và tồn kho luôn được đọc lại từ database — không bao giờ
-/// lấy từ form hay từ Session. Nhờ vậy sửa hidden input trên trình duyệt không đổi được giá.
+/// <c>quantity</c>. Tên, ảnh, giá và tồn kho luôn được đọc lại từ database qua
+/// <see cref="ICartService"/> — không bao giờ lấy từ form hay từ Session. Nhờ vậy sửa
+/// hidden input trên trình duyệt không đổi được giá.
 ///
-/// Chưa tạo Order ở đây: Checkout là CUS-16 và OrderService do bạn Tài phụ trách.
+/// Đặt hàng không xảy ra ở đây: xem <c>CheckoutController</c> (CUS-16/CUS-17), nơi gọi
+/// Core <see cref="IOrderService"/>.
 /// </summary>
 public class CartController : Controller
 {
-    /// <summary>Trần số lượng cho mỗi dòng, để một sản phẩm không nuốt hết tồn kho.</summary>
-    private const int MaxQuantityPerItem = 99;
+    private readonly ICartService _cart;
 
-    private readonly ApplicationDbContext _context;
-
-    public CartController(ApplicationDbContext context)
+    public CartController(ICartService cart)
     {
-        _context = context;
+        _cart = cart;
     }
 
     /// <summary>CUS-13 — trang giỏ hàng. Mỗi lần mở đều đối chiếu lại với database.</summary>
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        return View(await BuildCartAsync());
+        return View(await _cart.BuildAsync(HttpContext.Session, cancellationToken));
     }
 
     /// <summary>CUS-12 — thêm sản phẩm vào giỏ.</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Add(int productId, int quantity = 1, string? returnUrl = null)
+    public async Task<IActionResult> Add(
+        int productId, int quantity = 1, string? returnUrl = null, CancellationToken cancellationToken = default)
     {
         // Số lượng gửi lên có thể là 0, số âm hoặc rất lớn -> kéo về khoảng hợp lệ.
-        quantity = Math.Clamp(quantity, 1, MaxQuantityPerItem);
+        quantity = Math.Clamp(quantity, 1, CartService.MaxQuantityPerItem);
 
-        var product = await ToSnapshots(SellableProducts().Where(p => p.Id == productId))
-            .FirstOrDefaultAsync();
+        var product = await _cart.FindSellableAsync(productId, cancellationToken);
 
         if (product is null)
         {
@@ -60,7 +58,7 @@ public class CartController : Controller
         var items = CartSession.GetItems(HttpContext.Session);
         var existing = items.FirstOrDefault(item => item.ProductId == product.Id);
 
-        var limit = Math.Min(product.StockQuantity, MaxQuantityPerItem);
+        var limit = Math.Min(product.StockQuantity, CartService.MaxQuantityPerItem);
         var currentQuantity = existing?.Quantity ?? 0;
         var wantedQuantity = currentQuantity + quantity;
         var acceptedQuantity = Math.Min(wantedQuantity, limit);
@@ -73,12 +71,14 @@ public class CartController : Controller
 
         if (existing is null)
         {
-            items.Add(CreateItem(product, acceptedQuantity));
+            var item = new CartItemViewModel { ProductId = product.Id, Quantity = acceptedQuantity };
+            CartService.Apply(item, product);
+            items.Add(item);
         }
         else
         {
             // Đã có trong giỏ thì cộng dồn, đồng thời làm mới thông tin theo database.
-            Refresh(existing, product);
+            CartService.Apply(existing, product);
             existing.Quantity = acceptedQuantity;
         }
 
@@ -105,7 +105,8 @@ public class CartController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Update(int productId, int quantity, int? delta = null)
+    public async Task<IActionResult> Update(
+        int productId, int quantity, int? delta = null, CancellationToken cancellationToken = default)
     {
         var items = CartSession.GetItems(HttpContext.Session);
         var existing = items.FirstOrDefault(item => item.ProductId == productId);
@@ -118,7 +119,8 @@ public class CartController : Controller
 
         if (delta.HasValue)
         {
-            quantity = existing.Quantity + Math.Clamp(delta.Value, -MaxQuantityPerItem, MaxQuantityPerItem);
+            quantity = existing.Quantity
+                + Math.Clamp(delta.Value, -CartService.MaxQuantityPerItem, CartService.MaxQuantityPerItem);
         }
 
         if (quantity <= 0)
@@ -130,8 +132,7 @@ public class CartController : Controller
         }
 
         // Không tin số lượng/tồn kho từ form: kiểm tra lại sản phẩm ngay lúc này.
-        var product = await ToSnapshots(SellableProducts().Where(p => p.Id == productId))
-            .FirstOrDefaultAsync();
+        var product = await _cart.FindSellableAsync(productId, cancellationToken);
 
         if (product is null || product.StockQuantity <= 0)
         {
@@ -141,10 +142,10 @@ public class CartController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        var limit = Math.Min(product.StockQuantity, MaxQuantityPerItem);
+        var limit = Math.Min(product.StockQuantity, CartService.MaxQuantityPerItem);
         var acceptedQuantity = Math.Min(quantity, limit);
 
-        Refresh(existing, product);
+        CartService.Apply(existing, product);
         existing.Quantity = acceptedQuantity;
         CartSession.SaveItems(HttpContext.Session, items);
 
@@ -178,114 +179,6 @@ public class CartController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    /// <summary>
-    /// Dựng giỏ hàng để hiển thị, đồng thời tự sửa những dòng không còn hợp lệ: sản phẩm
-    /// bị gỡ bán, hết hàng, số lượng vượt tồn kho hoặc giá đã đổi. Giỏ hàng trong Session
-    /// được ghi lại nếu có thay đổi, nên trang luôn hiển thị đúng những gì đặt được.
-    /// </summary>
-    private async Task<CartViewModel> BuildCartAsync()
-    {
-        var items = CartSession.GetItems(HttpContext.Session);
-        var model = new CartViewModel();
-
-        if (items.Count == 0)
-        {
-            return model;
-        }
-
-        var productIds = items.Select(item => item.ProductId).ToList();
-        var products = await ToSnapshots(SellableProducts().Where(p => productIds.Contains(p.Id)))
-            .ToDictionaryAsync(p => p.Id);
-
-        var changed = false;
-
-        foreach (var item in items)
-        {
-            if (!products.TryGetValue(item.ProductId, out var product) || product.StockQuantity <= 0)
-            {
-                model.Notices.Add($"\"{item.Name}\" không còn bán nên đã được bỏ khỏi giỏ hàng.");
-                changed = true;
-                continue;
-            }
-
-            var limit = Math.Min(product.StockQuantity, MaxQuantityPerItem);
-            var quantity = Math.Clamp(item.Quantity, 1, limit);
-
-            if (quantity != item.Quantity)
-            {
-                model.Notices.Add($"\"{product.Name}\" chỉ còn {limit} sản phẩm, số lượng đã được điều chỉnh.");
-                changed = true;
-            }
-
-            if (item.UnitPrice != product.Price)
-            {
-                model.Notices.Add($"Giá của \"{product.Name}\" đã thay đổi thành {product.Price.ToVnd()}.");
-                changed = true;
-            }
-
-            Refresh(item, product);
-            item.Quantity = quantity;
-            model.Items.Add(item);
-        }
-
-        if (changed)
-        {
-            CartSession.SaveItems(HttpContext.Session, model.Items);
-        }
-
-        return model;
-    }
-
-    /// <summary>
-    /// Sản phẩm đang được bán. Trả về entity chưa chiếu, để mọi bộ lọc (theo Id, theo danh
-    /// sách Id) còn chạy được dưới SQL — xem <see cref="ToSnapshots"/>.
-    /// </summary>
-    private IQueryable<Product> SellableProducts() =>
-        _context.Products
-            .AsNoTracking()
-            .Where(p => p.IsActive);
-
-    /// <summary>
-    /// Ảnh chụp sản phẩm lấy thẳng từ database — nguồn sự thật duy nhất cho tên, ảnh,
-    /// giá và tồn kho.
-    /// </summary>
-    /// <remarks>
-    /// Luôn gọi SAU khi đã lọc xong. Nếu lọc sau bước Select thì EF phải dịch điều kiện
-    /// trên chính ProductSnapshot — mà bên trong nó có subquery lấy ảnh — nên không dịch
-    /// được và ném InvalidOperationException ngay lúc chạy.
-    /// </remarks>
-    private static IQueryable<ProductSnapshot> ToSnapshots(IQueryable<Product> products) =>
-        products.Select(p => new ProductSnapshot(
-            p.Id,
-            p.Name,
-            p.Slug,
-            p.ProductImages
-                .OrderByDescending(i => i.IsPrimary)
-                .ThenBy(i => i.SortOrder)
-                .ThenBy(i => i.Id)
-                .Select(i => i.ImageUrl)
-                .FirstOrDefault(),
-            p.Price,
-            p.StockQuantity));
-
-    private static CartItemViewModel CreateItem(ProductSnapshot product, int quantity)
-    {
-        var item = new CartItemViewModel { ProductId = product.Id, Quantity = quantity };
-        Refresh(item, product);
-
-        return item;
-    }
-
-    /// <summary>Đồng bộ dòng giỏ hàng theo dữ liệu database mới nhất (trừ số lượng).</summary>
-    private static void Refresh(CartItemViewModel item, ProductSnapshot product)
-    {
-        item.Name = product.Name;
-        item.Slug = product.Slug;
-        item.ImageUrl = product.ImageUrl;
-        item.UnitPrice = product.Price;
-        item.StockQuantity = product.StockQuantity;
-    }
-
     private void SetMessage(string type, string text)
     {
         TempData["StatusMessageType"] = type;
@@ -300,12 +193,4 @@ public class CartController : Controller
         !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl)
             ? Redirect(returnUrl)
             : RedirectToAction(nameof(Index));
-
-    private sealed record ProductSnapshot(
-        int Id,
-        string Name,
-        string Slug,
-        string? ImageUrl,
-        decimal Price,
-        int StockQuantity);
 }

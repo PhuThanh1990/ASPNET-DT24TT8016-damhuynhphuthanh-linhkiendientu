@@ -1,0 +1,24 @@
+@model CustomerOrderDetailViewModel
+@*
+    Thông tin nhận hàng đã chốt của một đơn (bản chụp trong Order), dùng chung cho trang
+    Đặt hàng thành công và trang Chi tiết đơn hàng.
+*@
+<dl class="row mb-0 small">
+    <dt class="col-5 col-sm-4 text-muted fw-normal">Người nhận</dt>
+    <dd class="col-7 col-sm-8">@Model.ShippingFullName</dd>
+
+    <dt class="col-5 col-sm-4 text-muted fw-normal">Điện thoại</dt>
+    <dd class="col-7 col-sm-8">@Model.ShippingPhone</dd>
+
+    <dt class="col-5 col-sm-4 text-muted fw-normal">Địa chỉ</dt>
+    <dd class="col-7 col-sm-8">@Model.ShippingAddress</dd>
+
+    <dt class="col-5 col-sm-4 text-muted fw-normal">Ngày đặt</dt>
+    <dd class="col-7 col-sm-8">@Model.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</dd>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Note))
+    {
+        <dt class="col-5 col-sm-4 text-muted fw-normal">Ghi chú</dt>
+        <dd class="col-7 col-sm-8 mb-0">@Model.Note</dd>
+    }
+</dl>
