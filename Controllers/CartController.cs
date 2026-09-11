@@ -1,5 +1,6 @@
 using ElectronicStore.Data;
 using ElectronicStore.Helpers;
+using ElectronicStore.Models;
 using ElectronicStore.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -41,7 +42,8 @@ public class CartController : Controller
         // Số lượng gửi lên có thể là 0, số âm hoặc rất lớn -> kéo về khoảng hợp lệ.
         quantity = Math.Clamp(quantity, 1, MaxQuantityPerItem);
 
-        var product = await SellableProducts().FirstOrDefaultAsync(p => p.Id == productId);
+        var product = await ToSnapshots(SellableProducts().Where(p => p.Id == productId))
+            .FirstOrDefaultAsync();
 
         if (product is null)
         {
@@ -128,7 +130,8 @@ public class CartController : Controller
         }
 
         // Không tin số lượng/tồn kho từ form: kiểm tra lại sản phẩm ngay lúc này.
-        var product = await SellableProducts().FirstOrDefaultAsync(p => p.Id == productId);
+        var product = await ToSnapshots(SellableProducts().Where(p => p.Id == productId))
+            .FirstOrDefaultAsync();
 
         if (product is null || product.StockQuantity <= 0)
         {
@@ -191,8 +194,7 @@ public class CartController : Controller
         }
 
         var productIds = items.Select(item => item.ProductId).ToList();
-        var products = await SellableProducts()
-            .Where(p => productIds.Contains(p.Id))
+        var products = await ToSnapshots(SellableProducts().Where(p => productIds.Contains(p.Id)))
             .ToDictionaryAsync(p => p.Id);
 
         var changed = false;
@@ -235,25 +237,36 @@ public class CartController : Controller
     }
 
     /// <summary>
-    /// Ảnh chụp sản phẩm lấy thẳng từ database — nguồn sự thật duy nhất cho tên, ảnh,
-    /// giá và tồn kho. Chỉ lấy sản phẩm đang được bán (IsActive).
+    /// Sản phẩm đang được bán. Trả về entity chưa chiếu, để mọi bộ lọc (theo Id, theo danh
+    /// sách Id) còn chạy được dưới SQL — xem <see cref="ToSnapshots"/>.
     /// </summary>
-    private IQueryable<ProductSnapshot> SellableProducts() =>
+    private IQueryable<Product> SellableProducts() =>
         _context.Products
             .AsNoTracking()
-            .Where(p => p.IsActive)
-            .Select(p => new ProductSnapshot(
-                p.Id,
-                p.Name,
-                p.Slug,
-                p.ProductImages
-                    .OrderByDescending(i => i.IsPrimary)
-                    .ThenBy(i => i.SortOrder)
-                    .ThenBy(i => i.Id)
-                    .Select(i => i.ImageUrl)
-                    .FirstOrDefault(),
-                p.Price,
-                p.StockQuantity));
+            .Where(p => p.IsActive);
+
+    /// <summary>
+    /// Ảnh chụp sản phẩm lấy thẳng từ database — nguồn sự thật duy nhất cho tên, ảnh,
+    /// giá và tồn kho.
+    /// </summary>
+    /// <remarks>
+    /// Luôn gọi SAU khi đã lọc xong. Nếu lọc sau bước Select thì EF phải dịch điều kiện
+    /// trên chính ProductSnapshot — mà bên trong nó có subquery lấy ảnh — nên không dịch
+    /// được và ném InvalidOperationException ngay lúc chạy.
+    /// </remarks>
+    private static IQueryable<ProductSnapshot> ToSnapshots(IQueryable<Product> products) =>
+        products.Select(p => new ProductSnapshot(
+            p.Id,
+            p.Name,
+            p.Slug,
+            p.ProductImages
+                .OrderByDescending(i => i.IsPrimary)
+                .ThenBy(i => i.SortOrder)
+                .ThenBy(i => i.Id)
+                .Select(i => i.ImageUrl)
+                .FirstOrDefault(),
+            p.Price,
+            p.StockQuantity));
 
     private static CartItemViewModel CreateItem(ProductSnapshot product, int quantity)
     {
