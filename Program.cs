@@ -105,6 +105,10 @@ builder.Services.AddSession(options =>
 // Admin area services.
 // ProductImageStorage writes uploaded images under wwwroot and hands back their URL.
 builder.Services.AddScoped<ProductImageStorage>();
+
+// Read-only reporting behind the Admin dashboard (ADM-17 -> ADM-19). It only counts and
+// sums; every order write still goes through the Core IOrderService registered above.
+builder.Services.AddScoped<DashboardService>();
 // Order status changes go through the Core IOrderService registered above; the Admin area
 // has no order service of its own.
 
