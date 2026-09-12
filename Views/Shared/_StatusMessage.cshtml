@@ -1,5 +1,5 @@
 @{
-    // Thông báo một lần sau khi POST (thêm/sửa/xóa giỏ hàng) rồi redirect.
+    // Thông báo một lần sau khi POST (thêm/sửa/xóa giỏ hàng, đặt/hủy đơn) rồi redirect.
     var message = TempData["StatusMessage"] as string;
     var messageType = TempData["StatusMessageType"] as string ?? "info";
 
@@ -9,13 +9,25 @@
     {
         messageType = "info";
     }
+
+    // Biểu tượng theo ngữ nghĩa, dùng ký tự nên không phụ thuộc icon font nào.
+    var icon = messageType switch
+    {
+        "success" => "✓",
+        "warning" => "!",
+        "danger" => "×",
+        _ => "i",
+    };
 }
 
 @if (!string.IsNullOrWhiteSpace(message))
 {
     <div class="container mt-3">
         <div class="alert alert-@messageType alert-dismissible fade show mb-0" role="alert">
-            @message
+            <div class="d-flex align-items-start gap-2">
+                <span class="status-icon" aria-hidden="true">@icon</span>
+                <div>@message</div>
+            </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
         </div>
     </div>

@@ -1,109 +1,220 @@
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
 
-    string NavClass(string controller) =>
-        string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
-            ? "admin-nav-link active"
-            : "admin-nav-link";
+    // Menu của khu vực Admin. Chỉ những module đã tồn tại — không thêm mục dẫn tới trang chưa có.
+    var menu = new (string Controller, string Label, string Icon)[]
+    {
+        ("Home", "Dashboard", "ti-layout-dashboard"),
+        ("Category", "Danh mục", "ti-category"),
+        ("Brand", "Thương hiệu", "ti-tag"),
+        ("Product", "Sản phẩm", "ti-package"),
+        ("Order", "Đơn hàng", "ti-shopping-cart"),
+    };
+
+    var activeModule = menu.FirstOrDefault(item =>
+        string.Equals(item.Controller, currentController, StringComparison.OrdinalIgnoreCase));
+
+    var pageTitle = ViewData["Title"] as string ?? activeModule.Label ?? "Admin";
+
+    // Breadcrumb dựng từ route nên mọi trang có ngay mà không cần khai báo thêm:
+    // Dashboard / <module> / <tên trang khi không phải trang danh sách>.
+    var isModuleIndex = string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
+    var isDashboard = string.Equals(currentController, "Home", StringComparison.OrdinalIgnoreCase);
 }
 <!DOCTYPE html>
-<html lang="vi">
+@* data-bs-navbar-position="vertical" là bắt buộc: Tabler có luật
+   html:not([data-bs-navbar-position=vertical]) .page:has(> [class*=navbar-expand]:not(.navbar-vertical)) > .navbar-vertical { display:none }
+   nghĩa là khi .page có thêm một navbar ngang làm con trực tiếp (header bên dưới) thì nó
+   coi đây là bố cục ngang và ẩn sidebar đi. Thuộc tính này chốt bố cục dọc. *@
+<html lang="vi" data-bs-navbar-position="vertical">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Admin | ElectronicStore</title>
+    <title>@pageTitle - Admin | ElectronicStore</title>
     @* CSS layering (UI-01): Tabler foundation first, then this area's own styles.
        Tabler already contains a full Bootstrap 5 build, so bootstrap.css is deliberately not
-       loaded here as well. site.css is deliberately NOT loaded in the Admin area: it sets
-       html{font-size:14px}, which would shrink every admin screen - that is a UI-05 decision,
-       not an asset-integration one. *@
+       loaded here as well. site.css / customer.css belong to the storefront and are never
+       loaded in the Admin area. *@
     <link rel="stylesheet" href="~/lib/tabler/dist/css/tabler.min.css" />
     <link rel="stylesheet" href="~/lib/tabler-icons/dist/tabler-icons.min.css" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
 </head>
-<body class="admin-body">
-    <header class="admin-header">
-        <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button"
-                data-bs-toggle="offcanvas" data-bs-target="#adminSidebar" aria-controls="adminSidebar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <a class="admin-brand" asp-area="Admin" asp-controller="Home" asp-action="Index">
-            ElectronicStore <span class="admin-brand-tag">Admin</span>
-        </a>
-        <div class="ms-auto d-flex align-items-center gap-3">
-            <a class="admin-header-link" asp-area="" asp-controller="Home" asp-action="Index" target="_blank">
-                Xem website
-            </a>
-            <span class="admin-header-user">@User.Identity?.Name</span>
-            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="m-0">
-                <button type="submit" class="btn btn-sm btn-outline-light">Đăng xuất</button>
-            </form>
+<body>
+@* Bố cục chuẩn của Tabler: .page > sidebar + header + .page-wrapper.
+   Sidebar dùng navbar-vertical + collapse của Bootstrap nên tự thu gọn dưới 992px. *@
+<div class="page">
+
+    <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#adminSidebarMenu" aria-controls="adminSidebarMenu"
+                    aria-expanded="false" aria-label="Mở menu quản trị">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <h1 class="navbar-brand navbar-brand-autodark">
+                <a asp-area="Admin" asp-controller="Home" asp-action="Index">
+                    ElectronicStore <span class="badge bg-primary text-uppercase ms-1">Admin</span>
+                </a>
+            </h1>
+
+            @* Tài khoản hiện ở đây trên mobile (header bị thu gọn). *@
+            <div class="navbar-nav flex-row d-lg-none">
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" aria-label="Mở menu tài khoản">
+                        <i class="ti ti-user-circle fs-2"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <span class="dropdown-header text-truncate">@User.Identity?.Name</span>
+                        <a class="dropdown-item" asp-area="" asp-controller="Home" asp-action="Index" target="_blank">
+                            Xem website
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit" class="dropdown-item text-danger">Đăng xuất</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="collapse navbar-collapse" id="adminSidebarMenu">
+                <ul class="navbar-nav pt-lg-3">
+                    @foreach (var item in menu)
+                    {
+                        var isActive = string.Equals(item.Controller, currentController, StringComparison.OrdinalIgnoreCase);
+                        <li class="nav-item @(isActive ? "active" : null)">
+                            <a class="nav-link" asp-area="Admin" asp-controller="@item.Controller" asp-action="Index"
+                               aria-current="@(isActive ? "page" : null)">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                    <i class="ti @item.Icon"></i>
+                                </span>
+                                <span class="nav-link-title">@item.Label</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <header class="navbar navbar-expand-md d-none d-lg-flex d-print-none">
+        <div class="container-fluid">
+            <div class="navbar-nav flex-row order-md-last">
+                <a class="nav-link px-2" asp-area="" asp-controller="Home" asp-action="Index" target="_blank">
+                    <i class="ti ti-external-link me-1"></i>Xem website
+                </a>
+
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link d-flex lh-1 p-0 px-2" data-bs-toggle="dropdown"
+                       aria-label="Mở menu tài khoản">
+                        <i class="ti ti-user-circle fs-2"></i>
+                        <div class="d-none d-xl-block ps-2">
+                            <div class="admin-user-name">@User.Identity?.Name</div>
+                            <div class="mt-1 small text-secondary">Quản trị viên</div>
+                        </div>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <span class="dropdown-header text-truncate">@User.Identity?.Name</span>
+                        <div class="dropdown-divider"></div>
+                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit" class="dropdown-item text-danger">
+                                <i class="ti ti-logout me-1"></i>Đăng xuất
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
-    <div class="admin-shell">
-        <nav class="admin-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="adminSidebar"
-             aria-label="Điều hướng quản trị">
-            <div class="offcanvas-header d-lg-none">
-                <h5 class="offcanvas-title">Menu</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
-                        data-bs-target="#adminSidebar" aria-label="Đóng"></button>
-            </div>
-            <div class="offcanvas-body admin-sidebar-body">
-                <ul class="admin-nav">
-                    <li>
-                        <a class="@NavClass("Home")" asp-area="Admin" asp-controller="Home" asp-action="Index">
-                            Dashboard
-                        </a>
-                    </li>
-                    <li>
-                        <a class="@NavClass("Category")" asp-area="Admin" asp-controller="Category" asp-action="Index">
-                            Danh mục
-                        </a>
-                    </li>
-                    <li>
-                        <a class="@NavClass("Brand")" asp-area="Admin" asp-controller="Brand" asp-action="Index">
-                            Thương hiệu
-                        </a>
-                    </li>
-                    <li>
-                        <a class="@NavClass("Product")" asp-area="Admin" asp-controller="Product" asp-action="Index">
-                            Sản phẩm
-                        </a>
-                    </li>
-                    <li>
-                        <a class="@NavClass("Order")" asp-area="Admin" asp-controller="Order" asp-action="Index">
-                            Đơn hàng
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
+    <div class="page-wrapper">
 
-        <main class="admin-main">
-            @if (TempData["SuccessMessage"] is string successMessage)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @successMessage
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-                </div>
-            }
-            @if (TempData["ErrorMessage"] is string errorMessage)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @errorMessage
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-                </div>
-            }
+        <div class="page-header d-print-none">
+            <div class="container-xl">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb breadcrumb-arrows">
+                        <li class="breadcrumb-item">
+                            <a asp-area="Admin" asp-controller="Home" asp-action="Index">Dashboard</a>
+                        </li>
+                        @if (!isDashboard && activeModule.Controller is not null)
+                        {
+                            <li class="breadcrumb-item @(isModuleIndex ? "active" : null)"
+                                aria-current="@(isModuleIndex ? "page" : null)">
+                                @if (isModuleIndex)
+                                {
+                                    @activeModule.Label
+                                }
+                                else
+                                {
+                                    <a asp-area="Admin" asp-controller="@activeModule.Controller" asp-action="Index">@activeModule.Label</a>
+                                }
+                            </li>
+                        }
+                        @if (!isDashboard && !isModuleIndex)
+                        {
+                            <li class="breadcrumb-item active" aria-current="page">@pageTitle</li>
+                        }
+                    </ol>
+                </nav>
 
-            @RenderBody()
-        </main>
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <h2 class="page-title">@pageTitle</h2>
+                        @if (ViewData["Subtitle"] is string subtitle && !string.IsNullOrWhiteSpace(subtitle))
+                        {
+                            <div class="text-secondary mt-1">@subtitle</div>
+                        }
+                    </div>
+                    @* Nút hành động của từng trang (Thêm mới, Quay lại...). *@
+                    <div class="col-auto ms-auto d-print-none">
+                        @await RenderSectionAsync("PageActions", required: false)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-body">
+            <div class="container-xl">
+                @if (TempData["SuccessMessage"] is string successMessage)
+                {
+                    <div class="alert alert-success alert-dismissible" role="alert">
+                        <div class="d-flex">
+                            <i class="ti ti-circle-check alert-icon me-2"></i>
+                            <div>@successMessage</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] is string errorMessage)
+                {
+                    <div class="alert alert-danger alert-dismissible" role="alert">
+                        <div class="d-flex">
+                            <i class="ti ti-alert-triangle alert-icon me-2"></i>
+                            <div>@errorMessage</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+                    </div>
+                }
+
+                @RenderBody()
+            </div>
+        </div>
+
+        <footer class="footer footer-transparent d-print-none">
+            <div class="container-xl">
+                <div class="text-secondary small">
+                    ElectronicStore &middot; Khu vực quản trị &middot; Đồ án ASP.NET Core MVC
+                </div>
+            </div>
+        </footer>
     </div>
+</div>
 
-    @* Tabler bundles Bootstrap's JS and Popper - loading bootstrap.bundle.js as well would
-       double-register every data-bs-* component. jQuery stays only for jquery-validation. *@
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/tabler/dist/js/tabler.min.js"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+@* Tabler bundles Bootstrap's JS and Popper - loading bootstrap.bundle.js as well would
+   double-register every data-bs-* component. jQuery stays only for jquery-validation. *@
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/tabler/dist/js/tabler.min.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,83 +1,97 @@
 @model OrderListViewModel
 @{
     ViewData["Title"] = "Đơn hàng";
+    ViewData["Subtitle"] = Model.TotalCount > 0 ? $"{Model.TotalCount} đơn hàng" : null;
 }
 
-<div class="admin-page-header">
-    <h1>Đơn hàng</h1>
-</div>
-
-<div class="admin-card mb-3">
-    @* ADM-14: lọc theo trạng thái, dùng đúng index (Status, CreatedAt DESC). *@
-    <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-sm @(Model.Status is null ? "btn-primary" : "btn-outline-secondary")"
-           asp-action="Index">
-            Tất cả <span class="badge text-bg-light">@Model.TotalCount</span>
-        </a>
-        @foreach (var status in OrderStatusDisplay.All)
-        {
-            var count = Model.CountsByStatus.TryGetValue(status, out var c) ? c : 0;
-            <a class="btn btn-sm @(Model.Status == status ? "btn-primary" : "btn-outline-secondary")"
-               asp-action="Index" asp-route-status="@status">
-                @OrderStatusDisplay.DisplayName(status) <span class="badge text-bg-light">@count</span>
+@* ADM-14: lọc theo trạng thái, dùng đúng index (Status, CreatedAt DESC). *@
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="btn-list">
+            <a class="btn btn-sm @(Model.Status is null ? "btn-primary" : "")" asp-action="Index">
+                Tất cả <span class="badge bg-secondary-lt ms-1">@Model.TotalCount</span>
             </a>
-        }
+            @foreach (var status in OrderStatusDisplay.All)
+            {
+                var count = Model.CountsByStatus.TryGetValue(status, out var c) ? c : 0;
+                <a class="btn btn-sm @(Model.Status == status ? "btn-primary" : "")"
+                   asp-action="Index" asp-route-status="@status">
+                    @OrderStatusDisplay.DisplayName(status)
+                    <span class="badge bg-secondary-lt ms-1">@count</span>
+                </a>
+            }
+        </div>
     </div>
 </div>
 
-<div class="admin-card">
+<div class="card">
     @if (Model.Orders.Count == 0)
     {
-        <div class="admin-empty">
-            <p class="mb-0">
+        <div class="empty">
+            <div class="empty-icon"><i class="ti ti-shopping-cart-off"></i></div>
+            <p class="empty-title">
                 @if (Model.Status is { } filtered)
                 {
-                    <text>Không có đơn hàng nào ở trạng thái "@OrderStatusDisplay.DisplayName(filtered)".</text>
+                    <text>Không có đơn hàng nào ở trạng thái "@OrderStatusDisplay.DisplayName(filtered)"</text>
                 }
                 else
                 {
-                    <text>Chưa có đơn hàng nào.</text>
+                    <text>Chưa có đơn hàng nào</text>
                 }
             </p>
+            <p class="empty-subtitle text-secondary">Đơn hàng của khách sẽ hiện ở đây ngay khi được đặt.</p>
+            @if (Model.Status is not null)
+            {
+                <div class="empty-action">
+                    <a class="btn btn-primary" asp-action="Index">Xem tất cả đơn hàng</a>
+                </div>
+            }
         </div>
     }
     else
     {
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-vcenter card-table">
                 <thead>
                     <tr>
-                        <th scope="col">Mã đơn</th>
-                        <th scope="col">Khách hàng</th>
-                        <th scope="col">Người nhận</th>
-                        <th scope="col" class="text-end">Số món</th>
-                        <th scope="col" class="text-end">Tổng tiền</th>
-                        <th scope="col">Trạng thái</th>
-                        <th scope="col">Ngày đặt</th>
-                        <th scope="col" class="text-end">Thao tác</th>
+                        <th>Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Người nhận</th>
+                        <th class="text-end">Số món</th>
+                        <th class="text-end">Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày đặt</th>
+                        <th class="w-1"><span class="visually-hidden">Thao tác</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var order in Model.Orders)
                     {
                         <tr>
-                            <td><code>@order.OrderCode</code></td>
                             <td>
-                                <div>@(string.IsNullOrWhiteSpace(order.CustomerName) ? "(chưa đặt tên)" : order.CustomerName)</div>
-                                <div class="small text-muted">@order.CustomerEmail</div>
+                                <a class="fw-semibold font-monospace" asp-action="Details" asp-route-id="@order.Id">
+                                    @order.OrderCode
+                                </a>
                             </td>
-                            <td>@order.ShippingFullName</td>
+                            <td class="admin-min-w-0">
+                                <div class="text-truncate">
+                                    @(string.IsNullOrWhiteSpace(order.CustomerName) ? "(chưa đặt tên)" : order.CustomerName)
+                                </div>
+                                <div class="text-secondary small text-truncate">@order.CustomerEmail</div>
+                            </td>
+                            <td class="text-secondary">@order.ShippingFullName</td>
                             <td class="text-end">@order.ItemCount</td>
-                            <td class="text-end text-nowrap">@order.TotalAmount.ToVnd()</td>
+                            <td class="text-end text-nowrap fw-semibold">@order.TotalAmount.ToVnd()</td>
                             <td>
                                 <span class="badge @OrderStatusDisplay.BadgeClass(order.Status)">
                                     @OrderStatusDisplay.DisplayName(order.Status)
                                 </span>
                             </td>
-                            <td class="text-nowrap">@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                            <td class="text-end">
-                                <a class="btn btn-sm btn-outline-secondary"
-                                   asp-action="Details" asp-route-id="@order.Id">Chi tiết</a>
+                            <td class="text-secondary text-nowrap">@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <a class="btn btn-sm" asp-action="Details" asp-route-id="@order.Id">
+                                    <i class="ti ti-eye me-1"></i>Chi tiết
+                                </a>
                             </td>
                         </tr>
                     }
