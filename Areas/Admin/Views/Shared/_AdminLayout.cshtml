@@ -12,7 +12,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Admin | ElectronicStore</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    @* CSS layering (UI-01): Tabler foundation first, then this area's own styles.
+       Tabler already contains a full Bootstrap 5 build, so bootstrap.css is deliberately not
+       loaded here as well. site.css is deliberately NOT loaded in the Admin area: it sets
+       html{font-size:14px}, which would shrink every admin screen - that is a UI-05 decision,
+       not an asset-integration one. *@
+    <link rel="stylesheet" href="~/lib/tabler/dist/css/tabler.min.css" />
+    <link rel="stylesheet" href="~/lib/tabler-icons/dist/tabler-icons.min.css" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
 </head>
 <body class="admin-body">
@@ -94,8 +100,10 @@
         </main>
     </div>
 
+    @* Tabler bundles Bootstrap's JS and Popper - loading bootstrap.bundle.js as well would
+       double-register every data-bs-* component. jQuery stays only for jquery-validation. *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/tabler/dist/js/tabler.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

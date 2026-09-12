@@ -13,7 +13,9 @@ html {
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
+  /* Tabler prefixes its CSS variables --tblr-* rather than --bs-*, so fall back through
+     both and finally to a literal, instead of silently resolving to nothing. */
+  color: var(--bs-secondary-color, var(--tblr-secondary-color, #6c757d));
   text-align: end;
 }
 
