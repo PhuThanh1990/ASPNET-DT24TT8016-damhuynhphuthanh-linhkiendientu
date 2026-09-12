@@ -1,0 +1,39 @@
+@model IReadOnlyList<CategoryLinkViewModel>
+@*
+    UI-02 — biến thể "offcanvas": danh sách danh mục dọc cho menu mobile.
+    Cùng dữ liệu với biến thể bar, chỉ khác cách trình bày.
+*@
+@{
+    var activeCategory = Context.Request.Query["category"].ToString();
+}
+
+@if (Model.Count > 0)
+{
+    <h3 class="customer-menu__heading">Danh mục</h3>
+    <ul class="customer-menu">
+        @foreach (var category in Model)
+        {
+            <li>
+                <a class="customer-menu__link @(activeCategory == category.Slug ? "is-active" : null)"
+                   asp-area="" asp-controller="Product" asp-action="Index" asp-route-category="@category.Slug">
+                    @category.Name
+                </a>
+
+                @if (category.Children.Count > 0)
+                {
+                    <ul class="customer-menu__sub">
+                        @foreach (var child in category.Children)
+                        {
+                            <li>
+                                <a class="customer-menu__link @(activeCategory == child.Slug ? "is-active" : null)"
+                                   asp-area="" asp-controller="Product" asp-action="Index" asp-route-category="@child.Slug">
+                                    @child.Name
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </li>
+        }
+    </ul>
+}

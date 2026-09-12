@@ -1,40 +1,62 @@
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@*
+    UI-02 — mục tài khoản trên header. Luôn là một nút icon + dropdown để giữ nguyên
+    một cách thao tác ở mọi kích thước màn hình (nhãn chữ tự ẩn dưới 768px).
+    Đăng xuất vẫn là form POST có antiforgery như thiết kế ban đầu.
+*@
+@{
+    var signedIn = SignInManager.IsSignedIn(User);
+    var displayName = signedIn ? UserManager.GetUserName(User) : null;
+}
 
-<ul class="navbar-nav">
-    @if (SignInManager.IsSignedIn(User))
-    {
-        var displayName = UserManager.GetUserName(User);
+<div class="dropdown">
+    <button class="header-action dropdown-toggle" type="button" data-bs-toggle="dropdown"
+            aria-expanded="false" aria-label="@(signedIn ? "Tài khoản của " + displayName : "Tài khoản")">
+        <i class="ti ti-user header-action__icon" aria-hidden="true"></i>
+        <span class="header-action__label">@(signedIn ? "Tài khoản" : "Đăng nhập")</span>
+    </button>
 
-        <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1" aria-hidden="true">
-                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z" />
-                </svg>
-                <span class="d-lg-none d-xl-inline">Tài khoản</span>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li><h6 class="dropdown-header text-truncate">@displayName</h6></li>
-                <li>
-                    <a class="dropdown-item" asp-area="" asp-controller="Order" asp-action="Index">Đơn hàng của tôi</a>
-                </li>
-                <li><hr class="dropdown-divider" /></li>
-                <li>
-                    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
-                        <button type="submit" class="dropdown-item">Đăng xuất</button>
-                    </form>
-                </li>
-            </ul>
-        </li>
-    }
-    else
-    {
-        <li class="nav-item">
-            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Register">Đăng ký</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-        </li>
-    }
-</ul>
+    <ul class="dropdown-menu dropdown-menu-end account-menu">
+        @if (signedIn)
+        {
+            <li class="account-menu__name">
+                Đang đăng nhập
+                <strong>@displayName</strong>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+                <a class="dropdown-item" asp-area="" asp-controller="Order" asp-action="Index">
+                    <i class="ti ti-package" aria-hidden="true"></i> Đơn hàng của tôi
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" asp-area="" asp-controller="Cart" asp-action="Index">
+                    <i class="ti ti-shopping-cart" aria-hidden="true"></i> Giỏ hàng
+                </a>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="dropdown-item">
+                        <i class="ti ti-logout" aria-hidden="true"></i> Đăng xuất
+                    </button>
+                </form>
+            </li>
+        }
+        else
+        {
+            <li>
+                <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Login">
+                    <i class="ti ti-user" aria-hidden="true"></i> Đăng nhập
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Register">
+                    <i class="ti ti-user-circle" aria-hidden="true"></i> Đăng ký
+                </a>
+            </li>
+        }
+    </ul>
+</div>
