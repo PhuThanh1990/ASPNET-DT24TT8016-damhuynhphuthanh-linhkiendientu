@@ -12,12 +12,14 @@
         </ol>
     </nav>
 
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <h1 class="section-title">Đơn hàng của tôi</h1>
-        @if (Model.TotalItems > 0)
-        {
-            <span class="text-muted small">@Model.TotalItems đơn hàng</span>
-        }
+    <div class="section-head">
+        <div>
+            <h1 class="section-title">Đơn hàng của tôi</h1>
+            @if (Model.TotalItems > 0)
+            {
+                <p class="section-subtitle">@Model.TotalItems đơn hàng</p>
+            }
+        </div>
     </div>
 
     @if (Model.IsEmpty)
@@ -31,7 +33,7 @@
     }
     else
     {
-        <div class="bg-white border rounded-3 p-2 p-md-3">
+        <div class="panel p-0 p-md-3">
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
                     <thead>

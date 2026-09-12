@@ -12,12 +12,21 @@
         </ol>
     </nav>
 
-    <h1 class="section-title mb-3">Giỏ hàng</h1>
+    <div class="section-head">
+        <div>
+            <h1 class="section-title">Giỏ hàng</h1>
+            @if (!Model.IsEmpty)
+            {
+                <p class="section-subtitle">@Model.TotalQuantity sản phẩm trong giỏ</p>
+            }
+        </div>
+    </div>
 
     @* Giỏ hàng tự sửa khi sản phẩm hết hàng / đổi giá — nói rõ cho khách biết. *@
     @if (Model.Notices.Count > 0)
     {
-        <div class="alert alert-warning">
+        <div class="alert alert-warning" role="alert">
+            <p class="fw-semibold mb-2">Giỏ hàng vừa được cập nhật lại theo kho:</p>
             <ul class="mb-0 ps-3">
                 @foreach (var notice in Model.Notices)
                 {
@@ -40,9 +49,8 @@
     {
         <div class="row g-4">
 
-            <!-- Danh sách sản phẩm trong giỏ -->
             <div class="col-12 col-lg-8">
-                <div class="bg-white border rounded-3 p-2 p-md-3">
+                <div class="panel p-0 p-md-3">
                     <div class="table-responsive">
                         <table class="table align-middle cart-table mb-0">
                             <thead>
@@ -59,12 +67,12 @@
                                 {
                                     <tr>
                                         <td>
-                                            <div class="d-flex align-items-center gap-2">
+                                            <div class="d-flex align-items-center gap-3">
                                                 <img class="cart-thumb"
                                                      src="@DisplayHelper.ImageOrPlaceholder(item.ImageUrl)"
                                                      alt="@item.Name" loading="lazy" />
-                                                <div>
-                                                    <a class="fw-semibold text-decoration-none"
+                                                <div class="min-w-0">
+                                                    <a class="cart-item-name"
                                                        asp-controller="Product" asp-action="Details" asp-route-slug="@item.Slug">
                                                         @item.Name
                                                     </a>
@@ -74,37 +82,40 @@
                                             </div>
                                         </td>
 
-                                        <td class="d-none d-md-table-cell text-end">@item.UnitPrice.ToVnd()</td>
+                                        <td class="d-none d-md-table-cell text-end text-nowrap">@item.UnitPrice.ToVnd()</td>
 
                                         <td>
                                             @*
                                                 CUS-14 — một form cho cả giảm / tăng / nhập tay.
-                                                Nút "−" và "+" gửi kèm delta nên chạy được cả khi tắt JavaScript.
+                                                Nút "−" và "+" là submit kèm delta nên chạy được cả khi tắt JavaScript.
                                             *@
-                                            <form class="d-flex justify-content-center align-items-center gap-1"
-                                                  asp-controller="Cart" asp-action="Update" method="post">
+                                            <form class="cart-qty-form" asp-controller="Cart" asp-action="Update" method="post">
                                                 <input type="hidden" name="productId" value="@item.ProductId" />
 
-                                                <button class="btn btn-outline-secondary btn-sm" type="submit"
-                                                        name="delta" value="-1" aria-label="Giảm số lượng">&minus;</button>
+                                                <div class="qty-stepper">
+                                                    <button class="btn btn-outline-secondary btn-sm" type="submit"
+                                                            name="delta" value="-1" aria-label="Giảm số lượng">&minus;</button>
 
-                                                <input class="form-control form-control-sm cart-qty" type="number"
-                                                       name="quantity" value="@item.Quantity"
-                                                       min="0" max="@item.StockQuantity" aria-label="Số lượng" />
+                                                    <input class="form-control form-control-sm cart-qty" type="number"
+                                                           name="quantity" value="@item.Quantity"
+                                                           min="0" max="@item.StockQuantity" aria-label="Số lượng" />
 
-                                                <button class="btn btn-outline-secondary btn-sm" type="submit"
-                                                        name="delta" value="1" aria-label="Tăng số lượng">+</button>
+                                                    <button class="btn btn-outline-secondary btn-sm" type="submit"
+                                                            name="delta" value="1" aria-label="Tăng số lượng">+</button>
+                                                </div>
 
-                                                <button class="btn btn-outline-primary btn-sm" type="submit">Cập nhật</button>
+                                                <button class="btn btn-link btn-sm cart-qty-apply" type="submit">Cập nhật</button>
                                             </form>
                                         </td>
 
                                         <td class="text-end fw-semibold text-nowrap">@item.LineTotal.ToVnd()</td>
 
                                         <td class="text-end">
-                                            <form asp-controller="Cart" asp-action="Remove" method="post">
+                                            <form asp-controller="Cart" asp-action="Remove" method="post"
+                                                  onsubmit="return confirm('Xóa &quot;@item.Name&quot; khỏi giỏ hàng?');">
                                                 <input type="hidden" name="productId" value="@item.ProductId" />
-                                                <button class="btn btn-sm btn-outline-danger" type="submit" title="Xóa khỏi giỏ hàng">
+                                                <button class="btn btn-sm btn-outline-danger" type="submit"
+                                                        title="Xóa khỏi giỏ hàng" aria-label="Xóa @item.Name khỏi giỏ hàng">
                                                     Xóa
                                                 </button>
                                             </form>
@@ -121,24 +132,24 @@
                 </a>
             </div>
 
-            <!-- CUS-15 — tổng tiền -->
+            @* CUS-15 — tổng tiền *@
             <div class="col-12 col-lg-4">
-                <div class="bg-white border rounded-3 p-3 p-lg-4 cart-summary">
+                <div class="panel cart-summary">
                     <h2 class="h6 fw-bold mb-3">Tóm tắt đơn hàng</h2>
 
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Số lượng</span>
+                        <span class="text-secondary">Số lượng</span>
                         <span>@Model.TotalQuantity sản phẩm</span>
                     </div>
 
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Tạm tính</span>
+                        <span class="text-secondary">Tạm tính</span>
                         <span>@Model.SubTotal.ToVnd()</span>
                     </div>
 
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Phí vận chuyển</span>
-                        <span class="text-muted small">Tính khi thanh toán</span>
+                        <span class="text-secondary">Phí vận chuyển</span>
+                        <span class="text-secondary small">Tính khi thanh toán</span>
                     </div>
 
                     <hr />
@@ -150,7 +161,7 @@
 
                     @* CUS-16 — khách chưa đăng nhập vẫn bấm được, trang Checkout sẽ tự
                        đưa sang màn hình đăng nhập rồi quay lại đúng chỗ này. *@
-                    <a class="btn btn-accent w-100" asp-area="" asp-controller="Checkout" asp-action="Index">
+                    <a class="btn btn-accent btn-lg w-100" asp-area="" asp-controller="Checkout" asp-action="Index">
                         Tiến hành thanh toán
                     </a>
 

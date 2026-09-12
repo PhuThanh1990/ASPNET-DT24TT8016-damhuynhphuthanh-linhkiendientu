@@ -21,16 +21,16 @@
         </ol>
     </nav>
 
-    <div class="bg-white border rounded-3 p-3 p-lg-4 mb-4">
-        <div class="row g-4">
+    <div class="panel mb-4">
+        <div class="row g-4 g-lg-5">
 
-            <!-- Ảnh sản phẩm -->
+            @* ── Gallery (5/12) ──────────────────────────────────────────────── *@
             <div class="col-12 col-lg-5">
                 <img id="detailMainImage" class="detail-main-image" src="@mainImageUrl" alt="@mainImageAlt" />
 
                 @if (Model.Images.Count > 1)
                 {
-                    <div class="d-flex flex-wrap gap-2 mt-3">
+                    <div class="detail-thumbs mt-3">
                         @for (var i = 0; i < Model.Images.Count; i++)
                         {
                             var image = Model.Images[i];
@@ -48,9 +48,10 @@
                 }
             </div>
 
-            <!-- Thông tin chính -->
+            @* ── Thông tin (7/12). Thứ tự theo design-system § 8:
+                  tên → brand/danh mục → giá → tồn kho → số lượng → CTA. ────────── *@
             <div class="col-12 col-lg-7">
-                <h1 class="h4 fw-bold mb-2">@Model.Name</h1>
+                <h1 class="detail-title mb-2">@Model.Name</h1>
 
                 <div class="product-meta mb-3">
                     <span>Mã SP: <span class="fw-semibold">@Model.Sku</span></span>
@@ -63,16 +64,19 @@
                     }
                     @if (!string.IsNullOrWhiteSpace(Model.CategoryName))
                     {
-                        <span class="ms-3">Danh mục: <span class="fw-semibold">@Model.CategoryName</span></span>
+                        <span class="ms-3">
+                            Danh mục:
+                            <a class="fw-semibold" asp-controller="Product" asp-action="Index" asp-route-category="@Model.CategorySlug">@Model.CategoryName</a>
+                        </span>
                     }
                 </div>
 
-                <div class="bg-body-tertiary border rounded-3 p-3 mb-3">
+                <div class="detail-price-box mb-3">
                     <span class="detail-price">@Model.Price.ToVnd()</span>
                     @if (Model.HasDiscount)
                     {
                         <span class="product-old-price ms-2">@Model.OldPrice.ToVnd()</span>
-                        <span class="badge bg-danger ms-2">-@Model.DiscountPercent%</span>
+                        <span class="badge text-bg-danger ms-2">-@Model.DiscountPercent%</span>
                     }
                 </div>
 
@@ -93,29 +97,39 @@
 
                 @if (!string.IsNullOrWhiteSpace(Model.ShortDescription))
                 {
-                    <p class="text-muted">@Model.ShortDescription</p>
+                    <p class="text-secondary">@Model.ShortDescription</p>
                 }
 
                 @* CUS-12 — chỉ productId và quantity được gửi lên, giá do server tự đọc lại. *@
-                <form class="d-flex flex-wrap align-items-center gap-2 mt-4"
-                      asp-controller="Cart" asp-action="Add" method="post">
+                <form class="detail-buy mt-4" asp-controller="Cart" asp-action="Add" method="post">
                     <input type="hidden" name="productId" value="@Model.Id" />
 
-                    <label class="form-label mb-0" for="quantity">Số lượng</label>
-                    <input class="form-control cart-qty" id="quantity" type="number" name="quantity"
-                           value="1" min="1" max="@Model.StockQuantity" disabled="@(!Model.InStock)" />
+                    <div class="d-flex flex-wrap align-items-end gap-3">
+                        <div>
+                            <label class="form-label" for="quantity">Số lượng</label>
+                            @* Nút −/+ chỉ chỉnh giá trị ô input ở client; số lượng thật vẫn do
+                               ô number gửi lên, nên tắt JavaScript vẫn đặt hàng được. *@
+                            <div class="qty-stepper" data-qty-stepper>
+                                <button class="btn btn-outline-secondary" type="button" data-qty-step="-1"
+                                        aria-label="Giảm số lượng" disabled="@(!Model.InStock)">&minus;</button>
+                                <input class="form-control cart-qty" id="quantity" type="number" name="quantity"
+                                       value="1" min="1" max="@Model.StockQuantity"
+                                       disabled="@(!Model.InStock)" />
+                                <button class="btn btn-outline-secondary" type="button" data-qty-step="1"
+                                        aria-label="Tăng số lượng" disabled="@(!Model.InStock)">+</button>
+                            </div>
+                        </div>
 
-                    <button type="submit" class="btn btn-accent btn-lg" disabled="@(!Model.InStock)">
-                        Thêm vào giỏ hàng
-                    </button>
-                    <a class="btn btn-outline-secondary btn-lg" asp-controller="Product" asp-action="Index">
-                        Xem sản phẩm khác
-                    </a>
+                        <button type="submit" class="btn btn-accent btn-lg flex-grow-1" disabled="@(!Model.InStock)">
+                            Thêm vào giỏ hàng
+                        </button>
+                    </div>
                 </form>
-                <p class="product-meta mt-2 mb-0">
+
+                <p class="product-meta mt-3 mb-0">
                     @if (Model.InStock)
                     {
-                        @:Thanh toán sẽ được bổ sung ở bước Checkout.
+                        @:Thanh toán khi nhận hàng (COD). Giá và tồn kho được kiểm tra lại khi đặt hàng.
                     }
                     else
                     {
@@ -126,10 +140,11 @@
         </div>
     </div>
 
+    @* Trên mobile thông số lên trước mô tả (ưu tiên thông tin theo § 8);
+       desktop giữ bố cục mô tả trái / thông số phải như sơ đồ. *@
     <div class="row g-4">
-        <!-- Mô tả chi tiết -->
-        <div class="col-12 col-lg-7">
-            <div class="bg-white border rounded-3 p-3 p-lg-4 h-100">
+        <div class="col-12 col-lg-7 order-2 order-lg-1">
+            <section class="panel h-100">
                 <h2 class="section-title mb-3">Mô tả sản phẩm</h2>
                 @if (!string.IsNullOrWhiteSpace(Model.Description))
                 {
@@ -142,19 +157,20 @@
                 }
                 else
                 {
-                    <p class="text-muted mb-0">Sản phẩm này chưa có mô tả chi tiết.</p>
+                    <p class="text-secondary mb-0">Sản phẩm này chưa có mô tả chi tiết.</p>
                 }
-            </div>
+            </section>
         </div>
 
-        <!-- Thông số kỹ thuật -->
-        <div class="col-12 col-lg-5">
-            <div class="bg-white border rounded-3 p-3 p-lg-4 h-100">
+        <div class="col-12 col-lg-5 order-1 order-lg-2">
+            <section class="panel h-100">
                 <h2 class="section-title mb-3">Thông số kỹ thuật</h2>
+                @* Specifications là JSON trong DB; SpecificationParser đã lọc sẵn nên
+                   dữ liệu hỏng/thiếu chỉ cho ra danh sách rỗng chứ không làm vỡ trang. *@
                 @if (Model.Specifications.Count > 0)
                 {
                     <div class="table-responsive">
-                        <table class="table table-sm table-bordered spec-table mb-0">
+                        <table class="table spec-table mb-0">
                             <tbody>
                                 @foreach (var specification in Model.Specifications)
                                 {
@@ -169,9 +185,9 @@
                 }
                 else
                 {
-                    <p class="text-muted mb-0">Sản phẩm này chưa có thông số kỹ thuật.</p>
+                    <p class="text-secondary mb-0">Sản phẩm này chưa có thông số kỹ thuật.</p>
                 }
-            </div>
+            </section>
         </div>
     </div>
 

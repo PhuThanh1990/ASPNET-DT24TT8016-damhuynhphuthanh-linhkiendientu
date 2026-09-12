@@ -1,68 +1,86 @@
 @model IReadOnlyList<BrandListItemViewModel>
 @{
     ViewData["Title"] = "Thương hiệu";
+    ViewData["Subtitle"] = Model.Count > 0 ? $"{Model.Count} thương hiệu" : null;
 }
 
-<div class="admin-page-header">
-    <h1>Thương hiệu</h1>
-    <a class="btn btn-primary" asp-action="Create">+ Thêm thương hiệu</a>
-</div>
+@section PageActions {
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="ti ti-plus me-1"></i>Thêm thương hiệu
+    </a>
+}
 
-<div class="admin-card">
+<div class="card">
     @if (Model.Count == 0)
     {
-        <div class="admin-empty">
-            <p class="mb-3">Chưa có thương hiệu nào.</p>
-            <a class="btn btn-primary" asp-action="Create">Tạo thương hiệu đầu tiên</a>
+        <div class="empty">
+            <div class="empty-icon"><i class="ti ti-tag"></i></div>
+            <p class="empty-title">Chưa có thương hiệu nào</p>
+            <p class="empty-subtitle text-secondary">
+                Mỗi sản phẩm phải thuộc một thương hiệu, nên hãy tạo trước ít nhất một.
+            </p>
+            <div class="empty-action">
+                <a class="btn btn-primary" asp-action="Create">
+                    <i class="ti ti-plus me-1"></i>Tạo thương hiệu đầu tiên
+                </a>
+            </div>
         </div>
     }
     else
     {
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-vcenter card-table">
                 <thead>
                     <tr>
-                        <th scope="col">Id</th>
-                        <th scope="col">Tên</th>
-                        <th scope="col">Slug</th>
-                        <th scope="col" class="text-end">Sản phẩm</th>
-                        <th scope="col">Trạng thái</th>
-                        <th scope="col">Ngày tạo</th>
-                        <th scope="col" class="text-end">Thao tác</th>
+                        <th>Tên</th>
+                        <th>Slug</th>
+                        <th class="text-end">Sản phẩm</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th class="w-1"><span class="visually-hidden">Thao tác</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td>@item.Id</td>
-                            <td>@item.Name</td>
-                            <td><code>@item.Slug</code></td>
+                            <td class="admin-min-w-0">
+                                <div class="fw-semibold text-truncate">@item.Name</div>
+                                <div class="text-secondary small">#@item.Id</div>
+                            </td>
+                            <td><span class="badge bg-secondary-lt font-monospace">@item.Slug</span></td>
                             <td class="text-end">@item.ProductCount</td>
                             <td>
                                 @if (item.IsActive)
                                 {
-                                    <span class="badge text-bg-success">Hoạt động</span>
+                                    <span class="badge bg-success-lt">Hoạt động</span>
                                 }
                                 else
                                 {
-                                    <span class="badge text-bg-secondary">Đã ẩn</span>
+                                    <span class="badge bg-secondary-lt">Đã ẩn</span>
                                 }
                             </td>
-                            <td>@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                            <td class="text-end text-nowrap">
-                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@item.Id">Sửa</a>
-                                @if (item.CanDelete)
-                                {
-                                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id">Xóa</a>
-                                }
-                                else
-                                {
-                                    <button type="button" class="btn btn-sm btn-outline-danger" disabled
-                                            title="Đang có @item.ProductCount sản phẩm thuộc thương hiệu này">
-                                        Xóa
-                                    </button>
-                                }
+                            <td class="text-secondary text-nowrap">@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <div class="btn-list flex-nowrap justify-content-end">
+                                    <a class="btn btn-sm" asp-action="Edit" asp-route-id="@item.Id">
+                                        <i class="ti ti-pencil me-1"></i>Sửa
+                                    </a>
+                                    @if (item.CanDelete)
+                                    {
+                                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id">
+                                            <i class="ti ti-trash me-1"></i>Xóa
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        @* Khóa ngoại Restrict: còn sản phẩm thì không xóa được. *@
+                                        <button type="button" class="btn btn-sm btn-outline-danger" disabled
+                                                title="Đang có @item.ProductCount sản phẩm thuộc thương hiệu này">
+                                            <i class="ti ti-trash me-1"></i>Xóa
+                                        </button>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }

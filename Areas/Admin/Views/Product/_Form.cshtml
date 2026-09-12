@@ -2,94 +2,113 @@
 @*
     Shared body of the product Create (ADM-09) and Edit (ADM-10) forms. The anti-forgery
     token, the hidden Id and the submit button live in the parent view so each screen keeps
-    its own wording.
+    its own wording. Fields are grouped so a long form stays scannable.
 *@
 
 <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-<div class="row g-3">
+<h3 class="card-title">Thông tin cơ bản</h3>
+<div class="row g-3 mb-4">
     <div class="col-md-8">
-        <label asp-for="Name" class="form-label"></label>
+        <label asp-for="Name" class="form-label required"></label>
         <input asp-for="Name" class="form-control" autocomplete="off" />
-        <span asp-validation-for="Name" class="text-danger"></span>
+        <span asp-validation-for="Name" class="invalid-feedback d-block"></span>
     </div>
 
     <div class="col-md-4">
-        <label asp-for="Sku" class="form-label"></label>
-        <input asp-for="Sku" class="form-control" autocomplete="off" placeholder="vd: RAM-COR-16GB" />
-        <span asp-validation-for="Sku" class="text-danger"></span>
+        <label asp-for="Sku" class="form-label required"></label>
+        <input asp-for="Sku" class="form-control font-monospace" autocomplete="off" placeholder="vd: RAM-COR-16GB" />
+        <span asp-validation-for="Sku" class="invalid-feedback d-block"></span>
+        <small class="form-hint">Mã kho nội bộ, không được trùng.</small>
     </div>
 
     <div class="col-12">
-        <label asp-for="Slug" class="form-label"></label>
+        <label asp-for="Slug" class="form-label required"></label>
         <input asp-for="Slug" class="form-control" autocomplete="off"
                placeholder="vd: ram-corsair-vengeance-16gb" />
-        <span asp-validation-for="Slug" class="text-danger"></span>
-        <div class="form-text">Dùng trong URL. Tự động chuẩn hóa khi lưu: chữ thường, bỏ dấu, cách nhau bằng dấu "-".</div>
+        <span asp-validation-for="Slug" class="invalid-feedback d-block"></span>
+        <small class="form-hint">Dùng trong URL. Tự động chuẩn hóa khi lưu: chữ thường, bỏ dấu, cách nhau bằng dấu "-".</small>
     </div>
 
     <div class="col-md-6">
-        <label asp-for="CategoryId" class="form-label"></label>
+        <label asp-for="CategoryId" class="form-label required"></label>
         <select asp-for="CategoryId" asp-items="Model.CategoryOptions" class="form-select">
             <option value="">— Chọn danh mục —</option>
         </select>
-        <span asp-validation-for="CategoryId" class="text-danger"></span>
+        <span asp-validation-for="CategoryId" class="invalid-feedback d-block"></span>
     </div>
 
     <div class="col-md-6">
-        <label asp-for="BrandId" class="form-label"></label>
+        <label asp-for="BrandId" class="form-label required"></label>
         <select asp-for="BrandId" asp-items="Model.BrandOptions" class="form-select">
             <option value="">— Chọn thương hiệu —</option>
         </select>
-        <span asp-validation-for="BrandId" class="text-danger"></span>
+        <span asp-validation-for="BrandId" class="invalid-feedback d-block"></span>
     </div>
+</div>
 
+<h3 class="card-title">Giá và tồn kho</h3>
+<div class="row g-3 mb-4">
     <div class="col-md-4">
-        <label asp-for="Price" class="form-label"></label>
-        <input asp-for="Price" class="form-control" type="number" min="0" step="0.01" />
-        <span asp-validation-for="Price" class="text-danger"></span>
+        <label asp-for="Price" class="form-label required"></label>
+        <div class="input-group">
+            <input asp-for="Price" class="form-control" type="number" min="0" step="0.01" />
+            <span class="input-group-text">₫</span>
+        </div>
+        <span asp-validation-for="Price" class="invalid-feedback d-block"></span>
     </div>
 
     <div class="col-md-4">
         <label asp-for="OldPrice" class="form-label"></label>
-        <input asp-for="OldPrice" class="form-control" type="number" min="0" step="0.01" />
-        <span asp-validation-for="OldPrice" class="text-danger"></span>
+        <div class="input-group">
+            <input asp-for="OldPrice" class="form-control" type="number" min="0" step="0.01" />
+            <span class="input-group-text">₫</span>
+        </div>
+        <span asp-validation-for="OldPrice" class="invalid-feedback d-block"></span>
+        <small class="form-hint">Để trống nếu không giảm giá.</small>
     </div>
 
     <div class="col-md-4">
-        <label asp-for="StockQuantity" class="form-label"></label>
+        <label asp-for="StockQuantity" class="form-label required"></label>
         <input asp-for="StockQuantity" class="form-control" type="number" min="0" step="1" />
-        <span asp-validation-for="StockQuantity" class="text-danger"></span>
+        <span asp-validation-for="StockQuantity" class="invalid-feedback d-block"></span>
     </div>
+</div>
 
+<h3 class="card-title">Mô tả</h3>
+<div class="row g-3 mb-4">
     <div class="col-12">
         <label asp-for="ShortDescription" class="form-label"></label>
         <textarea asp-for="ShortDescription" class="form-control" rows="2"></textarea>
-        <span asp-validation-for="ShortDescription" class="text-danger"></span>
+        <span asp-validation-for="ShortDescription" class="invalid-feedback d-block"></span>
+        <small class="form-hint">Câu giới thiệu ngắn hiển thị trên card sản phẩm.</small>
     </div>
 
     <div class="col-12">
         <label asp-for="Description" class="form-label"></label>
         <textarea asp-for="Description" class="form-control" rows="5"></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
+        <span asp-validation-for="Description" class="invalid-feedback d-block"></span>
     </div>
 
     <div class="col-12">
         <label asp-for="Specifications" class="form-label"></label>
         <textarea asp-for="Specifications" class="form-control font-monospace" rows="5"
                   placeholder='{"Socket":"LGA 1700","TDP":"125W"}'></textarea>
-        <span asp-validation-for="Specifications" class="text-danger"></span>
-        <div class="form-text">Đối tượng JSON phẳng gồm các cặp khóa/giá trị dạng chuỗi.</div>
+        <span asp-validation-for="Specifications" class="invalid-feedback d-block"></span>
+        <small class="form-hint">Đối tượng JSON phẳng gồm các cặp khóa/giá trị dạng chuỗi. JSON sai định dạng sẽ được bỏ qua khi hiển thị.</small>
     </div>
+</div>
 
-    <div class="col-md-6">
-        <div class="form-check">
+<h3 class="card-title">Hiển thị</h3>
+<div class="row g-3">
+    <div class="col-12">
+        <label class="form-check form-switch">
             <input asp-for="IsActive" class="form-check-input" />
-            <label asp-for="IsActive" class="form-check-label"></label>
-        </div>
-        <div class="form-check">
+            <span class="form-check-label">@Html.DisplayNameFor(m => m.IsActive)</span>
+        </label>
+        <label class="form-check form-switch">
             <input asp-for="IsFeatured" class="form-check-input" />
-            <label asp-for="IsFeatured" class="form-check-label"></label>
-        </div>
+            <span class="form-check-label">@Html.DisplayNameFor(m => m.IsFeatured)</span>
+        </label>
     </div>
 </div>
