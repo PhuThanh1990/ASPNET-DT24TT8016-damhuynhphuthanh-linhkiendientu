@@ -2,37 +2,46 @@
 @model IReadOnlyList<ProductListItemViewModel>
 @{
     ViewData["Title"] = "Sản phẩm";
+    ViewData["Subtitle"] = Model.Count > 0 ? $"{Model.Count} sản phẩm" : null;
 }
 
-<div class="admin-page-header">
-    <h1>Sản phẩm</h1>
-    <a class="btn btn-primary" asp-action="Create">+ Thêm sản phẩm</a>
-</div>
+@section PageActions {
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="ti ti-plus me-1"></i>Thêm sản phẩm
+    </a>
+}
 
-<div class="admin-card">
+<div class="card">
     @if (Model.Count == 0)
     {
-        <div class="admin-empty">
-            <p class="mb-3">Chưa có sản phẩm nào.</p>
-            <a class="btn btn-primary" asp-action="Create">Tạo sản phẩm đầu tiên</a>
+        <div class="empty">
+            <div class="empty-icon"><i class="ti ti-package"></i></div>
+            <p class="empty-title">Chưa có sản phẩm nào</p>
+            <p class="empty-subtitle text-secondary">
+                Sản phẩm cần có sẵn danh mục và thương hiệu trước khi tạo.
+            </p>
+            <div class="empty-action">
+                <a class="btn btn-primary" asp-action="Create">
+                    <i class="ti ti-plus me-1"></i>Tạo sản phẩm đầu tiên
+                </a>
+            </div>
         </div>
     }
     else
     {
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-vcenter card-table">
                 <thead>
                     <tr>
-                        <th scope="col">Ảnh</th>
-                        <th scope="col">Tên</th>
-                        <th scope="col">SKU</th>
-                        <th scope="col">Danh mục</th>
-                        <th scope="col">Thương hiệu</th>
-                        <th scope="col" class="text-end">Giá</th>
-                        <th scope="col">Tồn kho</th>
-                        <th scope="col">Trạng thái</th>
-                        <th scope="col">Ngày tạo</th>
-                        <th scope="col" class="text-end">Thao tác</th>
+                        <th class="admin-cell-thumb"><span class="visually-hidden">Ảnh</span></th>
+                        <th>Sản phẩm</th>
+                        <th>Danh mục</th>
+                        <th>Thương hiệu</th>
+                        <th class="text-end">Giá</th>
+                        <th>Tồn kho</th>
+                        <th>Trạng thái</th>
+                        <th class="d-none d-xxl-table-cell">Ngày tạo</th>
+                        <th class="w-1"><span class="visually-hidden">Thao tác</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,51 +50,61 @@
                         <tr>
                             <td>
                                 <img class="admin-thumb" src="@DisplayHelper.ImageOrPlaceholder(item.PrimaryImageUrl)"
-                                     alt="@item.Name" />
+                                     alt="@item.Name" loading="lazy" />
                             </td>
-                            <td>@item.Name</td>
-                            <td><code>@item.Sku</code></td>
-                            <td>@item.CategoryName</td>
-                            <td>@item.BrandName</td>
+                            <td class="admin-min-w-0">
+                                <div class="fw-semibold text-truncate">@item.Name</div>
+                                <div class="text-secondary small font-monospace">@item.Sku</div>
+                            </td>
+                            <td class="text-secondary">@item.CategoryName</td>
+                            <td class="text-secondary">@item.BrandName</td>
                             <td class="text-end text-nowrap">@item.Price.ToVnd()</td>
                             <td>
                                 @* ADM-13: chỉnh nhanh tồn kho ngay tại danh sách. *@
                                 <form asp-action="AdjustStock" asp-route-id="@item.Id" method="post"
-                                      class="d-flex gap-1 align-items-center admin-stock-form">
+                                      class="admin-stock-form d-flex gap-1 align-items-center">
                                     @Html.AntiForgeryToken()
                                     <input type="number" name="newQuantity" value="@item.StockQuantity"
                                            min="0" step="1" class="form-control form-control-sm"
                                            aria-label="Tồn kho của @item.Name" />
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Lưu</button>
+                                    <button type="submit" class="btn btn-sm btn-icon" title="Lưu tồn kho"
+                                            aria-label="Lưu tồn kho của @item.Name">
+                                        <i class="ti ti-check"></i>
+                                    </button>
                                 </form>
                                 @if (item.StockQuantity == 0)
                                 {
-                                    <span class="badge text-bg-warning mt-1">Hết hàng</span>
+                                    <span class="badge bg-warning-lt mt-1">Hết hàng</span>
                                 }
                             </td>
                             <td>
                                 @if (item.IsActive)
                                 {
-                                    <span class="badge text-bg-success">Đang bán</span>
+                                    <span class="badge bg-success-lt">Đang bán</span>
                                 }
                                 else
                                 {
-                                    <span class="badge text-bg-secondary">Ngừng bán</span>
+                                    <span class="badge bg-secondary-lt">Ngừng bán</span>
                                 }
                             </td>
-                            <td class="text-nowrap">@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                            <td class="text-end text-nowrap">
-                                <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
-                                    <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@item.Id">Sửa</a>
-                                    <a class="btn btn-sm btn-outline-secondary" asp-action="Images" asp-route-id="@item.Id">Ảnh</a>
+                            <td class="text-secondary text-nowrap d-none d-xxl-table-cell">@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="btn-list flex-nowrap justify-content-end">
+                                    <a class="btn btn-sm" asp-action="Edit" asp-route-id="@item.Id">
+                                        <i class="ti ti-pencil me-1"></i>Sửa
+                                    </a>
+                                    <a class="btn btn-sm" asp-action="Images" asp-route-id="@item.Id">
+                                        <i class="ti ti-photo me-1"></i>Ảnh
+                                    </a>
 
                                     @if (item.IsActive)
                                     {
-                                        <form asp-action="Disable" asp-route-id="@item.Id" method="post" class="d-inline">
+                                        <form asp-action="Disable" asp-route-id="@item.Id" method="post" class="d-inline"
+                                              onsubmit="return confirm('Ngừng bán &quot;@item.Name&quot;? Sản phẩm sẽ bị ẩn khỏi cửa hàng nhưng dữ liệu và lịch sử đơn giữ nguyên.');">
                                             @Html.AntiForgeryToken()
                                             <button type="submit" class="btn btn-sm btn-outline-warning"
                                                     title="Ẩn khỏi cửa hàng, giữ nguyên dữ liệu và lịch sử đơn">
-                                                Ngừng bán
+                                                <i class="ti ti-eye-off me-1"></i>Ngừng bán
                                             </button>
                                         </form>
                                     }
@@ -93,11 +112,15 @@
                                     {
                                         <form asp-action="Activate" asp-route-id="@item.Id" method="post" class="d-inline">
                                             @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-sm btn-outline-success">Mở bán</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                                <i class="ti ti-eye me-1"></i>Mở bán
+                                            </button>
                                         </form>
                                     }
 
-                                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id">Xóa</a>
+                                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id">
+                                        <i class="ti ti-trash me-1"></i>Xóa
+                                    </a>
                                 </div>
                             </td>
                         </tr>

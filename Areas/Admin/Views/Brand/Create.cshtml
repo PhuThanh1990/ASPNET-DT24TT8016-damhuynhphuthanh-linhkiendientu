@@ -3,21 +3,25 @@
     ViewData["Title"] = "Thêm thương hiệu";
 }
 
-<div class="admin-page-header">
-    <h1>Thêm thương hiệu</h1>
-    <a class="btn btn-outline-secondary" asp-action="Index">Quay lại danh sách</a>
-</div>
+@section PageActions {
+    <a class="btn" asp-action="Index"><i class="ti ti-arrow-left me-1"></i>Quay lại danh sách</a>
+}
 
-<div class="admin-card">
-    <form asp-action="Create" method="post">
-        @Html.AntiForgeryToken()
-        <partial name="_Form" model="Model" />
-
-        <div class="mt-4 d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Tạo thương hiệu</button>
-            <a class="btn btn-outline-secondary" asp-action="Index">Hủy</a>
-        </div>
-    </form>
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-9">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div class="card">
+                <div class="card-body">
+                    <partial name="_Form" model="Model" />
+                </div>
+                <div class="card-footer d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Tạo thương hiệu</button>
+                    <a class="btn btn-link" asp-action="Index">Hủy</a>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
 @section Scripts {

@@ -1,4 +1,16 @@
 /* ============================================================================
+   Cầu nối Bootstrap → Tabler (thêm ở UI-03..UI-07)
+
+   UI-00 viết toàn bộ design system bằng biến --bs-* của Bootstrap. UI-01 sau đó
+   thay Bootstrap bằng Tabler, mà Tabler build lại Bootstrap với tiền tố --tblr-*,
+   nên mọi khai báo --bs-* ở đây không còn component nào đọc: nút mất nền và mất
+   màu chữ, badge / alert / pagination / breadcrumb / dropdown / table cũng vậy.
+
+   Cách sửa: mỗi khai báo --bs-* được nhân đôi thành --tblr-* ngay bên dưới với
+   cùng giá trị. Giữ cả hai tên để file vẫn đúng dù nền là Bootstrap hay Tabler.
+   ========================================================================== */
+
+/* ============================================================================
    customer-tokens.css — UI-00 Design System (nền tảng)
    ----------------------------------------------------------------------------
    Tầng 1/2 của giao diện khách hàng:
@@ -66,7 +78,8 @@
     /* Nền tối dùng cho footer */
     --c-ink: #101720;
     --c-ink-2: #1b2430;
-    --c-on-ink: #aeb8c4;        /* chữ trên nền tối */
+    --c-on-ink: #aeb8c4;
+    /* chữ trên nền tối */
     --c-on-ink-muted: #8a95a1;
 
     /* ------------------------------------------------------------- BO GÓC */
@@ -89,29 +102,46 @@
 
     /* --------------------------------------------------------- KHOẢNG CÁCH */
 
-    --s-1: .25rem;   /*  4px */
-    --s-2: .5rem;    /*  8px */
-    --s-3: .75rem;   /* 12px */
-    --s-4: 1rem;     /* 16px */
-    --s-5: 1.25rem;  /* 20px */
-    --s-6: 1.5rem;   /* 24px */
-    --s-8: 2rem;     /* 32px */
-    --s-10: 2.5rem;  /* 40px */
-    --s-12: 3rem;    /* 48px */
-    --s-16: 4rem;    /* 64px */
-    --s-20: 5rem;    /* 80px */
+    --s-1: .25rem;
+    /*  4px */
+    --s-2: .5rem;
+    /*  8px */
+    --s-3: .75rem;
+    /* 12px */
+    --s-4: 1rem;
+    /* 16px */
+    --s-5: 1.25rem;
+    /* 20px */
+    --s-6: 1.5rem;
+    /* 24px */
+    --s-8: 2rem;
+    /* 32px */
+    --s-10: 2.5rem;
+    /* 40px */
+    --s-12: 3rem;
+    /* 48px */
+    --s-16: 4rem;
+    /* 64px */
+    --s-20: 5rem;
+    /* 80px */
 
     /* Khoảng cách giữa các khối lớn: mobile trước, desktop ghi đè bên dưới. */
-    --space-section: var(--s-8);      /* 32px */
-    --space-block: var(--s-5);        /* 20px  — giữa các khối nhỏ trong section */
-    --grid-gap: var(--s-4);           /* 16px  — gap lưới sản phẩm trên mobile */
+    --space-section: var(--s-8);
+    /* 32px */
+    --space-block: var(--s-5);
+    /* 20px  — giữa các khối nhỏ trong section */
+    --grid-gap: var(--s-4);
+    /* 16px  — gap lưới sản phẩm trên mobile */
 
     /* ------------------------------------------------------------ KÍCH CỠ */
 
     --container-max: 1280px;
-    --control-h: 44px;       /* input / button tiêu chuẩn */
-    --control-h-lg: 48px;    /* CTA lớn, ô tìm kiếm header */
-    --control-h-sm: 36px;    /* nút phụ, nút trong card */
+    --control-h: 44px;
+    /* input / button tiêu chuẩn */
+    --control-h-lg: 48px;
+    /* CTA lớn, ô tìm kiếm header */
+    --control-h-sm: 36px;
+    /* nút phụ, nút trong card */
 
     /* --------------------------------------------------------- TYPOGRAPHY */
 
@@ -121,13 +151,20 @@
         "Noto Sans", Arial, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
-    --fs-display: 2.25rem;   /* 36px — hero */
-    --fs-h1: 1.75rem;        /* 28px */
-    --fs-h2: 1.375rem;       /* 22px */
-    --fs-h3: 1.125rem;       /* 18px */
-    --fs-body: 1rem;         /* 16px */
-    --fs-sm: .875rem;        /* 14px */
-    --fs-xs: .8125rem;       /* 13px */
+    --fs-display: 2.25rem;
+    /* 36px — hero */
+    --fs-h1: 1.75rem;
+    /* 28px */
+    --fs-h2: 1.375rem;
+    /* 22px */
+    --fs-h3: 1.125rem;
+    /* 18px */
+    --fs-body: 1rem;
+    /* 16px */
+    --fs-sm: .875rem;
+    /* 14px */
+    --fs-xs: .8125rem;
+    /* 13px */
 
     --lh-tight: 1.25;
     --lh-normal: 1.55;
@@ -158,15 +195,19 @@
 
 @media (min-width: 992px) {
     :root {
-        --space-section: var(--s-16);   /* 64px */
-        --space-block: var(--s-8);      /* 32px */
-        --grid-gap: var(--s-6);         /* 24px */
+        --space-section: var(--s-16);
+        /* 64px */
+        --space-block: var(--s-8);
+        /* 32px */
+        --grid-gap: var(--s-6);
+        /* 24px */
     }
 }
 
 @media (min-width: 1400px) {
     :root {
-        --space-section: var(--s-20);   /* 80px */
+        --space-section: var(--s-20);
+        /* 80px */
     }
 }
 
@@ -177,30 +218,51 @@
    ========================================================================== */
 
 :root {
+    --bs-body-font-family: var(--font-sans);
     --tblr-body-font-family: var(--font-sans);
+    --bs-body-font-size: var(--fs-body);
     --tblr-body-font-size: var(--fs-body);
+    --bs-body-line-height: var(--lh-normal);
     --tblr-body-line-height: var(--lh-normal);
+    --bs-body-color: var(--c-text);
     --tblr-body-color: var(--c-text);
+    --bs-body-bg: var(--c-surface-2);
     --tblr-body-bg: var(--c-surface-2);
+    --bs-secondary-color: var(--c-text-secondary);
     --tblr-secondary-color: var(--c-text-secondary);
 
+    --bs-border-color: var(--c-border);
     --tblr-border-color: var(--c-border);
+    --bs-border-color-translucent: var(--c-border);
     --tblr-border-color-translucent: var(--c-border);
+    --bs-border-radius: var(--r-sm);
     --tblr-border-radius: var(--r-sm);
+    --bs-border-radius-sm: var(--r-xs);
     --tblr-border-radius-sm: var(--r-xs);
+    --bs-border-radius-lg: var(--r-md);
     --tblr-border-radius-lg: var(--r-md);
+    --bs-border-radius-xl: var(--r-lg);
     --tblr-border-radius-xl: var(--r-lg);
 
+    --bs-primary: var(--c-primary);
     --tblr-primary: var(--c-primary);
+    --bs-primary-rgb: 37, 99, 235;
     --tblr-primary-rgb: 37, 99, 235;
+    --bs-link-color: var(--c-primary);
     --tblr-link-color: var(--c-primary);
+    --bs-link-color-rgb: 37, 99, 235;
     --tblr-link-color-rgb: 37, 99, 235;
+    --bs-link-hover-color: var(--c-primary-hover);
     --tblr-link-hover-color: var(--c-primary-hover);
 
+    --bs-danger-rgb: 217, 45, 32;
     --tblr-danger-rgb: 217, 45, 32;
+    --bs-success-rgb: 15, 157, 88;
     --tblr-success-rgb: 15, 157, 88;
 
+    --bs-heading-color: var(--c-text-strong);
     --tblr-heading-color: var(--c-text-strong);
+    --bs-emphasis-color: var(--c-text-strong);
     --tblr-emphasis-color: var(--c-text-strong);
 }
 
@@ -245,12 +307,33 @@ body {
    Typography
    ========================================================================== */
 
-h1, .h1 { font-size: var(--fs-h1); }
-h2, .h2 { font-size: var(--fs-h2); }
-h3, .h3 { font-size: var(--fs-h3); }
+h1,
+.h1 {
+    font-size: var(--fs-h1);
+}
 
-h1, h2, h3, h4, h5, h6,
-.h1, .h2, .h3, .h4, .h5, .h6 {
+h2,
+.h2 {
+    font-size: var(--fs-h2);
+}
+
+h3,
+.h3 {
+    font-size: var(--fs-h3);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
     font-weight: var(--fw-bold);
     line-height: var(--lh-tight);
     color: var(--c-text-strong);
@@ -258,11 +341,20 @@ h1, h2, h3, h4, h5, h6,
 }
 
 @media (min-width: 992px) {
-    h1, .h1 { font-size: 2rem; }
-    h2, .h2 { font-size: 1.5rem; }
+
+    h1,
+    .h1 {
+        font-size: 2rem;
+    }
+
+    h2,
+    .h2 {
+        font-size: 1.5rem;
+    }
 }
 
-small, .small {
+small,
+.small {
     font-size: var(--fs-sm);
 }
 

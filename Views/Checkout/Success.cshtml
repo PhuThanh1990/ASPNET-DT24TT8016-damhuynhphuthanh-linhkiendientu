@@ -5,10 +5,10 @@
 
 <div class="container">
 
-    <div class="order-success-banner text-center bg-white border rounded-3 p-4 p-lg-5 mb-4">
+    <div class="order-success-banner panel text-center mb-4">
         <div class="order-success-icon mb-3">✓</div>
         <h1 class="h4 fw-bold mb-2">Đặt hàng thành công!</h1>
-        <p class="text-muted mb-3">
+        <p class="text-secondary mb-3">
             Cảm ơn bạn đã mua hàng. Shop sẽ liên hệ xác nhận đơn trong thời gian sớm nhất.
         </p>
 
@@ -19,7 +19,7 @@
             </div>
             <div>
                 <div class="product-meta">Tổng tiền</div>
-                <div class="fw-bold fs-5 text-danger">@Model.TotalAmount.ToVnd()</div>
+                <div class="detail-price">@Model.TotalAmount.ToVnd()</div>
             </div>
             <div>
                 <div class="product-meta">Trạng thái</div>
@@ -39,14 +39,14 @@
 
     <div class="row g-4">
         <div class="col-12 col-lg-5">
-            <div class="bg-white border rounded-3 p-3 p-lg-4 h-100">
+            <div class="panel h-100">
                 <h2 class="h6 fw-bold mb-3">Thông tin nhận hàng</h2>
                 <partial name="_OrderShipping" model="Model" />
             </div>
         </div>
 
         <div class="col-12 col-lg-7">
-            <div class="bg-white border rounded-3 p-3 p-lg-4 h-100">
+            <div class="panel h-100">
                 <h2 class="h6 fw-bold mb-3">Sản phẩm đã đặt</h2>
                 <partial name="_OrderLines" model="Model" />
             </div>

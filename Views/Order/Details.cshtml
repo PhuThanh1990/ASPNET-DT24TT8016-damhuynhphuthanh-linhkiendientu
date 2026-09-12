@@ -1,6 +1,19 @@
 @model CustomerOrderDetailViewModel
 @{
     ViewData["Title"] = $"Đơn hàng {Model.OrderCode}";
+
+    // Các mốc của luồng đơn bình thường. Thứ tự lấy từ chính giá trị enum OrderStatus của
+    // Core (Pending 0 → Completed 4) chứ không chép lại luật chuyển trạng thái: view chỉ
+    // hiển thị đơn đang đi tới đâu, mọi quyết định vẫn nằm ở OrderStatusRules/IOrderService.
+    var stages = new[]
+    {
+        (Status: OrderStatus.Pending,   Label: "Chờ xác nhận", Hint: "Đơn đã được ghi nhận"),
+        (Status: OrderStatus.Confirmed, Label: "Đã xác nhận",  Hint: "Shop đã xác nhận đơn"),
+        (Status: OrderStatus.Preparing, Label: "Đang chuẩn bị", Hint: "Đang đóng gói hàng"),
+        (Status: OrderStatus.Shipping,  Label: "Đang giao",    Hint: "Đã bàn giao đơn vị vận chuyển"),
+        (Status: OrderStatus.Completed, Label: "Hoàn tất",     Hint: "Giao hàng thành công"),
+    };
+    var isCancelled = Model.Status == OrderStatus.Cancelled;
 }
 
 <div class="container">
@@ -13,7 +26,7 @@
         </ol>
     </nav>
 
-    <div class="bg-white border rounded-3 p-3 p-lg-4 mb-4">
+    <div class="panel mb-4">
         <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
             <div>
                 <h1 class="h5 fw-bold mb-1">Đơn hàng @Model.OrderCode</h1>
@@ -30,7 +43,7 @@
             <hr />
             @* Nút chỉ hiện khi OrderStatusRules cho phép; service vẫn kiểm tra lại khi bấm. *@
             <form asp-area="" asp-controller="Order" asp-action="Cancel" method="post"
-                  onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?');">
+                  onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn @Model.OrderCode? Thao tác này không thể hoàn tác.');">
                 <input type="hidden" name="id" value="@Model.Id" />
                 <button type="submit" class="btn btn-outline-danger btn-sm">Hủy đơn hàng</button>
                 <span class="product-meta ms-2">Chỉ hủy được khi đơn chưa được shop xác nhận.</span>
@@ -40,14 +53,37 @@
 
     <div class="row g-4">
         <div class="col-12 col-lg-5">
-            <div class="bg-white border rounded-3 p-3 p-lg-4 h-100">
+            <div class="panel mb-4">
+                <h2 class="h6 fw-bold mb-3">Trạng thái đơn hàng</h2>
+
+                @if (isCancelled)
+                {
+                    <div class="alert alert-danger mb-0" role="alert">
+                        Đơn hàng đã được hủy. Số lượng hàng đã được trả lại kho.
+                    </div>
+                }
+                else
+                {
+                    <ul class="order-timeline">
+                        @foreach (var stage in stages)
+                        {
+                            <li class="@(stage.Status <= Model.Status ? "is-done" : null)">
+                                <div class="fw-semibold">@stage.Label</div>
+                                <div class="product-meta">@stage.Hint</div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+
+            <div class="panel">
                 <h2 class="h6 fw-bold mb-3">Thông tin nhận hàng</h2>
                 <partial name="_OrderShipping" model="Model" />
             </div>
         </div>
 
         <div class="col-12 col-lg-7">
-            <div class="bg-white border rounded-3 p-3 p-lg-4 h-100">
+            <div class="panel h-100">
                 <h2 class="h6 fw-bold mb-3">Sản phẩm đã đặt</h2>
                 <partial name="_OrderLines" model="Model" />
             </div>
