@@ -1,0 +1,329 @@
+/* ============================================================================
+   customer-tokens.css — UI-00 Design System (nền tảng)
+   ----------------------------------------------------------------------------
+   Tầng 1/2 của giao diện khách hàng:
+     1. customer-tokens.css  → biến thiết kế, typography, layout gốc  (file này)
+     2. customer.css         → style của từng component
+
+   Quy ước:
+   - Mọi màu / bo góc / khoảng cách / bóng đổ đều khai báo ở đây dưới dạng CSS
+     variable. Component KHÔNG hard-code mã màu.
+   - File này chỉ được nạp ở layout khách hàng (Views/Shared/_Layout.cshtml).
+     Khu vực Admin dùng admin.css riêng nên hoàn toàn không bị ảnh hưởng.
+   - Chỉ ghi đè Bootstrap qua biến --bs-* hoặc qua class cụ thể, không dùng
+     selector trần kiểu button {} / input {} / table {}.
+   ========================================================================== */
+
+:root {
+    /* ---------------------------------------------------------------- MÀU */
+
+    /* Nền: trắng là mặt phẳng chính, xám rất nhạt là nền trang. */
+    --c-surface: #ffffff;
+    --c-surface-2: #f6f7f9;
+    --c-surface-3: #eef0f4;
+
+    /* Chữ: gần đen thay vì đen tuyệt đối cho đỡ gắt. */
+    --c-text: #16202c;
+    --c-text-strong: #0b121c;
+    --c-text-secondary: #5a6875;
+    --c-text-muted: #8a95a1;
+    --c-text-inverse: #ffffff;
+
+    /* Đường viền: rất nhẹ, chỉ đủ tách khối. */
+    --c-border: #e6e9ee;
+    --c-border-strong: #d5dae2;
+
+    /* Màu thương hiệu: một màu xanh "công nghệ" duy nhất. */
+    --c-primary: #2563eb;
+    --c-primary-hover: #1d4ed8;
+    --c-primary-active: #1e40af;
+    --c-primary-soft: #eff4ff;
+    --c-primary-border: #c7d9fd;
+
+    /* CTA mua hàng dùng màu mực đậm — nổi bật mà không chói,
+       tách khỏi màu primary để phân tầng hành động rõ ràng. */
+    --c-cta: #16202c;
+    --c-cta-hover: #0b121c;
+
+    /* Giá bán: đỏ mang nghĩa "giá/khuyến mãi", không phải màu thương hiệu. */
+    --c-price: #d92d20;
+
+    /* Màu ngữ nghĩa */
+    --c-success: #0f9d58;
+    --c-success-soft: #e9f8f0;
+    --c-success-border: #b7e6cd;
+    --c-warning: #b54708;
+    --c-warning-soft: #fff6ed;
+    --c-warning-border: #fcd9b6;
+    --c-danger: #d92d20;
+    --c-danger-hover: #b42318;
+    --c-danger-soft: #fef3f2;
+    --c-danger-border: #fcd3cf;
+    --c-info: #0b7285;
+    --c-info-soft: #e7f6f8;
+    --c-info-border: #b8e2e9;
+
+    /* Nền tối dùng cho footer */
+    --c-ink: #101720;
+    --c-ink-2: #1b2430;
+    --c-on-ink: #aeb8c4;        /* chữ trên nền tối */
+    --c-on-ink-muted: #8a95a1;
+
+    /* ------------------------------------------------------------- BO GÓC */
+
+    --r-xs: 6px;
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-xl: 20px;
+    --r-pill: 999px;
+
+    /* ------------------------------------------------------------ BÓNG ĐỔ */
+    /* Nhẹ, chỉ để tạo chiều sâu — không dùng bóng đậm kiểu dashboard. */
+
+    --sh-xs: 0 1px 2px rgba(16, 32, 44, .04);
+    --sh-sm: 0 1px 3px rgba(16, 32, 44, .06), 0 1px 2px rgba(16, 32, 44, .04);
+    --sh-md: 0 6px 16px rgba(16, 32, 44, .08);
+    --sh-lg: 0 16px 32px rgba(16, 32, 44, .10);
+    --sh-focus: 0 0 0 3px rgba(37, 99, 235, .22);
+
+    /* --------------------------------------------------------- KHOẢNG CÁCH */
+
+    --s-1: .25rem;   /*  4px */
+    --s-2: .5rem;    /*  8px */
+    --s-3: .75rem;   /* 12px */
+    --s-4: 1rem;     /* 16px */
+    --s-5: 1.25rem;  /* 20px */
+    --s-6: 1.5rem;   /* 24px */
+    --s-8: 2rem;     /* 32px */
+    --s-10: 2.5rem;  /* 40px */
+    --s-12: 3rem;    /* 48px */
+    --s-16: 4rem;    /* 64px */
+    --s-20: 5rem;    /* 80px */
+
+    /* Khoảng cách giữa các khối lớn: mobile trước, desktop ghi đè bên dưới. */
+    --space-section: var(--s-8);      /* 32px */
+    --space-block: var(--s-5);        /* 20px  — giữa các khối nhỏ trong section */
+    --grid-gap: var(--s-4);           /* 16px  — gap lưới sản phẩm trên mobile */
+
+    /* ------------------------------------------------------------ KÍCH CỠ */
+
+    --container-max: 1280px;
+    --control-h: 44px;       /* input / button tiêu chuẩn */
+    --control-h-lg: 48px;    /* CTA lớn, ô tìm kiếm header */
+    --control-h-sm: 36px;    /* nút phụ, nút trong card */
+
+    /* --------------------------------------------------------- TYPOGRAPHY */
+
+    /* Không nạp webfont: system stack hiển thị tiếng Việt tốt, không tốn request.
+       Muốn dùng Inter sau này thì chỉ cần thêm @font-face, biến này giữ nguyên. */
+    --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue",
+        "Noto Sans", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --fs-display: 2.25rem;   /* 36px — hero */
+    --fs-h1: 1.75rem;        /* 28px */
+    --fs-h2: 1.375rem;       /* 22px */
+    --fs-h3: 1.125rem;       /* 18px */
+    --fs-body: 1rem;         /* 16px */
+    --fs-sm: .875rem;        /* 14px */
+    --fs-xs: .8125rem;       /* 13px */
+
+    --lh-tight: 1.25;
+    --lh-normal: 1.55;
+
+    --fw-normal: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+
+    /* ------------------------------------------------------- CHUYỂN ĐỘNG */
+
+    --t-fast: .15s ease;
+    --t-base: .2s ease;
+
+    /* ------------------------------------------------------------------
+       Tên biến cũ (CUS-01 → CUS-20) giữ lại làm alias để không có style nào
+       đang chạy bị gãy. Code mới dùng các biến --c-* ở trên.
+       ------------------------------------------------------------------ */
+    --shop-navy: var(--c-ink);
+    --shop-navy-dark: #0a0f16;
+    --shop-blue: var(--c-primary);
+    --shop-blue-dark: var(--c-primary-hover);
+    --shop-accent: var(--c-cta);
+    --shop-bg: var(--c-surface-2);
+    --shop-border: var(--c-border);
+    --shop-muted: var(--c-text-secondary);
+}
+
+@media (min-width: 992px) {
+    :root {
+        --space-section: var(--s-16);   /* 64px */
+        --space-block: var(--s-8);      /* 32px */
+        --grid-gap: var(--s-6);         /* 24px */
+    }
+}
+
+@media (min-width: 1400px) {
+    :root {
+        --space-section: var(--s-20);   /* 80px */
+    }
+}
+
+/* ============================================================================
+   Nối token vào biến của Bootstrap 5.3
+   Nhờ vậy các component dựng sẵn (alert, card, dropdown, table, breadcrumb…)
+   đổi theo design system mà không cần viết đè từng selector.
+   ========================================================================== */
+
+:root {
+    --bs-body-font-family: var(--font-sans);
+    --bs-body-font-size: var(--fs-body);
+    --bs-body-line-height: var(--lh-normal);
+    --bs-body-color: var(--c-text);
+    --bs-body-bg: var(--c-surface-2);
+    --bs-secondary-color: var(--c-text-secondary);
+
+    --bs-border-color: var(--c-border);
+    --bs-border-color-translucent: var(--c-border);
+    --bs-border-radius: var(--r-sm);
+    --bs-border-radius-sm: var(--r-xs);
+    --bs-border-radius-lg: var(--r-md);
+    --bs-border-radius-xl: var(--r-lg);
+
+    --bs-primary: var(--c-primary);
+    --bs-primary-rgb: 37, 99, 235;
+    --bs-link-color: var(--c-primary);
+    --bs-link-color-rgb: 37, 99, 235;
+    --bs-link-hover-color: var(--c-primary-hover);
+
+    --bs-danger-rgb: 217, 45, 32;
+    --bs-success-rgb: 15, 157, 88;
+
+    --bs-heading-color: var(--c-text-strong);
+    --bs-emphasis-color: var(--c-text-strong);
+}
+
+/* ============================================================================
+   Nền tảng trang
+   ========================================================================== */
+
+/* site.css của template đặt 14px ở mobile khiến chữ bị nhỏ; design system dùng
+   16px ở mọi kích thước để thang typography bên trên đúng như thiết kế. */
+html {
+    font-size: 16px;
+    position: static;
+    min-height: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: var(--font-sans);
+    background-color: var(--c-surface-2);
+    color: var(--c-text);
+    -webkit-font-smoothing: antialiased;
+}
+
+.shop-main {
+    flex: 1 0 auto;
+    padding-block: var(--space-section);
+}
+
+/* Bề ngang nội dung: ~1280px, luôn còn lề hai bên trên màn hình lớn. */
+@media (min-width: 1200px) {
+    .container {
+        max-width: var(--container-max);
+        padding-inline: var(--s-6);
+    }
+}
+
+/* ============================================================================
+   Typography
+   ========================================================================== */
+
+h1, .h1 { font-size: var(--fs-h1); }
+h2, .h2 { font-size: var(--fs-h2); }
+h3, .h3 { font-size: var(--fs-h3); }
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-weight: var(--fw-bold);
+    line-height: var(--lh-tight);
+    color: var(--c-text-strong);
+    letter-spacing: -.01em;
+}
+
+@media (min-width: 992px) {
+    h1, .h1 { font-size: 2rem; }
+    h2, .h2 { font-size: 1.5rem; }
+}
+
+small, .small {
+    font-size: var(--fs-sm);
+}
+
+/* Chữ phụ (thương hiệu, danh mục, ghi chú) — dùng khắp storefront. */
+.product-meta {
+    font-size: var(--fs-xs);
+    line-height: 1.45;
+    color: var(--c-text-secondary);
+}
+
+.text-muted {
+    color: var(--c-text-secondary) !important;
+}
+
+/* ============================================================================
+   Focus ring dùng chung
+   Template cũ vẽ viền trắng + xanh rất chói; thay bằng một vòng mềm.
+   ========================================================================== */
+
+.btn:focus-visible,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus,
+.page-link:focus,
+.dropdown-item:focus-visible,
+a:focus-visible {
+    outline: none;
+    box-shadow: var(--sh-focus);
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-check-input:focus {
+    box-shadow: var(--sh-focus);
+}
+
+/* ============================================================================
+   Section — nhịp dọc chuẩn cho mọi trang (UI-02 → UI-04 dùng lại)
+   ========================================================================== */
+
+.section {
+    margin-bottom: var(--space-section);
+}
+
+.section:last-child {
+    margin-bottom: 0;
+}
+
+/* Hàng tiêu đề + hành động của một section (ví dụ "Sản phẩm nổi bật" + "Xem tất cả"). */
+.section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    margin-bottom: var(--s-5);
+}
+
+.section-subtitle {
+    margin: var(--s-1) 0 0;
+    font-size: var(--fs-sm);
+    color: var(--c-text-secondary);
+}

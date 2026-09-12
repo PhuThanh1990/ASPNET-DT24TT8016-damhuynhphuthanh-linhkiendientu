@@ -1,12 +1,8 @@
-/* Style riêng của _Layout (scoped CSS, được gộp vào ElectronicStore.styles.css).
-   Giao diện khách hàng nằm ở wwwroot/css/customer.css để mọi view dùng chung. */
+/* Scoped CSS của _Layout (gộp vào ElectronicStore.styles.css).
 
-a {
-    color: #1b6ec2;
-}
+   Cố tình để trống: toàn bộ giao diện khách hàng đã chuyển sang design system ở
+   wwwroot/css/customer-tokens.css + wwwroot/css/customer.css.
 
-.btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #155a9e;
-}
+   Hai rule cũ của template ("a { color }" và ".btn-primary { … }") đã được gỡ vì
+   scoped CSS được nạp SAU customer.css nên chúng đè mất màu link của topbar và
+   footer — link đáng lẽ màu xám nhạt lại bị tô xanh. */
