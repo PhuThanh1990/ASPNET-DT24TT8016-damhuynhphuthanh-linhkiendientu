@@ -13,7 +13,15 @@
     <title>@ViewData["Title"] - ElectronicStore</title>
     <meta name="description" content="ElectronicStore - cửa hàng linh kiện điện tử: CPU, RAM, VGA, mainboard, ổ cứng, nguồn máy tính." />
     <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    @* CSS layering (UI-01). Load order matters: every later file may override the earlier ones.
+       1. UI foundation - Tabler. Tabler ships a complete Bootstrap 5 build themed with its own
+          --tblr-* variables, so bootstrap.css must NOT be loaded as well; doing so would send
+          Bootstrap down the wire twice. Every Bootstrap class (grid, navbar, modal, utilities)
+          is still available from this single file.
+       2. Icon set - Tabler Icons, the one icon library of this project.
+       3. Shared tweaks, 4. customer design system, 5. per-view scoped CSS. *@
+    <link rel="stylesheet" href="~/lib/tabler/dist/css/tabler.min.css" />
+    <link rel="stylesheet" href="~/lib/tabler-icons/dist/tabler-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/customer.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ElectronicStore.styles.css" asp-append-version="true" />
@@ -129,8 +137,14 @@
         </div>
     </footer>
 
+    @* JS layering (UI-01):
+       1. jQuery - only still here because jquery-validation-unobtrusive needs it.
+       2. Tabler - bundles Bootstrap's JS plus Popper, so bootstrap.bundle.js must NOT be
+          loaded as well; two copies would register the data-bs-* handlers twice and every
+          dropdown/collapse/modal would toggle twice per click.
+       3. Site script, then per-view sections. *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/tabler/dist/js/tabler.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
