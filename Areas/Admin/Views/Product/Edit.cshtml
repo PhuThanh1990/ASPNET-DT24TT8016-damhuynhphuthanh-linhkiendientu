@@ -1,28 +1,31 @@
 @model ProductEditViewModel
 @{
     ViewData["Title"] = "Sửa sản phẩm";
+    ViewData["Subtitle"] = Model.Name;
 }
 
-<div class="admin-page-header">
-    <h1>Sửa sản phẩm</h1>
-    <div class="d-flex gap-2">
-        <a class="btn btn-outline-primary" asp-action="Images" asp-route-id="@Model.Id">Quản lý ảnh</a>
-        <a class="btn btn-outline-secondary" asp-action="Index">Quay lại danh sách</a>
+@section PageActions {
+    <div class="btn-list">
+        <a class="btn" asp-action="Images" asp-route-id="@Model.Id">
+            <i class="ti ti-photo me-1"></i>Quản lý ảnh
+        </a>
+        <a class="btn" asp-action="Index"><i class="ti ti-arrow-left me-1"></i>Quay lại danh sách</a>
     </div>
-</div>
+}
 
-<div class="admin-card">
-    <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="Id" />
-        <partial name="_Form" model="Model" />
-
-        <div class="mt-4 d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
-            <a class="btn btn-outline-secondary" asp-action="Index">Hủy</a>
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div class="card">
+        <div class="card-body">
+            <partial name="_Form" model="Model" />
         </div>
-    </form>
-</div>
+        <div class="card-footer d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+            <a class="btn btn-link" asp-action="Index">Hủy</a>
+        </div>
+    </div>
+</form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

@@ -13,7 +13,12 @@
         </ol>
     </nav>
 
-    <h1 class="section-title mb-3">Thanh toán</h1>
+    <div class="section-head">
+        <div>
+            <h1 class="section-title">Thanh toán</h1>
+            <p class="section-subtitle">Kiểm tra thông tin nhận hàng trước khi đặt</p>
+        </div>
+    </div>
 
     @* Giỏ hàng vừa được đối chiếu lại với kho khi mở trang này. *@
     @if (Model.Cart.Notices.Count > 0)
@@ -29,7 +34,7 @@
         </div>
     }
 
-    <form asp-area="" asp-controller="Checkout" asp-action="Index" method="post">
+    <form asp-area="" asp-controller="Checkout" asp-action="Index" method="post" data-submit-once>
         @* Lỗi nghiệp vụ do IOrderService trả về (hết hàng, sản phẩm ngừng bán...) hiện ở đây. *@
         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
@@ -37,7 +42,7 @@
 
             <!-- Thông tin nhận hàng -->
             <div class="col-12 col-lg-7">
-                <div class="bg-white border rounded-3 p-3 p-lg-4">
+                <div class="panel">
                     <h2 class="h6 fw-bold mb-3">Thông tin nhận hàng</h2>
 
                     <div class="row g-3">
@@ -96,7 +101,7 @@
 
             <!-- Đơn hàng -->
             <div class="col-12 col-lg-5">
-                <div class="bg-white border rounded-3 p-3 p-lg-4 cart-summary">
+                <div class="panel cart-summary">
                     <h2 class="h6 fw-bold mb-3">Đơn hàng của bạn</h2>
 
                     <ul class="list-unstyled checkout-items mb-3">
@@ -116,12 +121,12 @@
                     </ul>
 
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Tạm tính</span>
+                        <span class="text-secondary">Tạm tính</span>
                         <span>@Model.SubTotal.ToVnd()</span>
                     </div>
 
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Phí vận chuyển</span>
+                        <span class="text-secondary">Phí vận chuyển</span>
                         @if (Model.ShippingFee <= 0)
                         {
                             <span class="text-success">Miễn phí</span>
@@ -139,7 +144,7 @@
                         <span class="detail-price">@Model.Total.ToVnd()</span>
                     </div>
 
-                    <button type="submit" class="btn btn-accent w-100 btn-lg">Đặt hàng</button>
+                    <button type="submit" class="btn btn-accent w-100 btn-lg" data-busy-text="Đang đặt hàng...">Đặt hàng</button>
 
                     <a class="btn btn-outline-secondary w-100 mt-2"
                        asp-area="" asp-controller="Cart" asp-action="Index">Quay lại giỏ hàng</a>

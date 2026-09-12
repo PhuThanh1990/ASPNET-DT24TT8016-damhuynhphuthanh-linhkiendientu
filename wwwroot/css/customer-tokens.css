@@ -1,4 +1,16 @@
 /* ============================================================================
+   Cầu nối Bootstrap → Tabler (thêm ở UI-03..UI-07)
+
+   UI-00 viết toàn bộ design system bằng biến --bs-* của Bootstrap. UI-01 sau đó
+   thay Bootstrap bằng Tabler, mà Tabler build lại Bootstrap với tiền tố --tblr-*,
+   nên mọi khai báo --bs-* ở đây không còn component nào đọc: nút mất nền và mất
+   màu chữ, badge / alert / pagination / breadcrumb / dropdown / table cũng vậy.
+
+   Cách sửa: mỗi khai báo --bs-* được nhân đôi thành --tblr-* ngay bên dưới với
+   cùng giá trị. Giữ cả hai tên để file vẫn đúng dù nền là Bootstrap hay Tabler.
+   ========================================================================== */
+
+/* ============================================================================
    customer-tokens.css — UI-00 Design System (nền tảng)
    ----------------------------------------------------------------------------
    Tầng 1/2 của giao diện khách hàng:
@@ -178,30 +190,51 @@
 
 :root {
     --bs-body-font-family: var(--font-sans);
+    --tblr-body-font-family: var(--font-sans);
     --bs-body-font-size: var(--fs-body);
+    --tblr-body-font-size: var(--fs-body);
     --bs-body-line-height: var(--lh-normal);
+    --tblr-body-line-height: var(--lh-normal);
     --bs-body-color: var(--c-text);
+    --tblr-body-color: var(--c-text);
     --bs-body-bg: var(--c-surface-2);
+    --tblr-body-bg: var(--c-surface-2);
     --bs-secondary-color: var(--c-text-secondary);
+    --tblr-secondary-color: var(--c-text-secondary);
 
     --bs-border-color: var(--c-border);
+    --tblr-border-color: var(--c-border);
     --bs-border-color-translucent: var(--c-border);
+    --tblr-border-color-translucent: var(--c-border);
     --bs-border-radius: var(--r-sm);
+    --tblr-border-radius: var(--r-sm);
     --bs-border-radius-sm: var(--r-xs);
+    --tblr-border-radius-sm: var(--r-xs);
     --bs-border-radius-lg: var(--r-md);
+    --tblr-border-radius-lg: var(--r-md);
     --bs-border-radius-xl: var(--r-lg);
+    --tblr-border-radius-xl: var(--r-lg);
 
     --bs-primary: var(--c-primary);
+    --tblr-primary: var(--c-primary);
     --bs-primary-rgb: 37, 99, 235;
+    --tblr-primary-rgb: 37, 99, 235;
     --bs-link-color: var(--c-primary);
+    --tblr-link-color: var(--c-primary);
     --bs-link-color-rgb: 37, 99, 235;
+    --tblr-link-color-rgb: 37, 99, 235;
     --bs-link-hover-color: var(--c-primary-hover);
+    --tblr-link-hover-color: var(--c-primary-hover);
 
     --bs-danger-rgb: 217, 45, 32;
+    --tblr-danger-rgb: 217, 45, 32;
     --bs-success-rgb: 15, 157, 88;
+    --tblr-success-rgb: 15, 157, 88;
 
     --bs-heading-color: var(--c-text-strong);
+    --tblr-heading-color: var(--c-text-strong);
     --bs-emphasis-color: var(--c-text-strong);
+    --tblr-emphasis-color: var(--c-text-strong);
 }
 
 /* ============================================================================

@@ -1,4 +1,16 @@
 /* ============================================================================
+   Cầu nối Bootstrap → Tabler (thêm ở UI-03..UI-07)
+
+   UI-00 viết toàn bộ design system bằng biến --bs-* của Bootstrap. UI-01 sau đó
+   thay Bootstrap bằng Tabler, mà Tabler build lại Bootstrap với tiền tố --tblr-*,
+   nên mọi khai báo --bs-* ở đây không còn component nào đọc: nút mất nền và mất
+   màu chữ, badge / alert / pagination / breadcrumb / dropdown / table cũng vậy.
+
+   Cách sửa: mỗi khai báo --bs-* được nhân đôi thành --tblr-* ngay bên dưới với
+   cùng giá trị. Giữ cả hai tên để file vẫn đúng dù nền là Bootstrap hay Tabler.
+   ========================================================================== */
+
+/* ============================================================================
    customer.css — UI-00 Design System (component)
    ----------------------------------------------------------------------------
    Tầng 2/2 của giao diện khách hàng. Token nằm ở customer-tokens.css và PHẢI
@@ -27,11 +39,17 @@
 
 .btn {
     --bs-btn-font-weight: var(--fw-semibold);
+    --tblr-btn-font-weight: var(--fw-semibold);
     --bs-btn-font-size: var(--fs-sm);
+    --tblr-btn-font-size: var(--fs-sm);
     --bs-btn-padding-y: .625rem;
+    --tblr-btn-padding-y: .625rem;
     --bs-btn-padding-x: 1.125rem;
+    --tblr-btn-padding-x: 1.125rem;
     --bs-btn-border-radius: var(--r-sm);
+    --tblr-btn-border-radius: var(--r-sm);
     --bs-btn-focus-box-shadow: var(--sh-focus);
+    --tblr-btn-focus-box-shadow: var(--sh-focus);
 
     min-height: var(--control-h);
     display: inline-flex;
@@ -50,92 +68,149 @@
 .btn:disabled,
 .btn.disabled {
     --bs-btn-disabled-opacity: .55;
+    --tblr-btn-disabled-opacity: .55;
     transform: none;
     cursor: not-allowed;
 }
 
 .btn-lg {
     --bs-btn-font-size: var(--fs-body);
+    --tblr-btn-font-size: var(--fs-body);
     --bs-btn-padding-y: .75rem;
+    --tblr-btn-padding-y: .75rem;
     --bs-btn-padding-x: 1.5rem;
+    --tblr-btn-padding-x: 1.5rem;
     --bs-btn-border-radius: var(--r-sm);
+    --tblr-btn-border-radius: var(--r-sm);
     min-height: var(--control-h-lg);
 }
 
 .btn-sm {
     --bs-btn-font-size: var(--fs-xs);
+    --tblr-btn-font-size: var(--fs-xs);
     --bs-btn-padding-y: .375rem;
+    --tblr-btn-padding-y: .375rem;
     --bs-btn-padding-x: .75rem;
+    --tblr-btn-padding-x: .75rem;
     min-height: var(--control-h-sm);
 }
 
 /* CTA mua hàng — màu mực đậm, tương phản cao nhất trên nền sáng. */
 .btn-accent {
     --bs-btn-color: var(--c-text-inverse);
+    --tblr-btn-color: var(--c-text-inverse);
     --bs-btn-bg: var(--c-cta);
+    --tblr-btn-bg: var(--c-cta);
     --bs-btn-border-color: var(--c-cta);
+    --tblr-btn-border-color: var(--c-cta);
     --bs-btn-hover-color: var(--c-text-inverse);
+    --tblr-btn-hover-color: var(--c-text-inverse);
     --bs-btn-hover-bg: var(--c-cta-hover);
+    --tblr-btn-hover-bg: var(--c-cta-hover);
     --bs-btn-hover-border-color: var(--c-cta-hover);
+    --tblr-btn-hover-border-color: var(--c-cta-hover);
     --bs-btn-active-color: var(--c-text-inverse);
+    --tblr-btn-active-color: var(--c-text-inverse);
     --bs-btn-active-bg: var(--c-cta-hover);
+    --tblr-btn-active-bg: var(--c-cta-hover);
     --bs-btn-active-border-color: var(--c-cta-hover);
+    --tblr-btn-active-border-color: var(--c-cta-hover);
     --bs-btn-disabled-color: var(--c-text-inverse);
+    --tblr-btn-disabled-color: var(--c-text-inverse);
     --bs-btn-disabled-bg: var(--c-cta);
+    --tblr-btn-disabled-bg: var(--c-cta);
     --bs-btn-disabled-border-color: var(--c-cta);
+    --tblr-btn-disabled-border-color: var(--c-cta);
     color: var(--c-text-inverse);
 }
 
 .btn-primary {
     --bs-btn-color: var(--c-text-inverse);
+    --tblr-btn-color: var(--c-text-inverse);
     --bs-btn-bg: var(--c-primary);
+    --tblr-btn-bg: var(--c-primary);
     --bs-btn-border-color: var(--c-primary);
+    --tblr-btn-border-color: var(--c-primary);
     --bs-btn-hover-bg: var(--c-primary-hover);
+    --tblr-btn-hover-bg: var(--c-primary-hover);
     --bs-btn-hover-border-color: var(--c-primary-hover);
+    --tblr-btn-hover-border-color: var(--c-primary-hover);
     --bs-btn-active-bg: var(--c-primary-active);
+    --tblr-btn-active-bg: var(--c-primary-active);
     --bs-btn-active-border-color: var(--c-primary-active);
+    --tblr-btn-active-border-color: var(--c-primary-active);
     --bs-btn-disabled-bg: var(--c-primary);
+    --tblr-btn-disabled-bg: var(--c-primary);
     --bs-btn-disabled-border-color: var(--c-primary);
+    --tblr-btn-disabled-border-color: var(--c-primary);
 }
 
 .btn-outline-primary {
     --bs-btn-color: var(--c-primary);
+    --tblr-btn-color: var(--c-primary);
     --bs-btn-border-color: var(--c-primary-border);
+    --tblr-btn-border-color: var(--c-primary-border);
     --bs-btn-bg: var(--c-surface);
+    --tblr-btn-bg: var(--c-surface);
     --bs-btn-hover-color: var(--c-primary-hover);
+    --tblr-btn-hover-color: var(--c-primary-hover);
     --bs-btn-hover-bg: var(--c-primary-soft);
+    --tblr-btn-hover-bg: var(--c-primary-soft);
     --bs-btn-hover-border-color: var(--c-primary);
+    --tblr-btn-hover-border-color: var(--c-primary);
     --bs-btn-active-color: var(--c-primary-active);
+    --tblr-btn-active-color: var(--c-primary-active);
     --bs-btn-active-bg: var(--c-primary-soft);
+    --tblr-btn-active-bg: var(--c-primary-soft);
     --bs-btn-active-border-color: var(--c-primary);
+    --tblr-btn-active-border-color: var(--c-primary);
 }
 
 .btn-outline-secondary {
     --bs-btn-color: var(--c-text);
+    --tblr-btn-color: var(--c-text);
     --bs-btn-border-color: var(--c-border-strong);
+    --tblr-btn-border-color: var(--c-border-strong);
     --bs-btn-bg: var(--c-surface);
+    --tblr-btn-bg: var(--c-surface);
     --bs-btn-hover-color: var(--c-text-strong);
+    --tblr-btn-hover-color: var(--c-text-strong);
     --bs-btn-hover-bg: var(--c-surface-2);
+    --tblr-btn-hover-bg: var(--c-surface-2);
     --bs-btn-hover-border-color: var(--c-text-muted);
+    --tblr-btn-hover-border-color: var(--c-text-muted);
     --bs-btn-active-color: var(--c-text-strong);
+    --tblr-btn-active-color: var(--c-text-strong);
     --bs-btn-active-bg: var(--c-surface-3);
+    --tblr-btn-active-bg: var(--c-surface-3);
     --bs-btn-active-border-color: var(--c-text-muted);
+    --tblr-btn-active-border-color: var(--c-text-muted);
 }
 
 .btn-outline-danger {
     --bs-btn-color: var(--c-danger);
+    --tblr-btn-color: var(--c-danger);
     --bs-btn-border-color: var(--c-danger-border);
+    --tblr-btn-border-color: var(--c-danger-border);
     --bs-btn-bg: var(--c-surface);
+    --tblr-btn-bg: var(--c-surface);
     --bs-btn-hover-bg: var(--c-danger-soft);
+    --tblr-btn-hover-bg: var(--c-danger-soft);
     --bs-btn-hover-color: var(--c-danger);
+    --tblr-btn-hover-color: var(--c-danger);
     --bs-btn-hover-border-color: var(--c-danger);
+    --tblr-btn-hover-border-color: var(--c-danger);
 }
 
 .btn-danger {
     --bs-btn-bg: var(--c-danger);
+    --tblr-btn-bg: var(--c-danger);
     --bs-btn-border-color: var(--c-danger);
+    --tblr-btn-border-color: var(--c-danger);
     --bs-btn-hover-bg: var(--c-danger-hover);
+    --tblr-btn-hover-bg: var(--c-danger-hover);
     --bs-btn-hover-border-color: var(--c-danger-hover);
+    --tblr-btn-hover-border-color: var(--c-danger-hover);
 }
 
 /* Nút chỉ có icon: vuông, dùng cho header và các thao tác nhỏ. */
@@ -244,10 +319,15 @@ textarea.form-control {
 
 .badge {
     --bs-badge-font-size: var(--fs-xs);
+    --tblr-badge-font-size: var(--fs-xs);
     --bs-badge-font-weight: var(--fw-semibold);
+    --tblr-badge-font-weight: var(--fw-semibold);
     --bs-badge-padding-x: .625rem;
+    --tblr-badge-padding-x: .625rem;
     --bs-badge-padding-y: .375rem;
+    --tblr-badge-padding-y: .375rem;
     --bs-badge-border-radius: var(--r-pill);
+    --tblr-badge-border-radius: var(--r-pill);
 
     display: inline-flex;
     align-items: center;
@@ -420,12 +500,19 @@ textarea.form-control {
 
 .dropdown-menu {
     --bs-dropdown-border-color: var(--c-border);
+    --tblr-dropdown-border-color: var(--c-border);
     --bs-dropdown-border-radius: var(--r-md);
+    --tblr-dropdown-border-radius: var(--r-md);
     --bs-dropdown-link-hover-bg: var(--c-surface-2);
+    --tblr-dropdown-link-hover-bg: var(--c-surface-2);
     --bs-dropdown-link-active-bg: var(--c-primary-soft);
+    --tblr-dropdown-link-active-bg: var(--c-primary-soft);
     --bs-dropdown-link-active-color: var(--c-primary);
+    --tblr-dropdown-link-active-color: var(--c-primary);
     --bs-dropdown-item-padding-y: .5rem;
+    --tblr-dropdown-item-padding-y: .5rem;
     --bs-dropdown-font-size: var(--fs-sm);
+    --tblr-dropdown-font-size: var(--fs-sm);
     box-shadow: var(--sh-md);
     padding-block: var(--s-2);
 }
@@ -443,6 +530,11 @@ textarea.form-control {
     border-radius: var(--r-xl);
     color: var(--c-text);
     overflow: hidden;
+}
+
+/* Hero là khối mở đầu trang chủ: giãn cách dưới bằng đúng thang của .section. */
+.shop-hero {
+    margin-bottom: var(--space-section);
 }
 
 .shop-hero h1 {
@@ -476,8 +568,36 @@ textarea.form-control {
 }
 
 /* ============================================================================
-   6. SECTION TITLE
+   6. SECTION
    ========================================================================== */
+
+/* Khối lớn của trang. docs/design-system.md § 5 mô tả sẵn bộ ba .section /
+   .section-head / .section-subtitle nhưng UI-00 chưa kịp viết CSS cho chúng —
+   bổ sung ở đây đúng theo thang --space-* đã định nghĩa. */
+.section {
+    margin-bottom: var(--space-section);
+}
+
+.section:last-child {
+    margin-bottom: 0;
+}
+
+/* Hàng tiêu đề: tiêu đề (+ mô tả phụ) bên trái, hành động bên phải.
+   Xuống dòng khi hẹp thay vì ép nút tràn ra ngoài. */
+.section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    margin-bottom: var(--space-block);
+}
+
+.section-subtitle {
+    margin: var(--s-2) 0 0;
+    font-size: var(--fs-sm);
+    color: var(--c-text-secondary);
+}
 
 .section-title {
     display: flex;
@@ -500,6 +620,14 @@ textarea.form-control {
     min-height: 1.25em;
     border-radius: var(--r-pill);
     background-color: var(--c-primary);
+}
+
+/* Panel CTA cuối trang chủ: cùng ngôn ngữ với card — nền trắng, viền 1px, bo lớn. */
+.home-cta {
+    background-color: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-lg);
+    padding: var(--s-8) var(--s-5);
 }
 
 /* ============================================================================
@@ -677,6 +805,79 @@ textarea.form-control {
    10. PRODUCT DETAIL
    ========================================================================== */
 
+/* Mặt phẳng trắng dùng chung cho mọi khối nội dung phía khách (chi tiết sản phẩm, giỏ
+   hàng, thanh toán, đơn hàng). Thay cho chuỗi utility "bg-white border rounded-3 p-3 p-lg-4"
+   bị lặp trong hàng loạt view. */
+.panel {
+    background-color: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-lg);
+    padding: var(--s-5);
+}
+
+@media (min-width: 992px) {
+    .panel {
+        padding: var(--s-6);
+    }
+}
+
+.detail-title {
+    margin: 0;
+    font-size: var(--fs-h1);
+    font-weight: var(--fw-bold);
+    line-height: var(--lh-tight);
+    letter-spacing: -.01em;
+    color: var(--c-text-strong);
+}
+
+/* Khối giá tách nền nhẹ để giá là thứ đập vào mắt sau tên sản phẩm. */
+.detail-price-box {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s-2);
+    padding: var(--s-4) var(--s-5);
+    background-color: var(--c-surface-2);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+}
+
+.detail-thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+}
+
+/* Bộ chọn số lượng: [−][ số ][+] dính liền thành một khối. */
+.qty-stepper {
+    display: inline-flex;
+    align-items: stretch;
+}
+
+.qty-stepper .btn {
+    width: var(--control-h);
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.qty-stepper .btn:first-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.qty-stepper .btn:last-child {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.qty-stepper .cart-qty {
+    border-radius: 0;
+    margin-inline: -1px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
 .detail-main-image {
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -717,6 +918,7 @@ textarea.form-control {
 
 .spec-table {
     --bs-table-border-color: var(--c-border);
+    --tblr-table-border-color: var(--c-border);
     font-size: var(--fs-sm);
 }
 
@@ -776,6 +978,81 @@ textarea.form-control {
     border-top: 1px solid var(--c-border);
 }
 
+/* Chip "đang lọc": bấm vào là bỏ đúng một điều kiện, giữ nguyên các điều kiện còn lại. */
+/* Huy hiệu tròn đứng trước nội dung alert của storefront.
+   KHÔNG dùng tên .alert-icon: Tabler đã chiếm class đó và ép width/height bằng !important
+   cho icon SVG, ký tự chữ đặt vào sẽ bị bóp méo. */
+.status-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--r-pill);
+    background-color: currentColor;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
+    line-height: 1;
+}
+
+/* Ký tự bên trong đảo màu so với nền tròn. */
+.status-icon::first-letter {
+    color: var(--c-surface);
+}
+
+/* Mã lỗi nhỏ phía trên tiêu đề của trang lỗi. */
+.error-code {
+    margin-bottom: var(--s-2);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--c-text-muted);
+}
+
+.filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    max-width: 100%;
+    padding: var(--s-2) var(--s-3);
+    border: 1px solid var(--c-primary-border);
+    border-radius: var(--r-pill);
+    background-color: var(--c-primary-soft);
+    color: var(--c-primary);
+    font-size: var(--fs-sm);
+    line-height: 1.2;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.filter-chip:hover,
+.filter-chip:focus-visible {
+    background-color: var(--c-surface);
+    border-color: var(--c-primary);
+    color: var(--c-primary-hover);
+}
+
+/* Chip "xóa tất cả" trung tính để không cạnh tranh với các chip điều kiện. */
+.filter-chip-reset {
+    background-color: var(--c-surface-2);
+    border-color: var(--c-border-strong);
+    color: var(--c-text-secondary);
+}
+
+.filter-chip-reset:hover,
+.filter-chip-reset:focus-visible {
+    border-color: var(--c-border-strong);
+    color: var(--c-text);
+}
+
 .filter-group-title {
     font-size: var(--fs-sm);
     font-weight: var(--fw-semibold);
@@ -796,20 +1073,35 @@ textarea.form-control {
 
 .pagination {
     --bs-pagination-color: var(--c-text-secondary);
+    --tblr-pagination-color: var(--c-text-secondary);
     --bs-pagination-bg: var(--c-surface);
+    --tblr-pagination-bg: var(--c-surface);
     --bs-pagination-border-color: var(--c-border);
+    --tblr-pagination-border-color: var(--c-border);
     --bs-pagination-border-radius: var(--r-sm);
+    --tblr-pagination-border-radius: var(--r-sm);
     --bs-pagination-padding-x: .875rem;
+    --tblr-pagination-padding-x: .875rem;
     --bs-pagination-padding-y: .5rem;
+    --tblr-pagination-padding-y: .5rem;
     --bs-pagination-font-size: var(--fs-sm);
+    --tblr-pagination-font-size: var(--fs-sm);
     --bs-pagination-hover-color: var(--c-text-strong);
+    --tblr-pagination-hover-color: var(--c-text-strong);
     --bs-pagination-hover-bg: var(--c-surface-2);
+    --tblr-pagination-hover-bg: var(--c-surface-2);
     --bs-pagination-hover-border-color: var(--c-border-strong);
+    --tblr-pagination-hover-border-color: var(--c-border-strong);
     --bs-pagination-active-bg: var(--c-primary);
+    --tblr-pagination-active-bg: var(--c-primary);
     --bs-pagination-active-border-color: var(--c-primary);
+    --tblr-pagination-active-border-color: var(--c-primary);
     --bs-pagination-disabled-color: var(--c-text-muted);
+    --tblr-pagination-disabled-color: var(--c-text-muted);
     --bs-pagination-disabled-bg: var(--c-surface);
+    --tblr-pagination-disabled-bg: var(--c-surface);
     --bs-pagination-disabled-border-color: var(--c-border);
+    --tblr-pagination-disabled-border-color: var(--c-border);
     gap: var(--s-2);
 }
 
@@ -827,6 +1119,40 @@ textarea.form-control {
    13. CART
    ========================================================================== */
 
+/* Tên sản phẩm trong giỏ: cắt 2 dòng để dòng bảng không cao vọt khi tên dài. */
+.cart-item-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-weight: var(--fw-semibold);
+    color: var(--c-text-strong);
+    text-decoration: none;
+}
+
+.cart-item-name:hover {
+    color: var(--c-primary);
+}
+
+/* Ô flex con phải được phép co lại thì text-overflow mới ăn. */
+.min-w-0 {
+    min-width: 0;
+}
+
+.cart-qty-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s-1);
+}
+
+/* "Cập nhật" là lối thoát khi gõ tay số lượng; nút −/+ mới là thao tác chính. */
+.cart-qty-apply {
+    padding: 0;
+    font-size: var(--fs-xs);
+    text-decoration: none;
+}
+
 .cart-thumb {
     width: 64px;
     height: 64px;
@@ -840,6 +1166,7 @@ textarea.form-control {
 
 .cart-table {
     --bs-table-border-color: var(--c-border);
+    --tblr-table-border-color: var(--c-border);
     margin-bottom: 0;
 }
 
@@ -915,6 +1242,7 @@ textarea.form-control {
 
 .order-lines {
     --bs-table-border-color: var(--c-border);
+    --tblr-table-border-color: var(--c-border);
     font-size: var(--fs-sm);
 }
 
@@ -993,41 +1321,60 @@ textarea.form-control {
 
 .alert {
     --bs-alert-border-radius: var(--r-md);
+    --tblr-alert-border-radius: var(--r-md);
     --bs-alert-padding-x: var(--s-4);
+    --tblr-alert-padding-x: var(--s-4);
     --bs-alert-padding-y: var(--s-3);
+    --tblr-alert-padding-y: var(--s-3);
     font-size: var(--fs-sm);
     border-width: 1px;
 }
 
 .alert-success {
     --bs-alert-color: var(--c-success);
+    --tblr-alert-color: var(--c-success);
     --bs-alert-bg: var(--c-success-soft);
+    --tblr-alert-bg: var(--c-success-soft);
     --bs-alert-border-color: var(--c-success-border);
+    --tblr-alert-border-color: var(--c-success-border);
 }
 
 .alert-warning {
     --bs-alert-color: var(--c-warning);
+    --tblr-alert-color: var(--c-warning);
     --bs-alert-bg: var(--c-warning-soft);
+    --tblr-alert-bg: var(--c-warning-soft);
     --bs-alert-border-color: var(--c-warning-border);
+    --tblr-alert-border-color: var(--c-warning-border);
 }
 
 .alert-danger {
     --bs-alert-color: var(--c-danger);
+    --tblr-alert-color: var(--c-danger);
     --bs-alert-bg: var(--c-danger-soft);
+    --tblr-alert-bg: var(--c-danger-soft);
     --bs-alert-border-color: var(--c-danger-border);
+    --tblr-alert-border-color: var(--c-danger-border);
 }
 
 .alert-info {
     --bs-alert-color: var(--c-info);
+    --tblr-alert-color: var(--c-info);
     --bs-alert-bg: var(--c-info-soft);
+    --tblr-alert-bg: var(--c-info-soft);
     --bs-alert-border-color: var(--c-info-border);
+    --tblr-alert-border-color: var(--c-info-border);
 }
 
 .breadcrumb {
     --bs-breadcrumb-font-size: var(--fs-xs);
+    --tblr-breadcrumb-font-size: var(--fs-xs);
     --bs-breadcrumb-divider-color: var(--c-text-muted);
+    --tblr-breadcrumb-divider-color: var(--c-text-muted);
     --bs-breadcrumb-item-active-color: var(--c-text-secondary);
+    --tblr-breadcrumb-item-active-color: var(--c-text-secondary);
     --bs-breadcrumb-margin-bottom: var(--s-4);
+    --tblr-breadcrumb-margin-bottom: var(--s-4);
 }
 
 .breadcrumb a {
@@ -1050,7 +1397,9 @@ textarea.form-control {
 
 .table {
     --bs-table-border-color: var(--c-border);
+    --tblr-table-border-color: var(--c-border);
     --bs-table-color: var(--c-text);
+    --tblr-table-color: var(--c-text);
 }
 
 /* ============================================================================
@@ -1198,4 +1547,11 @@ textarea.form-control {
     .btn-lg {
         width: 100%;
     }
+}
+
+/* asp-validation-summary luôn render thẻ bao, kể cả khi không có lỗi (khi đó nó gắn class
+   .validation-summary-valid). Nếu thẻ đó mang class .alert thì trang sẽ hiện một hộp đỏ
+   rỗng — ẩn đi để alert chỉ xuất hiện khi thật sự có lỗi. */
+.validation-summary-valid {
+    display: none;
 }

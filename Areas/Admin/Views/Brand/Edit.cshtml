@@ -1,24 +1,29 @@
 @model BrandFormViewModel
 @{
     ViewData["Title"] = "Sửa thương hiệu";
+    ViewData["Subtitle"] = Model.Name;
 }
 
-<div class="admin-page-header">
-    <h1>Sửa thương hiệu</h1>
-    <a class="btn btn-outline-secondary" asp-action="Index">Quay lại danh sách</a>
-</div>
+@section PageActions {
+    <a class="btn" asp-action="Index"><i class="ti ti-arrow-left me-1"></i>Quay lại danh sách</a>
+}
 
-<div class="admin-card">
-    <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="Id" />
-        <partial name="_Form" model="Model" />
-
-        <div class="mt-4 d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
-            <a class="btn btn-outline-secondary" asp-action="Index">Hủy</a>
-        </div>
-    </form>
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-9">
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div class="card">
+                <div class="card-body">
+                    <partial name="_Form" model="Model" />
+                </div>
+                <div class="card-footer d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                    <a class="btn btn-link" asp-action="Index">Hủy</a>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
 @section Scripts {

@@ -5,46 +5,50 @@
     var hasBrands = Model.BrandOptions.Any();
 }
 
-<div class="admin-page-header">
-    <h1>Thêm sản phẩm</h1>
-    <a class="btn btn-outline-secondary" asp-action="Index">Quay lại danh sách</a>
-</div>
+@section PageActions {
+    <a class="btn" asp-action="Index"><i class="ti ti-arrow-left me-1"></i>Quay lại danh sách</a>
+}
 
 @if (!hasCategories || !hasBrands)
 {
     <div class="alert alert-warning" role="alert">
-        <strong>Chưa đủ dữ liệu để tạo sản phẩm.</strong>
-        Mỗi sản phẩm bắt buộc phải thuộc một danh mục và một thương hiệu.
-        @if (!hasCategories)
-        {
-            <a asp-controller="Category" asp-action="Create">Tạo danh mục trước</a>
-            <text>. </text>
-        }
-        @if (!hasBrands)
-        {
-            <a asp-controller="Brand" asp-action="Create">Tạo thương hiệu trước</a>
-            <text>. </text>
-        }
+        <div class="d-flex">
+            <i class="ti ti-alert-triangle alert-icon me-2"></i>
+            <div>
+                <h4 class="alert-title">Chưa đủ dữ liệu để tạo sản phẩm</h4>
+                <div class="text-secondary">
+                    Mỗi sản phẩm bắt buộc phải thuộc một danh mục và một thương hiệu.
+                    @if (!hasCategories)
+                    {
+                        <a asp-controller="Category" asp-action="Create">Tạo danh mục trước</a><text>. </text>
+                    }
+                    @if (!hasBrands)
+                    {
+                        <a asp-controller="Brand" asp-action="Create">Tạo thương hiệu trước</a><text>. </text>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
 }
 
-<div class="admin-card">
-    <form asp-action="Create" method="post">
-        @Html.AntiForgeryToken()
-        <partial name="_Form" model="Model" />
-
-        <div class="alert alert-secondary mt-4 mb-0" role="alert">
-            Ảnh sản phẩm được thêm sau khi tạo, ở màn hình <strong>Ảnh</strong> của sản phẩm.
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="card-body">
+            <partial name="_Form" model="Model" />
         </div>
-
-        <div class="mt-4 d-flex gap-2">
+        <div class="card-footer d-flex flex-wrap gap-2 align-items-center">
             <button type="submit" class="btn btn-primary" disabled="@(!hasCategories || !hasBrands)">
                 Tạo sản phẩm
             </button>
-            <a class="btn btn-outline-secondary" asp-action="Index">Hủy</a>
+            <a class="btn btn-link" asp-action="Index">Hủy</a>
+            <span class="text-secondary small ms-auto">
+                <i class="ti ti-photo me-1"></i>Ảnh sản phẩm được thêm sau khi tạo, ở màn hình <strong>Ảnh</strong>.
+            </span>
         </div>
-    </form>
-</div>
+    </div>
+</form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

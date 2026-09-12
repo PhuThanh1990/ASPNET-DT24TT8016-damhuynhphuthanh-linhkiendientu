@@ -10,17 +10,16 @@
 <div class="container">
     <div class="empty-state my-5">
         <div class="empty-icon">⚠️</div>
-        <h1 class="h3 text-body mb-2">Đã xảy ra lỗi</h1>
+        <h1 class="h4 text-body mb-2">Hệ thống đang gặp sự cố</h1>
         <p class="mb-4">
-            Rất tiếc, hệ thống gặp sự cố khi xử lý yêu cầu của bạn.
+            Rất tiếc, hệ thống gặp lỗi khi xử lý yêu cầu của bạn.
             Vui lòng thử lại sau ít phút.
         </p>
 
         @if (Model?.ShowRequestId == true)
         {
-            <p class="text-muted small mb-4">
-                Mã yêu cầu: <code>@Model.RequestId</code>
-                <br />
+            <p class="product-meta mb-4">
+                Mã yêu cầu: <code>@Model.RequestId</code><br />
                 Vui lòng gửi mã này cho bộ phận hỗ trợ để được kiểm tra nhanh hơn.
             </p>
         }
