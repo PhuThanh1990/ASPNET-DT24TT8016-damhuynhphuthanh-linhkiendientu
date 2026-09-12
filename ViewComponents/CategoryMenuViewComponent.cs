@@ -21,7 +21,11 @@ public class CategoryMenuViewComponent : ViewComponent
         _context = context;
     }
 
-    public async Task<IViewComponentResult> InvokeAsync()
+    /// <param name="variant">
+    /// Cách trình bày: "bar" (mặc định) cho hàng danh mục trên desktop, "offcanvas" cho
+    /// menu mobile. Chỉ đổi view, câu truy vấn bên dưới giữ nguyên.
+    /// </param>
+    public async Task<IViewComponentResult> InvokeAsync(string variant = "bar")
     {
         // Root categories plus their active children, in one query. A flat catalog
         // (no parent/child nesting) simply comes back with empty Children lists.
@@ -50,6 +54,6 @@ public class CategoryMenuViewComponent : ViewComponent
             })
             .ToListAsync();
 
-        return View(categories);
+        return View(variant == "offcanvas" ? "Offcanvas" : "Default", categories);
     }
 }

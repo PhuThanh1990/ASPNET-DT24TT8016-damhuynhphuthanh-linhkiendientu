@@ -1,5 +1,5 @@
 @{
-    // Dùng để tô sáng menu đang mở.
+    // Dùng để tô sáng mục đang mở trên thanh điều hướng.
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     var isHome = currentController == "Home" && currentAction == "Index";
@@ -29,112 +29,173 @@
     <link rel="stylesheet" href="~/ElectronicStore.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <!-- Thanh thông tin trên cùng: ẩn trên màn hình nhỏ cho gọn -->
-        <div class="shop-topbar d-none d-lg-block">
-            <div class="container d-flex justify-content-between py-1">
-                <span>Hotline: <a href="tel:19001234">1900 1234</a> &nbsp;|&nbsp; Email: <a href="mailto:hotro@electronicstore.vn">hotro@electronicstore.vn</a></span>
-                <span>Giao hàng toàn quốc &nbsp;|&nbsp; Bảo hành chính hãng</span>
+    <a class="visually-hidden-focusable skip-link" href="#main-content">Bỏ qua, tới nội dung chính</a>
+
+    <header class="customer-header">
+        @* Thanh thông tin: ẩn dưới lg cho gọn, nội dung không thiết yếu. *@
+        <div class="customer-header__top d-none d-lg-block">
+            <div class="container customer-header__top-inner">
+                <div class="d-flex flex-wrap gap-4">
+                    <span class="customer-header__note">
+                        <i class="ti ti-phone" aria-hidden="true"></i>
+                        Hotline: <a href="tel:19001234">1900 1234</a>
+                    </span>
+                    <span class="customer-header__note">
+                        <i class="ti ti-mail" aria-hidden="true"></i>
+                        <a href="mailto:hotro@electronicstore.vn">hotro@electronicstore.vn</a>
+                    </span>
+                </div>
+                <div class="d-flex flex-wrap gap-4">
+                    <span class="customer-header__note">
+                        <i class="ti ti-truck" aria-hidden="true"></i> Giao hàng toàn quốc
+                    </span>
+                    <span class="customer-header__note">
+                        <i class="ti ti-shield-check" aria-hidden="true"></i> Bảo hành chính hãng
+                    </span>
+                </div>
             </div>
         </div>
 
-        <nav class="navbar navbar-expand-lg shop-navbar">
-            <div class="container">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-                    Electronic<span>Store</span>
-                </a>
+        <div class="customer-header__main">
+            <div class="container customer-header__inner">
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
-                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Mở menu">
-                    <span class="navbar-toggler-icon"></span>
+                <button class="customer-header__toggle d-lg-none" type="button"
+                        data-bs-toggle="offcanvas" data-bs-target="#customerMenu"
+                        aria-controls="customerMenu" aria-label="Mở menu danh mục">
+                    <i class="ti ti-menu-2" aria-hidden="true"></i>
                 </button>
 
-                <div class="collapse navbar-collapse" id="mainNavbar">
-                    <ul class="navbar-nav me-lg-3">
-                        <li class="nav-item">
-                            <a class="nav-link @(isHome ? "active" : null)" asp-controller="Home" asp-action="Index">Trang chủ</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @(isProduct ? "active" : null)" asp-controller="Product" asp-action="Index">Sản phẩm</a>
-                        </li>
-                        @* Danh mục lấy từ database; không có danh mục nào thì không hiện menu này *@
-                        @await Component.InvokeAsync("CategoryMenu")
-                    </ul>
+                <a class="customer-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span class="customer-brand__mark" aria-hidden="true"><i class="ti ti-cpu"></i></span>
+                    <span class="customer-brand__text">Electronic<span>Store</span></span>
+                </a>
 
-                    <!-- CUS-08: tìm theo tên sản phẩm, mã SKU hoặc thương hiệu -->
-                    <form class="d-flex shop-search my-2 my-lg-0 me-lg-auto" role="search"
-                          asp-controller="Product" asp-action="Index" method="get">
-                        <input class="form-control" type="search" name="keyword" maxlength="100"
-                               placeholder="Tìm CPU, RAM, VGA, SSD..." aria-label="Tìm sản phẩm" />
-                        <button class="btn btn-accent ms-2 flex-shrink-0" type="submit" aria-label="Tìm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242 1.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z" />
-                            </svg>
-                        </button>
-                    </form>
+                @* CUS-08: tìm theo tên sản phẩm, mã SKU hoặc thương hiệu.
+                   Chỉ một form duy nhất trong DOM — mobile/desktop khác nhau ở thứ tự flex. *@
+                <form class="customer-search" role="search"
+                      asp-area="" asp-controller="Product" asp-action="Index" method="get">
+                    <label class="visually-hidden" for="headerSearch">Tìm sản phẩm</label>
+                    <i class="ti ti-search customer-search__icon" aria-hidden="true"></i>
+                    <input class="customer-search__input" id="headerSearch" type="search" name="keyword"
+                           maxlength="100" placeholder="Tìm CPU, RAM, VGA, SSD..." />
+                    <button class="customer-search__submit" type="submit">Tìm</button>
+                </form>
 
-                    <ul class="navbar-nav align-items-lg-center">
-                        @* CUS-12: số lượng lấy từ giỏ hàng trong Session *@
-                        @await Component.InvokeAsync("CartSummary")
-                    </ul>
-
+                <div class="customer-actions">
                     <partial name="_LoginPartial" />
+                    @* CUS-12: số lượng lấy từ giỏ hàng trong Session *@
+                    @await Component.InvokeAsync("CartSummary")
                 </div>
+            </div>
+        </div>
+
+        @* Hàng danh mục: chỉ desktop. Trên mobile danh mục nằm trong offcanvas để
+           không phải cuộn ngang một hàng dài. *@
+        <nav class="customer-nav d-none d-lg-block" aria-label="Danh mục sản phẩm">
+            <div class="container">
+                <ul class="customer-nav__list">
+                    <li>
+                        <a class="customer-nav__link @(isHome ? "is-active" : null)"
+                           asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                    </li>
+                    <li>
+                        <a class="customer-nav__link @(isProduct ? "is-active" : null)"
+                           asp-area="" asp-controller="Product" asp-action="Index">Tất cả sản phẩm</a>
+                    </li>
+                    @* Danh mục lấy từ database; không có danh mục nào thì không hiện gì thêm. *@
+                    @await Component.InvokeAsync("CategoryMenu")
+                </ul>
             </div>
         </nav>
     </header>
 
+    <div class="offcanvas offcanvas-start customer-offcanvas" tabindex="-1" id="customerMenu"
+         aria-labelledby="customerMenuLabel">
+        <div class="offcanvas-header border-bottom">
+            <h2 class="offcanvas-title h6 mb-0" id="customerMenuLabel">Danh mục sản phẩm</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng menu"></button>
+        </div>
+        <div class="offcanvas-body">
+            <ul class="customer-menu">
+                <li>
+                    <a class="customer-menu__link @(isHome ? "is-active" : null)"
+                       asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                </li>
+                <li>
+                    <a class="customer-menu__link @(isProduct ? "is-active" : null)"
+                       asp-area="" asp-controller="Product" asp-action="Index">Tất cả sản phẩm</a>
+                </li>
+                <li>
+                    <a class="customer-menu__link" asp-area="" asp-controller="Cart" asp-action="Index">Giỏ hàng</a>
+                </li>
+            </ul>
+
+            @await Component.InvokeAsync("CategoryMenu", new { variant = "offcanvas" })
+        </div>
+    </div>
+
     <partial name="_StatusMessage" />
 
-    <main role="main" class="shop-main py-4">
+    <main role="main" id="main-content" class="shop-main">
         @RenderBody()
     </main>
 
-    <footer class="shop-footer pt-4 mt-4">
+    <footer class="shop-footer">
         <div class="container">
-            <div class="row g-4">
-                <div class="col-12 col-md-6 col-lg-4">
-                    <h6 class="text-uppercase">ElectronicStore</h6>
-                    <p class="mb-2 small">
-                        Cửa hàng linh kiện điện tử: CPU, mainboard, RAM, VGA, ổ cứng, nguồn và phụ kiện máy tính.
-                        Hàng chính hãng, bảo hành đầy đủ.
+            <div class="row g-4 g-lg-5">
+                <div class="col-12 col-lg-4">
+                    <a class="shop-footer__brand mb-3" asp-area="" asp-controller="Home" asp-action="Index">
+                        <i class="ti ti-cpu" aria-hidden="true"></i>
+                        <span>Electronic<span class="shop-footer__brand-accent">Store</span></span>
+                    </a>
+                    <p class="shop-footer__about mb-0">
+                        Cửa hàng linh kiện điện tử: vi điều khiển, cảm biến, module, nguồn và phụ kiện.
+                        Đồ án môn ASP.NET Core MVC.
                     </p>
-                    <p class="small mb-0">Đồ án môn ASP.NET Core MVC.</p>
                 </div>
 
-                <div class="col-6 col-md-3 col-lg-2">
-                    <h6 class="text-uppercase">Liên kết</h6>
-                    <ul class="list-unstyled small mb-0">
-                        <li class="mb-1"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
-                        <li class="mb-1"><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
-                        <li class="mb-1"><a asp-controller="Home" asp-action="Privacy">Chính sách bảo mật</a></li>
+                <div class="col-6 col-lg-2">
+                    <h2>Điều hướng</h2>
+                    <ul class="shop-footer__list">
+                        <li><a asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li><a asp-area="" asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
+                        <li><a asp-area="" asp-controller="Cart" asp-action="Index">Giỏ hàng</a></li>
+                        <li><a asp-area="" asp-controller="Order" asp-action="Index">Đơn hàng của tôi</a></li>
                     </ul>
                 </div>
 
-                <div class="col-6 col-md-3 col-lg-3">
-                    <h6 class="text-uppercase">Hỗ trợ</h6>
-                    <ul class="list-unstyled small mb-0">
-                        <li class="mb-1">Hướng dẫn mua hàng</li>
-                        <li class="mb-1">Chính sách bảo hành</li>
-                        <li class="mb-1">Chính sách đổi trả</li>
-                        <li class="mb-1">Vận chuyển &amp; thanh toán</li>
+                <div class="col-6 col-lg-3">
+                    <h2>Hỗ trợ</h2>
+                    <ul class="shop-footer__list shop-footer__plain">
+                        <li>Hướng dẫn mua hàng</li>
+                        <li>Chính sách bảo hành</li>
+                        <li>Chính sách đổi trả</li>
+                        <li><a asp-area="" asp-controller="Home" asp-action="Privacy">Chính sách bảo mật</a></li>
                     </ul>
                 </div>
 
                 <div class="col-12 col-lg-3">
-                    <h6 class="text-uppercase">Liên hệ</h6>
-                    <ul class="list-unstyled small mb-0">
-                        <li class="mb-1">123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh</li>
-                        <li class="mb-1">Hotline: <a href="tel:19001234">1900 1234</a></li>
-                        <li class="mb-1">Email: <a href="mailto:hotro@electronicstore.vn">hotro@electronicstore.vn</a></li>
-                        <li class="mb-1">Giờ mở cửa: 8:00 - 21:00 (T2 - CN)</li>
+                    <h2>Liên hệ</h2>
+                    <ul class="shop-footer__list shop-footer__contact">
+                        <li>
+                            <i class="ti ti-phone" aria-hidden="true"></i>
+                            <a href="tel:19001234">1900 1234</a>
+                        </li>
+                        <li>
+                            <i class="ti ti-mail" aria-hidden="true"></i>
+                            <a href="mailto:hotro@electronicstore.vn">hotro@electronicstore.vn</a>
+                        </li>
+                        <li>
+                            <i class="ti ti-clock" aria-hidden="true"></i>
+                            <span class="shop-footer__plain">8:00 - 21:00 (T2 - CN)</span>
+                        </li>
                     </ul>
                 </div>
             </div>
 
-            <div class="footer-bottom d-flex flex-column flex-sm-row justify-content-between align-items-center gap-1 mt-4 py-3">
+            <div class="footer-bottom d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                 <span>&copy; @DateTime.Now.Year ElectronicStore. Đồ án sinh viên.</span>
-                <span>Thông tin liên hệ ở trên chỉ là dữ liệu mẫu.</span>
+                <span>Thông tin liên hệ chỉ là dữ liệu mẫu.</span>
             </div>
         </div>
     </footer>

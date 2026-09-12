@@ -1,30 +1,53 @@
 @model IReadOnlyList<CategoryLinkViewModel>
+@*
+    UI-02 — biến thể "bar": các <li> của hàng danh mục trên desktop.
+    Danh mục có danh mục con thì đổ thành dropdown, không thì là link thẳng.
+    Không có danh mục nào đang hoạt động thì không render gì cả.
+*@
+@{
+    var activeCategory = Context.Request.Query["category"].ToString();
+}
 
-@* Không có danh mục nào đang hoạt động thì bỏ hẳn menu, không hiện dropdown rỗng. *@
-@if (Model.Count > 0)
+@foreach (var category in Model)
 {
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Danh mục
-        </a>
-        <ul class="dropdown-menu">
-            @foreach (var category in Model)
-            {
+    var isActive = activeCategory == category.Slug
+        || category.Children.Any(child => child.Slug == activeCategory);
+
+    if (category.Children.Count == 0)
+    {
+        <li>
+            <a class="customer-nav__link @(isActive ? "is-active" : null)"
+               asp-area="" asp-controller="Product" asp-action="Index" asp-route-category="@category.Slug">
+                @category.Name
+            </a>
+        </li>
+    }
+    else
+    {
+        <li class="dropdown">
+            <a class="customer-nav__link dropdown-toggle @(isActive ? "is-active" : null)" href="#"
+               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                @category.Name
+                <i class="ti ti-chevron-down" aria-hidden="true"></i>
+            </a>
+            <ul class="dropdown-menu">
                 <li>
-                    <a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-category="@category.Slug">
-                        @category.Name
+                    <a class="dropdown-item fw-semibold"
+                       asp-area="" asp-controller="Product" asp-action="Index" asp-route-category="@category.Slug">
+                        Tất cả @category.Name
                     </a>
                 </li>
-
+                <li><hr class="dropdown-divider" /></li>
                 @foreach (var child in category.Children)
                 {
                     <li>
-                        <a class="dropdown-item small ps-4 text-muted" asp-controller="Product" asp-action="Index" asp-route-category="@child.Slug">
+                        <a class="dropdown-item"
+                           asp-area="" asp-controller="Product" asp-action="Index" asp-route-category="@child.Slug">
                             @child.Name
                         </a>
                     </li>
                 }
-            }
-        </ul>
-    </li>
+            </ul>
+        </li>
+    }
 }
