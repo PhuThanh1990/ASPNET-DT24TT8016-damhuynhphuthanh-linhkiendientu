@@ -12,11 +12,16 @@ Listing) và UI-04 (Product Detail) phải tuân theo tài liệu này.
 | `wwwroot/css/customer.css` | Style của từng component. Nạp sau. |
 | `wwwroot/design-system.html` | Trang xem thử mọi component (mở `/design-system.html`). |
 
+> **Framework nền (UI-01):** storefront dùng **Tabler v1.5.1**, là bản build Bootstrap 5
+> với tiền tố biến `--tblr-*`. Bootstrap CSS/JS **không** được nạp song song. Vì vậy mọi
+> override component phải ghi `--tblr-btn-bg`… chứ không phải `--bs-btn-bg` — ghi nhầm
+> tiền tố thì khai báo không có tác dụng nào cả. Icon dùng **Tabler Icons** (`<i class="ti ti-...">`).
+
 Quy tắc bắt buộc khi viết CSS mới:
 
 1. **Không hard-code mã màu / px lẻ.** Dùng biến trong `customer-tokens.css`.
 2. **Không viết selector trần** (`button {}`, `input {}`, `table {}`). Ghi đè
-   Bootstrap bằng biến `--bs-*` của chính component đó hoặc bằng class cụ thể.
+   component bằng biến `--tblr-*` của chính nó hoặc bằng class cụ thể.
 3. **Không đổi tên class đang có.** Mọi class trong `customer.css` đều đang được
    view sử dụng.
 4. Không thêm framework (Tailwind/React/Vue) và không thêm webfont nặng.
@@ -251,37 +256,56 @@ hiệu ứng khi người dùng bật `prefers-reduced-motion`.
 
 ---
 
-## 6. Header — spec cho UI-02
+## 6. Header — đã triển khai ở UI-02
+
+### Cấu trúc
+
+```
+header.customer-header
+├── .customer-header__top      thanh thông tin — chỉ hiện từ ≥992px
+├── .customer-header__main     logo · tìm kiếm · tài khoản · giỏ hàng (sticky từ ≥992px)
+│   ├── .customer-header__toggle   nút ☰, chỉ hiện dưới 992px
+│   ├── .customer-brand            .customer-brand__mark + .customer-brand__text
+│   ├── .customer-search           .customer-search__icon/__input/__submit
+│   └── .customer-actions          _LoginPartial + view component CartSummary
+└── .customer-nav              hàng danh mục — chỉ hiện từ ≥992px
+    └── .customer-nav__list > li > .customer-nav__link (.is-active)
+
+#customerMenu  .offcanvas.offcanvas-start.customer-offcanvas   ← menu mobile
+└── .customer-menu > li > .customer-menu__link (+ .customer-menu__sub cho danh mục con)
+```
 
 ### Desktop (≥992px)
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│ topbar: hotline · email            |    giao hàng · bảo hành         │ 32px, --c-surface-3
-├──────────────────────────────────────────────────────────────────────┤
-│ LOGO      [   ô tìm kiếm lớn, pill, 48px            🔍]   Tài khoản ▾  Giỏ (2) │
-├──────────────────────────────────────────────────────────────────────┤
-│ Trang chủ · Sản phẩm · CPU · RAM · VGA · Mainboard · …                │ .category-bar
-└──────────────────────────────────────────────────────────────────────┘
-```
-
-- Nền **trắng**, viền dưới 1px `--c-border`. Không dùng navbar tối.
-- Hàng chính dính mép trên khi cuộn: `.shop-navbar { position: sticky; top: 0 }`
-  (đã có; `z-index: 1020`).
-- Logo trái, ô tìm kiếm chiếm phần giữa (`.shop-search`, tối đa 460px, bo pill),
-  account + cart bên phải bằng `.btn-icon` hoặc `.nav-link`.
-- Hàng danh mục nằm dưới cùng, dùng `.category-bar`, cuộn ngang khi tràn.
-- Link active: `.nav-link.active` (nền `--c-primary-soft`, chữ `--c-primary`).
+- Nền trắng, viền dưới 1px. `.customer-header__main` dính mép trên khi cuộn (`z-index: 1020`).
+- Logo trái · ô tìm kiếm chiếm phần giữa (tối đa 34rem) · tài khoản + giỏ hàng phải.
+- Hàng danh mục nằm dưới cùng, **wrap xuống hàng** khi tràn — tuyệt đối không đặt
+  `overflow` lên `.customer-nav__list` vì nó tạo clipping context và cắt mất dropdown
+  danh mục con.
+- Mục đang mở: `.customer-nav__link.is-active` (chữ xanh + gạch chân 2px).
 
 ### Mobile (<992px)
 
-- Header rút gọn 1 hàng: nút menu ☰ · logo · giỏ hàng.
-- Ô tìm kiếm nằm ngay dưới header, luôn thấy (không giấu trong menu).
-- Danh mục + tài khoản đưa vào **offcanvas** trái (`.offcanvas`), không dùng
-  dropdown lồng nhau.
-- Header **không** sticky trên mobile (đã tắt) để không ăn chiều cao màn hình.
+- Header 2 hàng: `[☰] [logo] … [tài khoản] [giỏ hàng]` rồi tới ô tìm kiếm chiếm trọn bề ngang.
+- Ô tìm kiếm luôn thấy, không giấu trong menu.
+- Danh mục + điều hướng nằm trong offcanvas trái (`data-bs-toggle="offcanvas"`), dùng JS
+  của Tabler, không viết JS riêng.
+- Header **không** sticky trên mobile để không ăn chiều cao màn hình.
+- Nhãn chữ của `.header-action` tự ẩn dưới 768px, chỉ còn icon (đã có `aria-label`).
 
----
+### Tài khoản & giỏ hàng
+
+- `_LoginPartial` luôn là một nút icon + dropdown ở mọi kích thước:
+  khách chưa đăng nhập → Đăng nhập / Đăng ký; đã đăng nhập → tên tài khoản,
+  Đơn hàng của tôi, Giỏ hàng, Đăng xuất (**form POST + antiforgery**).
+- `CartSummary` render `.cart-link` + `.cart-link__badge`. Giỏ rỗng vẫn hiện số 0 nhưng
+  dùng `.is-empty` (nền xám trung tính) thay vì màu đỏ báo động.
+
+### Search
+
+Chỉ **một** form trong DOM; mobile và desktop khác nhau ở `order`/`flex` của flexbox chứ
+không nhân đôi markup (tránh trùng `id` và trùng field khi submit). Form giữ nguyên
+`GET /san-pham?keyword=…` của CUS-08.
 
 ## 7. Product listing — spec cho UI-03
 
