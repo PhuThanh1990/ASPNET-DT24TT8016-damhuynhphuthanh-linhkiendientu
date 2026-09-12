@@ -152,14 +152,19 @@ internal static class OrderStatusPresentation
         _ => status.ToString(),
     };
 
+    /// <summary>
+    /// Class badge theo design system UI-00: badge "mềm" (nền nhạt + chữ đậm màu),
+    /// đúng kiểu đang dùng cho trạng thái kho ở product card, thay cho badge đặc
+    /// trông giống dashboard. Bảng màu nằm ở wwwroot/css/customer.css mục BADGE.
+    /// </summary>
     public static string BadgeClass(OrderStatus status) => status switch
     {
-        OrderStatus.Pending => "text-bg-warning",
-        OrderStatus.Confirmed => "text-bg-info",
-        OrderStatus.Preparing => "text-bg-primary",
-        OrderStatus.Shipping => "text-bg-secondary",
-        OrderStatus.Completed => "text-bg-success",
-        OrderStatus.Cancelled => "text-bg-danger",
-        _ => "text-bg-light",
+        OrderStatus.Pending => "bg-warning-subtle text-warning-emphasis border border-warning-subtle",
+        OrderStatus.Confirmed => "bg-info-subtle text-info-emphasis border border-info-subtle",
+        OrderStatus.Preparing => "bg-primary-subtle text-primary-emphasis border border-primary-subtle",
+        OrderStatus.Shipping => "bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle",
+        OrderStatus.Completed => "bg-success-subtle text-success-emphasis border border-success-subtle",
+        OrderStatus.Cancelled => "bg-danger-subtle text-danger-emphasis border border-danger-subtle",
+        _ => "bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle",
     };
 }
