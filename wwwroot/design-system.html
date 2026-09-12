@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Design System — ElectronicStore Customer</title>
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/customer-tokens.css" />
+    <link rel="stylesheet" href="/css/customer.css" />
+    <style>
+        /* Chỉ dùng cho riêng trang xem thử này, không thuộc design system. */
+        .ds-swatch { height: 64px; border-radius: var(--r-sm); border: 1px solid var(--c-border); }
+        .ds-row { padding: var(--s-5) 0; border-bottom: 1px solid var(--c-border); }
+        .ds-label { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--c-text-secondary); }
+    </style>
+</head>
+<body>
+<div class="container" style="padding-block: var(--s-8);">
+
+    <p class="product-meta mb-1">UI-00 · tài liệu nội bộ, không liên kết từ storefront</p>
+    <h1 class="mb-1">Design System — Customer</h1>
+    <p class="text-muted">Đặc tả đầy đủ: <code>docs/design-system.md</code>. Trang này chỉ để xem nhanh component.</p>
+
+    <!-- ---------------------------------------------------------------- MÀU -->
+    <section class="section ds-row">
+        <div class="section-head"><h2 class="section-title">Màu</h2></div>
+        <div class="row row-cols-2 row-cols-md-4 row-cols-xl-6 g-3">
+            <div class="col"><div class="ds-swatch" style="background:var(--c-surface)"></div><div class="ds-label mt-1">--c-surface</div></div>
+            <div class="col"><div class="ds-swatch" style="background:var(--c-surface-2)"></div><div class="ds-label mt-1">--c-surface-2</div></div>
+            <div class="col"><div class="ds-swatch" style="background:var(--c-surface-3)"></div><div class="ds-label mt-1">--c-surface-3</div></div>
+            <div class="col"><div class="ds-swatch" style="background:var(--c-text)"></div><div class="ds-label mt-1">--c-text</div></div>
+            <div class="col"><div class="ds-swatch" style="background:var(--c-text-secondary)"></div><div class="ds-label mt-1">--c-text-secondary</div></div>
+            <div class="col"><div class="ds-swatch" style="background:var(--c-border)"></div><div class="ds-label mt-1">--c-border</div></div>
+            <div class="col"><div class="ds-swatch" style="background:var(--c-primary)"></div><div class="ds-label mt-1">--c-primary</div></div>
+            <div class="col"><div class="ds-swatch" style="background:var(--c-primary-soft)"></div><div class="ds-label mt-1">--c-primary-soft</div></div>
+            <div class="col"><div class="ds-swatch" style="background:var(--c-cta)"></div><div class="ds-label mt-1">--c-cta</div></div>
+            <div class="col"><div class="ds-swatch" style="background:var(--c-price)"></div><div class="ds-label mt-1">--c-price</div></div>
+            <div class="col"><div class="ds-swatch" style="background:var(--c-success)"></div><div class="ds-label mt-1">--c-success</div></div>
+            <div class="col"><div class="ds-swatch" style="background:var(--c-ink)"></div><div class="ds-label mt-1">--c-ink (footer)</div></div>
+        </div>
+    </section>
+
+    <!-- --------------------------------------------------------- TYPOGRAPHY -->
+    <section class="section ds-row">
+        <div class="section-head"><h2 class="section-title">Typography</h2></div>
+        <h1>Heading 1 — linh kiện điện tử</h1>
+        <h2>Heading 2 — sản phẩm nổi bật</h2>
+        <h3>Heading 3 — thông số kỹ thuật</h3>
+        <p>Body 16px — Kit phát triển ESP32 38 chân, tích hợp WiFi và Bluetooth, phù hợp cho dự án IoT.</p>
+        <p class="small">Small 14px — dùng cho mô tả phụ và ghi chú trong form.</p>
+        <p class="product-meta mb-0">.product-meta 13px — Espressif · Vi điều khiển</p>
+    </section>
+
+    <!-- ------------------------------------------------------------- BUTTON -->
+    <section class="section ds-row">
+        <div class="section-head"><h2 class="section-title">Button</h2></div>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <button class="btn btn-accent">CTA mua hàng</button>
+            <button class="btn btn-primary">Primary</button>
+            <button class="btn btn-outline-primary">Outline primary</button>
+            <button class="btn btn-outline-secondary">Secondary</button>
+            <button class="btn btn-outline-danger">Danger</button>
+            <button class="btn btn-accent" disabled>Disabled</button>
+            <button class="btn btn-outline-secondary btn-icon" aria-label="Icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242 1.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/></svg>
+            </button>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <button class="btn btn-accent btn-sm">Small 36px</button>
+            <button class="btn btn-accent">Default 44px</button>
+            <button class="btn btn-accent btn-lg">Large 48px</button>
+        </div>
+    </section>
+
+    <!-- -------------------------------------------------------------- INPUT -->
+    <section class="section ds-row">
+        <div class="section-head"><h2 class="section-title">Input</h2></div>
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="ds-text">Text</label>
+                <input class="form-control" id="ds-text" placeholder="Nguyễn Văn A" />
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="ds-select">Select</label>
+                <select class="form-select" id="ds-select"><option>Mới nhất</option><option>Giá tăng dần</option></select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="ds-invalid">Invalid</label>
+                <input class="form-control is-invalid" id="ds-invalid" value="abc" />
+                <span class="text-danger">Số điện thoại không hợp lệ.</span>
+            </div>
+            <div class="col-12 col-md-8">
+                <label class="form-label" for="ds-area">Textarea</label>
+                <textarea class="form-control" id="ds-area" rows="2" placeholder="Ghi chú giao hàng"></textarea>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="ds-disabled">Disabled</label>
+                <input class="form-control" id="ds-disabled" value="Không sửa được" disabled />
+            </div>
+            <div class="col-12">
+                <label class="form-label">Ô số lượng</label>
+                <div class="d-flex align-items-center gap-1">
+                    <button class="btn btn-outline-secondary btn-sm">&minus;</button>
+                    <input class="form-control form-control-sm cart-qty" type="number" value="1" />
+                    <button class="btn btn-outline-secondary btn-sm">+</button>
+                </div>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Ô tìm kiếm header</label>
+                <form class="d-flex shop-search">
+                    <input class="form-control" type="search" placeholder="Tìm CPU, RAM, VGA, SSD..." />
+                    <button class="btn btn-accent ms-2 flex-shrink-0" type="button">Tìm</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- -------------------------------------------------------------- BADGE -->
+    <section class="section ds-row">
+        <div class="section-head"><h2 class="section-title">Badge</h2></div>
+        <div class="d-flex flex-wrap gap-2">
+            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Còn hàng (12)</span>
+            <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Hết hàng</span>
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Chờ xác nhận</span>
+            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">Đã xác nhận</span>
+            <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">Đang chuẩn bị</span>
+            <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">Đã hủy</span>
+            <span class="badge bg-danger">-16%</span>
+            <span class="badge rounded-pill bg-danger shop-cart-badge">3</span>
+        </div>
+    </section>
+
+    <!-- ------------------------------------------------------- PRODUCT CARD -->
+    <section class="section ds-row">
+        <div class="section-head">
+            <div>
+                <h2 class="section-title">Product card</h2>
+                <p class="section-subtitle">Ảnh 1:1 · tên clamp 2 dòng · giá nổi bật · CTA</p>
+            </div>
+            <a class="btn btn-outline-secondary btn-sm" href="#ds-top">Xem tất cả</a>
+        </div>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3 g-lg-4">
+            <div class="col">
+                <div class="card product-card">
+                    <a class="product-thumb-link" href="#ds-top">
+                        <img class="product-thumb" src="/images/no-image.svg" alt="Sản phẩm mẫu" />
+                        <span class="badge bg-danger product-badge-discount">-16%</span>
+                    </a>
+                    <div class="card-body d-flex flex-column">
+                        <div class="product-meta text-truncate mb-1"><span class="fw-semibold">Espressif</span> <span>&middot;</span> <span>Vi điều khiển</span></div>
+                        <h3 class="product-name mb-2"><a href="#ds-top">ESP32 DevKit V1 38 chân WiFi Bluetooth</a></h3>
+                        <div class="mb-2"><span class="product-price">145.000 ₫</span> <span class="product-old-price ms-1">172.000 ₫</span></div>
+                        <div class="mb-3"><span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Còn hàng (50)</span></div>
+                        <div class="mt-auto d-grid gap-2">
+                            <button class="btn btn-accent btn-sm w-100">Thêm vào giỏ</button>
+                            <a class="btn btn-outline-primary btn-sm" href="#ds-top">Xem chi tiết</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card product-card">
+                    <a class="product-thumb-link" href="#ds-top"><img class="product-thumb" src="/images/no-image.svg" alt="Sản phẩm mẫu" /></a>
+                    <div class="card-body d-flex flex-column">
+                        <div class="product-meta text-truncate mb-1"><span class="fw-semibold">Generic</span> <span>&middot;</span> <span>Cảm biến</span></div>
+                        <h3 class="product-name mb-2"><a href="#ds-top">Cảm biến nhiệt độ độ ẩm DHT22</a></h3>
+                        <div class="mb-2"><span class="product-price">85.000 ₫</span></div>
+                        <div class="mb-3"><span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Hết hàng</span></div>
+                        <div class="mt-auto d-grid gap-2">
+                            <button class="btn btn-accent btn-sm w-100" disabled>Thêm vào giỏ</button>
+                            <a class="btn btn-outline-primary btn-sm" href="#ds-top">Xem chi tiết</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card product-card">
+                    <div class="product-thumb-link"><div class="skeleton skeleton-thumb"></div></div>
+                    <div class="card-body">
+                        <div class="skeleton skeleton-text" style="width:45%"></div>
+                        <div class="skeleton skeleton-title" style="width:90%"></div>
+                        <div class="skeleton skeleton-text" style="width:60%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ------------------------------------------------- EMPTY / ALERT / NAV -->
+    <section class="section ds-row">
+        <div class="section-head"><h2 class="section-title">Empty state, alert, pagination</h2></div>
+        <div class="empty-state mb-4">
+            <div class="empty-icon">🔍</div>
+            <h2 class="h5 text-body">Không tìm thấy sản phẩm phù hợp</h2>
+            <p class="mb-3">Thử bỏ bớt bộ lọc hoặc dùng từ khóa ngắn hơn.</p>
+            <a class="btn btn-outline-primary btn-sm" href="#ds-top">Xem tất cả sản phẩm</a>
+        </div>
+        <div class="alert alert-success">Đã thêm "ESP32 DevKit V1" vào giỏ hàng.</div>
+        <div class="alert alert-warning">Chỉ còn 2 sản phẩm, số lượng đã được điều chỉnh.</div>
+        <div class="alert alert-danger mb-4">Sản phẩm không tồn tại hoặc đã ngừng kinh doanh.</div>
+        <nav>
+            <ul class="pagination justify-content-center flex-wrap mb-0">
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                <li class="page-item active"><a class="page-link" href="#ds-top">1</a></li>
+                <li class="page-item"><a class="page-link" href="#ds-top">2</a></li>
+                <li class="page-item"><a class="page-link" href="#ds-top">3</a></li>
+                <li class="page-item"><a class="page-link" href="#ds-top">&raquo;</a></li>
+            </ul>
+        </nav>
+    </section>
+
+    <!-- ----------------------------------------------------------- TIMELINE -->
+    <section class="section">
+        <div class="section-head"><h2 class="section-title">Order timeline</h2></div>
+        <ul class="order-timeline">
+            <li class="is-done"><div class="fw-semibold">Đặt hàng thành công</div><div class="product-meta">10:24 11/09/2026</div></li>
+            <li class="is-done"><div class="fw-semibold">Đã xác nhận</div><div class="product-meta">11:02 11/09/2026</div></li>
+            <li><div class="fw-semibold">Đang chuẩn bị</div><div class="product-meta">—</div></li>
+            <li><div class="fw-semibold">Đang giao</div><div class="product-meta">—</div></li>
+        </ul>
+    </section>
+
+</div>
+</body>
+</html>
