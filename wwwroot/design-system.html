@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
     <title>Design System — ElectronicStore Customer</title>
-    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- nạp đúng thứ tự như _Layout: Tabler -> icon -> token -> component -->
+    <link rel="stylesheet" href="/lib/tabler/dist/css/tabler.min.css" />
+    <link rel="stylesheet" href="/lib/tabler-icons/dist/tabler-icons.min.css" />
     <link rel="stylesheet" href="/css/customer-tokens.css" />
     <link rel="stylesheet" href="/css/customer.css" />
     <style>
@@ -62,8 +64,8 @@
             <button class="btn btn-outline-secondary">Secondary</button>
             <button class="btn btn-outline-danger">Danger</button>
             <button class="btn btn-accent" disabled>Disabled</button>
-            <button class="btn btn-outline-secondary btn-icon" aria-label="Icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242 1.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/></svg>
+            <button class="btn btn-outline-secondary btn-icon" aria-label="Tìm kiếm">
+                <i class="ti ti-search" aria-hidden="true"></i>
             </button>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2">
@@ -107,10 +109,12 @@
                 </div>
             </div>
             <div class="col-12">
-                <label class="form-label">Ô tìm kiếm header</label>
-                <form class="d-flex shop-search">
-                    <input class="form-control" type="search" placeholder="Tìm CPU, RAM, VGA, SSD..." />
-                    <button class="btn btn-accent ms-2 flex-shrink-0" type="button">Tìm</button>
+                <label class="form-label" for="ds-search">Ô tìm kiếm header (UI-02)</label>
+                <form class="customer-search" style="max-width:34rem">
+                    <i class="ti ti-search customer-search__icon" aria-hidden="true"></i>
+                    <input class="customer-search__input" id="ds-search" type="search"
+                           placeholder="Tìm CPU, RAM, VGA, SSD..." />
+                    <button class="customer-search__submit" type="button">Tìm</button>
                 </form>
             </div>
         </div>
@@ -127,7 +131,16 @@
             <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">Đang chuẩn bị</span>
             <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">Đã hủy</span>
             <span class="badge bg-danger">-16%</span>
-            <span class="badge rounded-pill bg-danger shop-cart-badge">3</span>
+            <span class="header-action cart-link" style="background:var(--c-surface-2)">
+                <i class="ti ti-shopping-cart header-action__icon" aria-hidden="true"></i>
+                <span class="header-action__label">Giỏ hàng</span>
+                <span class="cart-link__badge">3</span>
+            </span>
+            <span class="header-action cart-link" style="background:var(--c-surface-2)">
+                <i class="ti ti-shopping-cart header-action__icon" aria-hidden="true"></i>
+                <span class="header-action__label">Giỏ hàng</span>
+                <span class="cart-link__badge is-empty">0</span>
+            </span>
         </div>
     </section>
 
