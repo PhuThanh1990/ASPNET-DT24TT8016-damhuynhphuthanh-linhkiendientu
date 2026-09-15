@@ -31,11 +31,22 @@ public class OrderController : AdminControllerBase
     // GET /Admin/Order?status=Pending
     public async Task<IActionResult> Index(OrderStatus? status, CancellationToken cancellationToken)
     {
+        // Chỉ nhận giá trị thật sự có trong enum OrderStatus của Core. "?status=abcxyz" đã bị
+        // model binding bỏ qua (status = null), nhưng "?status=99" thì bind lọt thành
+        // (OrderStatus)99 và sẽ lọc ra 0 dòng kèm thanh nút không nút nào sáng — khó hiểu hơn
+        // là chỉ hiện tất cả. Giá trị lạ vì vậy được coi như không lọc.
+        if (status is { } requested && !Enum.IsDefined(requested))
+        {
+            status = null;
+        }
+
         // Projected rather than Include(User).Include(OrderDetails): the list needs two user
         // columns and a line count, so this stays one query with a join and a sub-select
         // instead of materialising every order line. Matches IX (Status, CreatedAt DESC).
         var query = _db.Orders.AsNoTracking();
 
+        // Lọc trên IQueryable trước khi sắp xếp/chiếu nên WHERE chạy dưới SQL Server, không
+        // nạp toàn bộ đơn lên rồi lọc trong bộ nhớ.
         if (status is { } selected)
         {
             query = query.Where(o => o.Status == selected);
@@ -58,6 +69,8 @@ public class OrderController : AdminControllerBase
             .ToListAsync(cancellationToken);
 
         // One grouped query for every badge count, instead of one COUNT per status.
+        // Cố ý đếm trên toàn bộ bảng (không áp dụng filter) để badge luôn cho biết mỗi trạng
+        // thái đang có bao nhiêu đơn, kể cả khi đang đứng ở một trạng thái khác.
         var counts = await _db.Orders
             .AsNoTracking()
             .GroupBy(o => o.Status)

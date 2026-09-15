@@ -9,7 +9,7 @@
         <a class="btn" asp-action="Edit" asp-route-id="@Model.ProductId">
             <i class="ti ti-pencil me-1"></i>Sửa sản phẩm
         </a>
-        <a class="btn" asp-action="Index"><i class="ti ti-arrow-left me-1"></i>Quay lại danh sách</a>
+        <a class="btn" asp-area="Admin" asp-controller="Product" asp-action="Index"><i class="ti ti-arrow-left me-1"></i>Quay lại danh sách</a>
     </div>
 }
 
