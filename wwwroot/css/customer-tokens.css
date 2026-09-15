@@ -295,6 +295,17 @@ body {
     padding-block: var(--space-section);
 }
 
+/* Lề ngang của .container phải đủ "nuốt" margin âm của .row bên trong.
+   Tabler đặt --tblr-gutter-x của .container là 1rem (lề 8px), hẹp hơn mặc định 1.5rem
+   của Bootstrap. Trong khi đó các view dùng .row g-4 / g-5 theo chuẩn Bootstrap, tức
+   margin âm -12px mỗi bên — lớn hơn 8px lề của container, nên mọi trang khách hàng đều
+   tràn ngang 4px ở khổ mobile. Trả lề về 12px để quan hệ container/row đúng như Bootstrap
+   thiết kế; từ 1200px trở lên đã có lề rộng riêng ở dưới. */
+.container {
+    --bs-gutter-x: 1.5rem;
+    --tblr-gutter-x: 1.5rem;
+}
+
 /* Bề ngang nội dung: ~1280px, luôn còn lề hai bên trên màn hình lớn. */
 @media (min-width: 1200px) {
     .container {
