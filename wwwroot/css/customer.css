@@ -1521,6 +1521,16 @@ textarea.form-control {
     flex-shrink: 0;
 }
 
+/* .visually-hidden của Bootstrap là position:absolute. Trong khi đó .table-responsive chỉ
+   có overflow-x:auto mà không phải khối định vị, nên phần tử absolute bên trong KHÔNG bị
+   vùng cuộn cắt: nó neo theo trang và đẩy chiều rộng trang ra bằng bề rộng thật của bảng.
+   Hậu quả: trang bị cuộn ngang ở khổ mobile dù bảng đã có thanh cuộn riêng.
+   Thêm position:relative để .table-responsive tự làm khối định vị — không đổi layout,
+   chỉ khiến phần tử absolute nằm gọn trong vùng cuộn của bảng. */
+.table-responsive {
+    position: relative;
+}
+
 .cart-table {
     --bs-table-border-color: var(--c-border);
     --tblr-table-border-color: var(--c-border);
