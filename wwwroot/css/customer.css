@@ -935,6 +935,12 @@ textarea.form-control {
     margin-bottom: var(--space-section);
 }
 
+/* Section được trỏ tới bằng neo (#danh-muc) phải chừa chỗ cho header dính mép trên,
+   nếu không tiêu đề sẽ nằm khuất bên dưới header khi cuộn tới. */
+.section[id] {
+    scroll-margin-top: calc(var(--control-h-lg) + var(--s-8));
+}
+
 .section:last-child {
     margin-bottom: 0;
 }
