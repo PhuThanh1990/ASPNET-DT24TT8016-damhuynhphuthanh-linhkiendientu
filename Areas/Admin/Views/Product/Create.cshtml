@@ -6,7 +6,7 @@
 }
 
 @section PageActions {
-    <a class="btn" asp-action="Index"><i class="ti ti-arrow-left me-1"></i>Quay lại danh sách</a>
+    <a class="btn" asp-area="Admin" asp-controller="Product" asp-action="Index"><i class="ti ti-arrow-left me-1"></i>Quay lại danh sách</a>
 }
 
 @if (!hasCategories || !hasBrands)
@@ -42,7 +42,7 @@
             <button type="submit" class="btn btn-primary" disabled="@(!hasCategories || !hasBrands)">
                 Tạo sản phẩm
             </button>
-            <a class="btn btn-link" asp-action="Index">Hủy</a>
+            <a class="btn btn-link" asp-area="Admin" asp-controller="Product" asp-action="Index">Hủy</a>
             <span class="text-secondary small ms-auto">
                 <i class="ti ti-photo me-1"></i>Ảnh sản phẩm được thêm sau khi tạo, ở màn hình <strong>Ảnh</strong>.
             </span>

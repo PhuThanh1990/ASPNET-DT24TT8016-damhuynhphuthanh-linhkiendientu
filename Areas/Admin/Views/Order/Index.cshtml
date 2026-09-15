@@ -4,18 +4,28 @@
     ViewData["Subtitle"] = Model.TotalCount > 0 ? $"{Model.TotalCount} đơn hàng" : null;
 }
 
-@* ADM-14: lọc theo trạng thái, dùng đúng index (Status, CreatedAt DESC). *@
+@*
+    ADM-14: lọc theo trạng thái, dùng đúng index (Status, CreatedAt DESC).
+
+    Mọi link ở trang này BẮT BUỘC ghi rõ asp-area="Admin" asp-controller="Order".
+    Nếu chỉ ghi asp-action, ASP.NET Core không tự chốt area đang đứng: LinkGenerator
+    duyệt các conventional route theo thứ tự đăng ký và route khách hàng "don-hang"
+    (Program.cs, required values {controller=Order, action=Index}, không có area) khớp
+    trước route {area:exists}. Kết quả là nút lọc trỏ sang trang "Đơn hàng của tôi" của
+    khách — nơi không hề có tham số status — nên bấm vào thì không lọc gì cả.
+*@
 <div class="card mb-3">
     <div class="card-body py-2">
         <div class="btn-list">
-            <a class="btn btn-sm @(Model.Status is null ? "btn-primary" : "")" asp-action="Index">
+            <a class="btn btn-sm @(Model.Status is null ? "btn-primary" : "")"
+               asp-area="Admin" asp-controller="Order" asp-action="Index">
                 Tất cả <span class="badge bg-secondary-lt ms-1">@Model.TotalCount</span>
             </a>
             @foreach (var status in OrderStatusDisplay.All)
             {
                 var count = Model.CountsByStatus.TryGetValue(status, out var c) ? c : 0;
                 <a class="btn btn-sm @(Model.Status == status ? "btn-primary" : "")"
-                   asp-action="Index" asp-route-status="@status">
+                   asp-area="Admin" asp-controller="Order" asp-action="Index" asp-route-status="@status">
                     @OrderStatusDisplay.DisplayName(status)
                     <span class="badge bg-secondary-lt ms-1">@count</span>
                 </a>
@@ -43,7 +53,7 @@
             @if (Model.Status is not null)
             {
                 <div class="empty-action">
-                    <a class="btn btn-primary" asp-action="Index">Xem tất cả đơn hàng</a>
+                    <a class="btn btn-primary" asp-area="Admin" asp-controller="Order" asp-action="Index">Xem tất cả đơn hàng</a>
                 </div>
             }
         </div>
@@ -69,7 +79,8 @@
                     {
                         <tr>
                             <td>
-                                <a class="fw-semibold font-monospace" asp-action="Details" asp-route-id="@order.Id">
+                                <a class="fw-semibold font-monospace"
+                                   asp-area="Admin" asp-controller="Order" asp-action="Details" asp-route-id="@order.Id">
                                     @order.OrderCode
                                 </a>
                             </td>
@@ -89,7 +100,8 @@
                             </td>
                             <td class="text-secondary text-nowrap">@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                             <td>
-                                <a class="btn btn-sm" asp-action="Details" asp-route-id="@order.Id">
+                                <a class="btn btn-sm"
+                                   asp-area="Admin" asp-controller="Order" asp-action="Details" asp-route-id="@order.Id">
                                     <i class="ti ti-eye me-1"></i>Chi tiết
                                 </a>
                             </td>
