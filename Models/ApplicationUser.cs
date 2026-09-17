@@ -23,5 +23,8 @@ public class ApplicationUser : IdentityUser
 
     public ICollection<Address> Addresses { get; set; } = new List<Address>();
 
+    /// <summary>ADDR-01 — sổ địa chỉ giao hàng của tài khoản.</summary>
+    public ICollection<ShippingAddress> ShippingAddresses { get; set; } = new List<ShippingAddress>();
+
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }

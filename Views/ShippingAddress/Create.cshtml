@@ -1,0 +1,41 @@
+@model ShippingAddressFormViewModel
+@{
+    ViewData["Title"] = "Thêm địa chỉ";
+}
+
+<div class="container">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Sổ địa chỉ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Thêm địa chỉ</li>
+        </ol>
+    </nav>
+
+    <div class="section-head">
+        <div>
+            <h1 class="section-title">Thêm địa chỉ</h1>
+            <p class="section-subtitle">Địa chỉ được lưu vào sổ địa chỉ của tài khoản bạn.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 col-lg-8">
+            <div class="panel">
+                <form asp-action="Create" method="post">
+                    <partial name="_Form" model="Model" />
+
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Lưu địa chỉ</button>
+                        <a class="btn btn-outline-secondary" asp-action="Index">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

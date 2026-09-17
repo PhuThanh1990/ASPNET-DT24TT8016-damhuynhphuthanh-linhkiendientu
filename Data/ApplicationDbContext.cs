@@ -26,6 +26,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<Address> Addresses => Set<Address>();
 
+    public DbSet<ShippingAddress> ShippingAddresses => Set<ShippingAddress>();
+
     public DbSet<Order> Orders => Set<Order>();
 
     public DbSet<OrderDetail> OrderDetails => Set<OrderDetail>();

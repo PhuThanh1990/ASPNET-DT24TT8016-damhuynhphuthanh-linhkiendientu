@@ -1,0 +1,106 @@
+@model ShippingAddressFormViewModel
+@*
+    ADDR-01 — form dùng chung cho Thêm và Sửa.
+    Mã Tỉnh/Phường hiện nhập tay: task này không được hardcode dữ liệu hành chính, nên ô
+    chọn sẽ được thay bằng dropdown lấy từ nguồn dữ liệu ở task sau.
+*@
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+<div class="row g-3">
+    <div class="col-12 col-md-6">
+        <label asp-for="ReceiverName" class="form-label"></label>
+        <input asp-for="ReceiverName" class="form-control" autocomplete="name" />
+        <span asp-validation-for="ReceiverName" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12 col-md-6">
+        <label asp-for="PhoneNumber" class="form-label"></label>
+        <input asp-for="PhoneNumber" class="form-control" inputmode="tel" autocomplete="tel" />
+        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12">
+        <hr class="my-1" />
+        <p class="product-meta mb-0">
+            Đơn vị hành chính hiện nhập tay (cả mã và tên). Ô chọn từ danh sách sẽ được bổ
+            sung ở task tích hợp dữ liệu tỉnh/phường.
+        </p>
+    </div>
+
+    <div class="col-12 col-md-8">
+        <label asp-for="ProvinceName" class="form-label"></label>
+        <input asp-for="ProvinceName" class="form-control" />
+        <span asp-validation-for="ProvinceName" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <label asp-for="ProvinceCode" class="form-label"></label>
+        <input asp-for="ProvinceCode" class="form-control" />
+        <span asp-validation-for="ProvinceCode" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12 col-md-8">
+        <label asp-for="DistrictName" class="form-label"></label>
+        <input asp-for="DistrictName" class="form-control" />
+        <div class="form-text">Có thể bỏ trống nếu địa chỉ chỉ có hai cấp (Tỉnh → Phường/Xã).</div>
+        <span asp-validation-for="DistrictName" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <label asp-for="DistrictCode" class="form-label"></label>
+        <input asp-for="DistrictCode" class="form-control" />
+        <span asp-validation-for="DistrictCode" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12 col-md-8">
+        <label asp-for="WardName" class="form-label"></label>
+        <input asp-for="WardName" class="form-control" />
+        <span asp-validation-for="WardName" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <label asp-for="WardCode" class="form-label"></label>
+        <input asp-for="WardCode" class="form-control" />
+        <span asp-validation-for="WardCode" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="StreetAddress" class="form-label"></label>
+        <input asp-for="StreetAddress" class="form-control" autocomplete="street-address"
+               placeholder="Số nhà, tên đường, thôn/xóm" />
+        <span asp-validation-for="StreetAddress" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12">
+        @if (Model.IsFirstAddress)
+        {
+            @* Địa chỉ đầu tiên luôn là mặc định: khóa ô tick và gửi giá trị qua hidden để
+               không phụ thuộc vào checkbox bị disable (trình duyệt không submit ô disabled). *@
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" checked disabled />
+                <label class="form-check-label">Đặt làm địa chỉ mặc định</label>
+            </div>
+            <input type="hidden" asp-for="IsDefault" value="true" />
+            <div class="form-text">Đây là địa chỉ đầu tiên của bạn nên sẽ là địa chỉ mặc định.</div>
+        }
+        else if (Model.IsCurrentDefault)
+        {
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" checked disabled />
+                <label class="form-check-label">Đang là địa chỉ mặc định</label>
+            </div>
+            <input type="hidden" asp-for="IsDefault" value="true" />
+            <div class="form-text">
+                Muốn đổi thì mở sổ địa chỉ và bấm &ldquo;Đặt mặc định&rdquo; ở một địa chỉ khác.
+            </div>
+        }
+        else
+        {
+            <div class="form-check">
+                <input asp-for="IsDefault" class="form-check-input" />
+                <label asp-for="IsDefault" class="form-check-label"></label>
+            </div>
+        }
+    </div>
+</div>
