@@ -45,7 +45,7 @@ Tài liệu thiết kế database cho website bán linh kiện điện tử.
 
 ```mermaid
 erDiagram
-    ApplicationUser ||--o{ ShippingAddress : "có"
+    ApplicationUser ||--o{ Address     : "có"
     ApplicationUser ||--o{ Order       : "đặt"
     ApplicationUser ||--o{ Review      : "viết"
     Category        ||--o{ Product     : "chứa"
@@ -55,7 +55,7 @@ erDiagram
     Product         ||--o{ OrderDetail : "được bán trong"
     Product         ||--o{ Review      : "được đánh giá"
     Order           ||--o{ OrderDetail : "gồm"
-    ShippingAddress |o--o{ Order       : "tham chiếu (snapshot)"
+    Address         |o--o{ Order       : "tham chiếu (snapshot)"
 ```
 
 Tóm tắt quan hệ:
@@ -66,7 +66,7 @@ Tóm tắt quan hệ:
 | Category 1 → N Category | 1-N tự tham chiếu | `ParentCategoryId` cho danh mục cha/con (tùy chọn, xem mục 5) |
 | Brand 1 → N Product | 1-N | Bắt buộc |
 | Product 1 → N ProductImage | 1-N | Ảnh phụ thuộc hoàn toàn vào sản phẩm |
-| User 1 → N ShippingAddress | 1-N | Sổ địa chỉ giao hàng |
+| User 1 → N Address | 1-N | Sổ địa chỉ giao hàng |
 | User 1 → N Order | 1-N | Lịch sử đơn hàng |
 | Order 1 → N OrderDetail | 1-N | Dòng hàng trong đơn |
 | Product 1 → N OrderDetail | 1-N | Chỉ để truy vết, dữ liệu hiển thị đã snapshot |
@@ -277,14 +277,9 @@ Một sản phẩm có nhiều ảnh (gallery ở trang chi tiết).
 
 ---
 
-## 8. ShippingAddress
+## 8. Address
 
-Sổ địa chỉ giao hàng của khách (bảng `ShippingAddresses`).
-
-> **Lịch sử:** bảng này thay cho bảng `Addresses` cũ. ADDR-01 dựng model mới có thêm **mã**
-> đơn vị hành chính; ADDR-02 chuyển dữ liệu sang, trỏ `Orders.AddressId` vào bảng mới rồi xóa
-> bảng cũ (migration `MergeAddressBookIntoShippingAddress`). Các dòng chuyển từ bảng cũ không
-> có mã nên `ProvinceCode` / `WardCode` để chuỗi rỗng cho tới khi khách sửa lại địa chỉ đó.
+Sổ địa chỉ giao hàng của khách.
 
 **PK:** `Id` — `int IDENTITY`
 
@@ -292,15 +287,12 @@ Sổ địa chỉ giao hàng của khách (bảng `ShippingAddresses`).
 | --- | --- | --- | --- |
 | `Id` | `int` | ✅ | PK |
 | `UserId` | `nvarchar(450)` | ✅ | **FK → AspNetUsers.Id** |
-| `ReceiverName` | `nvarchar(100)` | ✅ | Người nhận (có thể khác chủ tài khoản) |
-| `PhoneNumber` | `nvarchar(20)` | ✅ | Lưu dạng chỉ chữ số |
-| `ProvinceCode` | `nvarchar(20)` | ✅ | Mã tỉnh, để nối với nguồn dữ liệu hành chính |
-| `ProvinceName` | `nvarchar(100)` | ✅ | Tỉnh / Thành phố |
-| `DistrictCode` | `nvarchar(20)` | ❌ | |
-| `DistrictName` | `nvarchar(100)` | ❌ | Bỏ trống với địa chỉ hai cấp |
-| `WardCode` | `nvarchar(20)` | ✅ | |
-| `WardName` | `nvarchar(100)` | ✅ | Phường / Xã |
-| `StreetAddress` | `nvarchar(255)` | ✅ | Số nhà, tên đường |
+| `FullName` | `nvarchar(100)` | ✅ | Người nhận (có thể khác chủ tài khoản) |
+| `PhoneNumber` | `nvarchar(20)` | ✅ | |
+| `AddressLine` | `nvarchar(255)` | ✅ | Số nhà, tên đường |
+| `Ward` | `nvarchar(100)` | ✅ | Phường / Xã |
+| `District` | `nvarchar(100)` | ✅ | Quận / Huyện |
+| `Province` | `nvarchar(100)` | ✅ | Tỉnh / Thành phố |
 | `IsDefault` | `bit` | ✅ | Mặc định `0`. Địa chỉ chọn sẵn khi checkout |
 | `CreatedAt` | `datetime2` | ✅ | |
 | `UpdatedAt` | `datetime2` | ❌ | |
@@ -308,20 +300,11 @@ Sổ địa chỉ giao hàng của khách (bảng `ShippingAddresses`).
 **Khóa ngoại:** `UserId → AspNetUsers.Id`, `ON DELETE CASCADE`.
 
 **Index:**
-- `INDEX (UserId, CreatedAt)`
+- `INDEX (UserId)`
 - `UNIQUE INDEX (UserId) WHERE IsDefault = 1` — mỗi user chỉ có 1 địa chỉ mặc định
 
-> Entity có thêm property `FullAddress` ghép các phần địa chỉ thành 1 dòng (bỏ qua
-> Quận/Huyện nếu trống). Đây **không phải cột** (`builder.Ignore`), chỉ để checkout copy
-> sang `Order.ShippingAddress`. Vì không dịch được sang SQL nên phải lấy entity về rồi mới
-> đọc, đừng đặt trong `.Select(...)` của một truy vấn LINQ.
-
-**Quy tắc mặc định** (thực thi ở `ShippingAddressController`):
-- Địa chỉ đầu tiên của tài khoản luôn là mặc định.
-- Đặt một địa chỉ làm mặc định thì các địa chỉ còn lại tự bỏ cờ.
-- Xóa địa chỉ mặc định thì địa chỉ mới nhất còn lại được đôn lên thay.
-- Mọi thao tác đổi cờ chạy trong transaction, bỏ cờ cũ **trước** khi gắn cờ mới để không
-  vi phạm unique index.
+> Entity có thêm property `FullAddress` ghép 4 phần địa chỉ thành 1 dòng. Đây **không phải
+> cột** (`builder.Ignore`), chỉ để checkout copy sang `Order.ShippingAddress`.
 
 ---
 
@@ -334,7 +317,7 @@ Sổ địa chỉ giao hàng của khách (bảng `ShippingAddresses`).
 | `Id` | `int` | ✅ | PK |
 | `OrderCode` | `nvarchar(20)` | ✅ | **UNIQUE** — mã hiển thị cho khách, vd `DH20260910-0007` |
 | `UserId` | `nvarchar(450)` | ✅ | **FK → AspNetUsers.Id** |
-| `AddressId` | `int` | ❌ | **FK → ShippingAddresses.Id** — chỉ để truy vết, dữ liệu thật đã snapshot bên dưới |
+| `AddressId` | `int` | ❌ | **FK → Addresses.Id** — chỉ để truy vết, dữ liệu thật đã snapshot bên dưới |
 | `ShippingFullName` | `nvarchar(100)` | ✅ | 🔒 Snapshot người nhận |
 | `ShippingPhone` | `nvarchar(20)` | ✅ | 🔒 Snapshot số điện thoại |
 | `ShippingAddress` | `nvarchar(500)` | ✅ | 🔒 Snapshot — địa chỉ đã ghép đầy đủ thành 1 chuỗi |
@@ -356,7 +339,7 @@ Sổ địa chỉ giao hàng của khách (bảng `ShippingAddresses`).
 | FK | Tham chiếu | ON DELETE | Lý do |
 | --- | --- | --- | --- |
 | `UserId` | `AspNetUsers.Id` | `NO ACTION` (Restrict) | Xóa user **không** được làm mất lịch sử đơn hàng. User chỉ bị khóa bằng `IsActive = 0` |
-| `AddressId` | `ShippingAddresses.Id` | `SET NULL` | Khách xóa địa chỉ trong sổ thì đơn cũ vẫn còn nguyên nhờ snapshot |
+| `AddressId` | `Addresses.Id` | `SET NULL` | Khách xóa địa chỉ trong sổ thì đơn cũ vẫn còn nguyên nhờ snapshot |
 
 **Index:**
 - `UNIQUE (OrderCode)`
@@ -538,7 +521,7 @@ Tạo entity theo đúng thứ tự phụ thuộc để migration không bị l�
 2. ✅ `Product` (phụ thuộc Category, Brand) — CORE-07
 3. ✅ `ProductImage` (phụ thuộc Product) — CORE-07
 4. ✅ `ApplicationUser` + Identity (bảng `AspNetUsers`) — CORE-08
-5. ✅ `ShippingAddress` (phụ thuộc User) — CORE-14, thay mới ở ADDR-01/02
+5. ✅ `Address` (phụ thuộc User) — CORE-14
 6. ✅ `Order` (phụ thuộc User, Address) — CORE-15
 7. ✅ `OrderDetail` (phụ thuộc Order, Product) — CORE-15
 8. `Review` (phụ thuộc Product, User) — CORE-16+

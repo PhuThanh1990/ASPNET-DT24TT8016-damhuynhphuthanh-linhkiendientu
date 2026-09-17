@@ -15,15 +15,22 @@ namespace ElectronicStore.Controllers;
 /// </summary>
 /// <remarks>
 /// <para>
+/// Dữ liệu bên dưới là entity <see cref="Address"/> có sẵn của project — cùng bảng
+/// <c>Addresses</c> mà <c>Order.AddressId</c>, <c>OrderService</c> và luồng checkout đang
+/// dùng. Cố ý không tạo model địa chỉ thứ hai, để địa chỉ khách lưu ở màn hình này dùng
+/// được ngay khi ADDR-03 nối vào trang thanh toán.
+/// </para>
+/// <para>
 /// Chống IDOR: không action nào nhận <c>UserId</c> từ URL hay từ form. Id tài khoản lấy từ
 /// cookie đăng nhập, và mọi truy vấn đều lọc kèm <c>UserId</c> — sửa id trên thanh địa chỉ
 /// chỉ nhận về 404 chứ không chạm được địa chỉ của người khác.
 /// </para>
 /// <para>
 /// Quy tắc "mỗi tài khoản nhiều nhất một địa chỉ mặc định" được database ép bằng filtered
-/// unique index. Vì vậy mọi thao tác đổi cờ mặc định đều chạy trong một transaction và bỏ
-/// cờ cũ TRƯỚC khi gắn cờ mới, dùng <c>ExecuteUpdateAsync</c> để thứ tự hai câu lệnh là
-/// chắc chắn (để EF tự sắp xếp lệnh trong một lần SaveChanges thì có thể vi phạm index).
+/// unique index <c>UX_Addresses_UserId_Default</c>. Vì vậy mọi thao tác đổi cờ mặc định đều
+/// chạy trong một transaction và bỏ cờ cũ TRƯỚC khi gắn cờ mới, dùng
+/// <c>ExecuteUpdateAsync</c> để thứ tự hai câu lệnh là chắc chắn (để EF tự sắp xếp lệnh
+/// trong một lần SaveChanges thì có thể vi phạm index).
 /// </para>
 /// </remarks>
 [Authorize]
@@ -57,7 +64,7 @@ public class ShippingAddressController : Controller
             .ThenByDescending(a => a.Id)
             .ToListAsync(cancellationToken);
 
-        var model = new ShippingAddressListViewModel
+        var model = new AddressListViewModel
         {
             Addresses = addresses.Select(ToListItem).ToList()
         };
@@ -77,13 +84,13 @@ public class ShippingAddressController : Controller
         var isFirst = !await OwnedBy(userId).AnyAsync(cancellationToken);
 
         // Địa chỉ đầu tiên bắt buộc là mặc định nên tick sẵn và khóa ô lại.
-        return View(new ShippingAddressFormViewModel { IsFirstAddress = isFirst, IsDefault = isFirst });
+        return View(new AddressFormViewModel { IsFirstAddress = isFirst, IsDefault = isFirst });
     }
 
     // POST /ShippingAddress/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(ShippingAddressFormViewModel model, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create(AddressFormViewModel model, CancellationToken cancellationToken)
     {
         var userId = _userManager.GetUserId(User);
         if (string.IsNullOrEmpty(userId))
@@ -110,18 +117,15 @@ public class ShippingAddressController : Controller
             await ClearDefaultAsync(userId, cancellationToken);
         }
 
-        _db.ShippingAddresses.Add(new ShippingAddress
+        _db.Addresses.Add(new Address
         {
             UserId = userId,
-            ReceiverName = model.ReceiverName.Trim(),
+            FullName = model.FullName.Trim(),
             PhoneNumber = NormalizePhone(model.PhoneNumber),
-            ProvinceCode = model.ProvinceCode.Trim(),
-            ProvinceName = model.ProvinceName.Trim(),
-            DistrictCode = Blank(model.DistrictCode),
-            DistrictName = Blank(model.DistrictName),
-            WardCode = model.WardCode.Trim(),
-            WardName = model.WardName.Trim(),
-            StreetAddress = model.StreetAddress.Trim(),
+            Province = model.Province.Trim(),
+            District = model.District.Trim(),
+            Ward = model.Ward.Trim(),
+            AddressLine = model.AddressLine.Trim(),
             IsDefault = makeDefault,
             CreatedAt = DateTime.UtcNow
         });
@@ -150,18 +154,15 @@ public class ShippingAddressController : Controller
             return NotFound();
         }
 
-        return View(new ShippingAddressFormViewModel
+        return View(new AddressFormViewModel
         {
             Id = address.Id,
-            ReceiverName = address.ReceiverName,
+            FullName = address.FullName,
             PhoneNumber = address.PhoneNumber,
-            ProvinceCode = address.ProvinceCode,
-            ProvinceName = address.ProvinceName,
-            DistrictCode = address.DistrictCode,
-            DistrictName = address.DistrictName,
-            WardCode = address.WardCode,
-            WardName = address.WardName,
-            StreetAddress = address.StreetAddress,
+            Province = address.Province,
+            District = address.District,
+            Ward = address.Ward,
+            AddressLine = address.AddressLine,
             IsDefault = address.IsDefault,
             IsCurrentDefault = address.IsDefault
         });
@@ -172,7 +173,7 @@ public class ShippingAddressController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(
         [FromRoute] int id,
-        ShippingAddressFormViewModel model,
+        AddressFormViewModel model,
         CancellationToken cancellationToken)
     {
         // [FromRoute] là cố ý: value provider đọc form trước route, nên "int id" trần sẽ
@@ -212,15 +213,12 @@ public class ShippingAddressController : Controller
             await ClearDefaultAsync(userId, cancellationToken);
         }
 
-        address.ReceiverName = model.ReceiverName.Trim();
+        address.FullName = model.FullName.Trim();
         address.PhoneNumber = NormalizePhone(model.PhoneNumber);
-        address.ProvinceCode = model.ProvinceCode.Trim();
-        address.ProvinceName = model.ProvinceName.Trim();
-        address.DistrictCode = Blank(model.DistrictCode);
-        address.DistrictName = Blank(model.DistrictName);
-        address.WardCode = model.WardCode.Trim();
-        address.WardName = model.WardName.Trim();
-        address.StreetAddress = model.StreetAddress.Trim();
+        address.Province = model.Province.Trim();
+        address.District = model.District.Trim();
+        address.Ward = model.Ward.Trim();
+        address.AddressLine = model.AddressLine.Trim();
         address.IsDefault = makeDefault;
         address.UpdatedAt = DateTime.UtcNow;
 
@@ -272,7 +270,7 @@ public class ShippingAddressController : Controller
 
         await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
 
-        _db.ShippingAddresses.Remove(address);
+        _db.Addresses.Remove(address);
         await _db.SaveChangesAsync(cancellationToken);
 
         var promoted = false;
@@ -289,7 +287,7 @@ public class ShippingAddressController : Controller
 
             if (replacementId is { } newDefaultId)
             {
-                await _db.ShippingAddresses
+                await _db.Addresses
                     .Where(a => a.Id == newDefaultId && a.UserId == userId)
                     .ExecuteUpdateAsync(
                         setters => setters
@@ -332,7 +330,7 @@ public class ShippingAddressController : Controller
 
         await ClearDefaultAsync(userId, cancellationToken);
 
-        await _db.ShippingAddresses
+        await _db.Addresses
             .Where(a => a.Id == id && a.UserId == userId)
             .ExecuteUpdateAsync(
                 setters => setters
@@ -346,10 +344,10 @@ public class ShippingAddressController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private static ShippingAddressListItemViewModel ToListItem(ShippingAddress address) => new()
+    private static AddressListItemViewModel ToListItem(Address address) => new()
     {
         Id = address.Id,
-        ReceiverName = address.ReceiverName,
+        FullName = address.FullName,
         PhoneNumber = address.PhoneNumber,
         FullAddress = address.FullAddress,
         IsDefault = address.IsDefault,
@@ -357,12 +355,12 @@ public class ShippingAddressController : Controller
     };
 
     /// <summary>Chỉ những địa chỉ thuộc về <paramref name="userId"/>. Điểm chặn IDOR duy nhất.</summary>
-    private IQueryable<ShippingAddress> OwnedBy(string userId) =>
-        _db.ShippingAddresses.Where(a => a.UserId == userId);
+    private IQueryable<Address> OwnedBy(string userId) =>
+        _db.Addresses.Where(a => a.UserId == userId);
 
     /// <summary>Bỏ cờ mặc định ở mọi địa chỉ hiện có của tài khoản.</summary>
     private Task ClearDefaultAsync(string userId, CancellationToken cancellationToken) =>
-        _db.ShippingAddresses
+        _db.Addresses
             .Where(a => a.UserId == userId && a.IsDefault)
             .ExecuteUpdateAsync(
                 setters => setters
@@ -373,10 +371,6 @@ public class ShippingAddressController : Controller
     /// <summary>Bỏ khoảng trắng, dấu chấm và gạch ngang để trong database chỉ còn chữ số.</summary>
     private static string NormalizePhone(string phone) =>
         Regex.Replace(phone.Trim(), @"[\s.\-]", string.Empty);
-
-    /// <summary>Chuỗi rỗng / toàn khoảng trắng lưu thành null cho các cột nullable.</summary>
-    private static string? Blank(string? value) =>
-        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private void SetMessage(string type, string text)
     {

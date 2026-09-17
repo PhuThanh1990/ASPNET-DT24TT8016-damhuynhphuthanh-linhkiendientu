@@ -45,54 +45,7 @@
                 <div class="panel">
                     <h2 class="h6 fw-bold mb-3">Thông tin nhận hàng</h2>
 
-                    @* ADDR-02 — chọn địa chỉ đã lưu trong sổ, hoặc nhập địa chỉ mới.
-                       Không có JavaScript thì cả hai khối cùng hiện và server vẫn xử lý
-                       đúng: chọn địa chỉ trong sổ thì các ô nhập tay bị bỏ qua. *@
-                    @if (Model.SavedAddresses.Count > 0)
-                    {
-                        <fieldset class="mb-3">
-                            <legend class="form-label">Chọn địa chỉ giao hàng</legend>
-
-                            @foreach (var saved in Model.SavedAddresses)
-                            {
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" asp-for="SelectedAddressId"
-                                           id="address-@saved.Id" value="@saved.Id" data-address-choice />
-                                    <label class="form-check-label" for="address-@saved.Id">
-                                        <span class="fw-semibold">@saved.ReceiverName</span>
-                                        <span class="text-secondary">@saved.PhoneNumber</span>
-                                        @if (saved.IsDefault)
-                                        {
-                                            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">
-                                                Mặc định
-                                            </span>
-                                        }
-                                        <span class="d-block product-meta">@saved.FullAddress</span>
-                                    </label>
-                                </div>
-                            }
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" asp-for="SelectedAddressId"
-                                       id="address-new" value="" data-address-choice />
-                                <label class="form-check-label" for="address-new">Nhập địa chỉ mới</label>
-                            </div>
-
-                            <a class="small" asp-area="" asp-controller="ShippingAddress" asp-action="Index">
-                                Quản lý sổ địa chỉ
-                            </a>
-                        </fieldset>
-                    }
-                    else
-                    {
-                        <p class="product-meta">
-                            Bạn chưa lưu địa chỉ nào.
-                            <a asp-area="" asp-controller="ShippingAddress" asp-action="Create">Thêm vào sổ địa chỉ</a>
-                            để lần sau khỏi nhập lại.
-                        </p>
-                    }
-
-                    <div class="row g-3" id="manual-address-fields">
+                    <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label class="form-label" asp-for="FullName"></label>
                             <input class="form-control" asp-for="FullName" autocomplete="name" />
@@ -210,31 +163,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-
-    @* ADDR-02 — ẩn/hiện khối nhập tay theo lựa chọn. Chỉ là tiện ích hiển thị: server mới
-       là nơi quyết định dùng địa chỉ nào, nên tắt JavaScript vẫn đặt hàng được bình thường.
-       Ẩn bằng [hidden] cũng khiến jQuery Validate bỏ qua các ô đó (mặc định ignore ":hidden"),
-       nên không còn báo lỗi "vui lòng nhập..." cho khối đang bị ẩn. *@
-    <script>
-        (function () {
-            var manual = document.getElementById('manual-address-fields');
-            var choices = document.querySelectorAll('[data-address-choice]');
-
-            if (!manual || choices.length === 0) {
-                return;
-            }
-
-            function sync() {
-                var checked = document.querySelector('[data-address-choice]:checked');
-                var useSaved = !!checked && checked.value !== '';
-                manual.hidden = useSaved;
-            }
-
-            choices.forEach(function (choice) {
-                choice.addEventListener('change', sync);
-            });
-
-            sync();
-        })();
-    </script>
 }

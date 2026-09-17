@@ -4,17 +4,24 @@ namespace ElectronicStore.Models.ViewModels;
 
 /// <summary>ADDR-01 — form thêm/sửa một địa chỉ trong sổ địa chỉ.</summary>
 /// <remarks>
+/// Ánh xạ 1-1 với <see cref="Address"/> đang có sẵn của project (entity mà
+/// <c>Order.AddressId</c>, <c>OrderService</c> và luồng checkout dùng chung) — không có
+/// model địa chỉ thứ hai.
+///
 /// Không có <c>UserId</c>: chủ sở hữu luôn lấy từ cookie đăng nhập ở controller, không bao
 /// giờ nhận từ form. <see cref="Id"/> chỉ dùng để đối chiếu với id trên route khi sửa.
+///
+/// Độ dài các trường đặt đúng bằng độ dài cột trong <c>AddressConfiguration</c> để lỗi hiện
+/// ra dưới dạng thông báo thay vì lỗi cắt chuỗi từ SQL Server.
 /// </remarks>
-public class ShippingAddressFormViewModel
+public class AddressFormViewModel
 {
     public int Id { get; set; }
 
     [Required(ErrorMessage = "Vui lòng nhập tên người nhận.")]
     [StringLength(100, ErrorMessage = "Tên người nhận tối đa {1} ký tự.")]
     [Display(Name = "Người nhận")]
-    public string ReceiverName { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
 
     // Cho phép nhập kèm khoảng trắng / dấu chấm / gạch ngang cho dễ gõ; controller sẽ bỏ
     // các ký tự đó trước khi lưu để trong database chỉ còn chữ số.
@@ -25,38 +32,27 @@ public class ShippingAddressFormViewModel
     [Display(Name = "Số điện thoại")]
     public string PhoneNumber { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Vui lòng nhập mã Tỉnh/Thành phố.")]
-    [StringLength(20, ErrorMessage = "Mã Tỉnh/Thành phố tối đa {1} ký tự.")]
-    [Display(Name = "Mã Tỉnh/Thành phố")]
-    public string ProvinceCode { get; set; } = string.Empty;
-
     [Required(ErrorMessage = "Vui lòng nhập Tỉnh/Thành phố.")]
     [StringLength(100, ErrorMessage = "Tỉnh/Thành phố tối đa {1} ký tự.")]
     [Display(Name = "Tỉnh/Thành phố")]
-    public string ProvinceName { get; set; } = string.Empty;
+    public string Province { get; set; } = string.Empty;
 
-    [StringLength(20, ErrorMessage = "Mã Quận/Huyện tối đa {1} ký tự.")]
-    [Display(Name = "Mã Quận/Huyện")]
-    public string? DistrictCode { get; set; }
-
+    // Cột Address.District là NOT NULL nên bắt buộc nhập. Khi ADDR-02 bổ sung dữ liệu
+    // tỉnh/phường và địa chỉ hai cấp, đây là chỗ nới lỏng ràng buộc.
+    [Required(ErrorMessage = "Vui lòng nhập Quận/Huyện.")]
     [StringLength(100, ErrorMessage = "Quận/Huyện tối đa {1} ký tự.")]
     [Display(Name = "Quận/Huyện")]
-    public string? DistrictName { get; set; }
-
-    [Required(ErrorMessage = "Vui lòng nhập mã Phường/Xã.")]
-    [StringLength(20, ErrorMessage = "Mã Phường/Xã tối đa {1} ký tự.")]
-    [Display(Name = "Mã Phường/Xã")]
-    public string WardCode { get; set; } = string.Empty;
+    public string District { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Vui lòng nhập Phường/Xã.")]
     [StringLength(100, ErrorMessage = "Phường/Xã tối đa {1} ký tự.")]
     [Display(Name = "Phường/Xã")]
-    public string WardName { get; set; } = string.Empty;
+    public string Ward { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Vui lòng nhập địa chỉ cụ thể.")]
     [StringLength(255, ErrorMessage = "Địa chỉ cụ thể tối đa {1} ký tự.")]
     [Display(Name = "Địa chỉ cụ thể")]
-    public string StreetAddress { get; set; } = string.Empty;
+    public string AddressLine { get; set; } = string.Empty;
 
     [Display(Name = "Đặt làm địa chỉ mặc định")]
     public bool IsDefault { get; set; }
@@ -76,11 +72,11 @@ public class ShippingAddressFormViewModel
 }
 
 /// <summary>Một dòng trong trang danh sách sổ địa chỉ.</summary>
-public class ShippingAddressListItemViewModel
+public class AddressListItemViewModel
 {
     public int Id { get; set; }
 
-    public string ReceiverName { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
 
     public string PhoneNumber { get; set; } = string.Empty;
 
@@ -92,9 +88,9 @@ public class ShippingAddressListItemViewModel
 }
 
 /// <summary>Trang "Sổ địa chỉ".</summary>
-public class ShippingAddressListViewModel
+public class AddressListViewModel
 {
-    public IReadOnlyList<ShippingAddressListItemViewModel> Addresses { get; set; } = [];
+    public IReadOnlyList<AddressListItemViewModel> Addresses { get; set; } = [];
 
     public bool IsEmpty => Addresses.Count == 0;
 }
