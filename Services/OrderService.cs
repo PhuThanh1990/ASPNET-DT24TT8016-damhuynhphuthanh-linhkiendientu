@@ -536,7 +536,7 @@ public sealed class OrderService : IOrderService
     {
         if (request.AddressId is { } addressId)
         {
-            var address = await _db.Addresses
+            var address = await _db.ShippingAddresses
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == addressId, cancellationToken);
 
@@ -560,7 +560,7 @@ public sealed class OrderService : IOrderService
             }
 
             return OrderResult<ShippingSnapshot>.Ok(
-                new ShippingSnapshot(address.Id, address.FullName, address.PhoneNumber, line));
+                new ShippingSnapshot(address.Id, address.ReceiverName, address.PhoneNumber, line));
         }
 
         var fullName = request.ShippingFullName?.Trim();

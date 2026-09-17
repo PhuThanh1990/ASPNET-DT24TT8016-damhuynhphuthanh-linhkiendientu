@@ -1,9 +1,11 @@
+using ElectronicStore.Data;
 using ElectronicStore.Models;
 using ElectronicStore.Models.ViewModels;
 using ElectronicStore.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ElectronicStore.Controllers;
 
@@ -21,19 +23,33 @@ namespace ElectronicStore.Controllers;
 [Authorize]
 public class CheckoutController : Controller
 {
+    /// <summary>Các ô địa chỉ nhập tay — bỏ qua khi khách chọn địa chỉ có sẵn trong sổ.</summary>
+    private static readonly string[] ManualAddressFields =
+    [
+        nameof(CheckoutViewModel.FullName),
+        nameof(CheckoutViewModel.Phone),
+        nameof(CheckoutViewModel.AddressLine),
+        nameof(CheckoutViewModel.Ward),
+        nameof(CheckoutViewModel.District),
+        nameof(CheckoutViewModel.Province),
+    ];
+
     private readonly ICartService _cart;
     private readonly IOrderService _orders;
+    private readonly ApplicationDbContext _db;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<CheckoutController> _logger;
 
     public CheckoutController(
         ICartService cart,
         IOrderService orders,
+        ApplicationDbContext db,
         UserManager<ApplicationUser> userManager,
         ILogger<CheckoutController> logger)
     {
         _cart = cart;
         _orders = orders;
+        _db = db;
         _userManager = userManager;
         _logger = logger;
     }
@@ -59,6 +75,11 @@ public class CheckoutController : Controller
             model.Phone = user.PhoneNumber ?? string.Empty;
         }
 
+        await FillAddressBookAsync(model, cancellationToken);
+
+        // Có sổ địa chỉ thì chọn sẵn địa chỉ mặc định — đúng ý nghĩa của cờ mặc định.
+        model.SelectedAddressId = model.SavedAddresses.FirstOrDefault(a => a.IsDefault)?.Id;
+
         Fill(model, cart);
 
         return View(model);
@@ -83,6 +104,18 @@ public class CheckoutController : Controller
             return RedirectToEmptyCart(cart);
         }
 
+        await FillAddressBookAsync(model, cancellationToken);
+
+        // Chọn địa chỉ trong sổ thì các ô nhập tay bỏ trống là chuyện bình thường: gỡ lỗi
+        // validation của riêng những ô đó trước khi xét ModelState.
+        if (model.SelectedAddressId.HasValue)
+        {
+            foreach (var field in ManualAddressFields)
+            {
+                ModelState.Remove(field);
+            }
+        }
+
         if (!ModelState.IsValid)
         {
             Fill(model, cart);
@@ -105,12 +138,18 @@ public class CheckoutController : Controller
             return Challenge();
         }
 
+        // Chọn địa chỉ trong sổ thì chỉ gửi đi Id: OrderService tự đọc lại bản ghi, kiểm tra
+        // địa chỉ có thuộc tài khoản này không rồi mới chụp tên / số điện thoại / địa chỉ.
+        // Nhờ vậy đổi SelectedAddressId trên form cũng không mượn được địa chỉ người khác.
+        var usesSavedAddress = model.SelectedAddressId.HasValue;
+
         var request = new PlaceOrderRequest
         {
             UserId = userId,
-            ShippingFullName = model.FullName.Trim(),
-            ShippingPhone = model.Phone.Trim(),
-            ShippingAddress = model.BuildShippingAddress(),
+            AddressId = model.SelectedAddressId,
+            ShippingFullName = usesSavedAddress ? null : model.FullName.Trim(),
+            ShippingPhone = usesSavedAddress ? null : model.Phone.Trim(),
+            ShippingAddress = usesSavedAddress ? null : model.BuildShippingAddress(),
             Note = model.Note,
 
             // Chỉ gửi đi id và số lượng: giá và tên do service tự đọc từ database.
@@ -133,6 +172,7 @@ public class CheckoutController : Controller
                 userId, result.ErrorCode, string.Join(" | ", result.Errors));
 
             // Tồn kho có thể vừa đổi, dựng lại giỏ để khách thấy đúng tình trạng hiện tại.
+            await FillAddressBookAsync(model, cancellationToken);
             Fill(model, await _cart.BuildAsync(HttpContext.Session, cancellationToken));
             return View(model);
         }
@@ -165,6 +205,48 @@ public class CheckoutController : Controller
         }
 
         return View(CustomerOrderDetailViewModel.FromOrder(result.Value!));
+    }
+
+    /// <summary>
+    /// Nạp sổ địa chỉ của khách để trang thanh toán chọn được địa chỉ đã lưu (ADDR-02).
+    /// Luôn lọc theo tài khoản đang đăng nhập.
+    /// </summary>
+    private async Task FillAddressBookAsync(CheckoutViewModel model, CancellationToken cancellationToken)
+    {
+        var userId = _userManager.GetUserId(User);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return;
+        }
+
+        // FullAddress là property tính toán (Ignore trong EF) nên lấy entity về rồi mới map.
+        var addresses = await _db.ShippingAddresses
+            .AsNoTracking()
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.IsDefault)
+            .ThenByDescending(a => a.CreatedAt)
+            .ThenByDescending(a => a.Id)
+            .ToListAsync(cancellationToken);
+
+        model.SavedAddresses = addresses
+            .Select(a => new ShippingAddressListItemViewModel
+            {
+                Id = a.Id,
+                ReceiverName = a.ReceiverName,
+                PhoneNumber = a.PhoneNumber,
+                FullAddress = a.FullAddress,
+                IsDefault = a.IsDefault,
+                CreatedAt = a.CreatedAt,
+            })
+            .ToList();
+
+        // Id không nằm trong sổ của mình (form bị sửa) thì coi như không chọn gì; OrderService
+        // vẫn chặn ở tầng dưới, đây chỉ để trang hiển thị đúng thứ khách thực sự có.
+        if (model.SelectedAddressId is { } selected &&
+            model.SavedAddresses.All(a => a.Id != selected))
+        {
+            model.SelectedAddressId = null;
+        }
     }
 
     /// <summary>Gắn phần hiển thị (giỏ hàng, phí ship, tổng tiền) vào model.</summary>

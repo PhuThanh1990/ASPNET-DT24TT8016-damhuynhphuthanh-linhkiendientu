@@ -16,8 +16,9 @@ public class Order
     public string UserId { get; set; } = string.Empty;
 
     /// <summary>
-    /// The address book entry the order was placed from, kept for traceability only.
-    /// Becomes null if the customer later deletes that address; the snapshot below stays.
+    /// Mục sổ địa chỉ (<see cref="ShippingAddress"/>) mà đơn được đặt từ đó, chỉ để truy vết.
+    /// Thành null nếu khách xóa địa chỉ đó về sau; phần snapshot bên dưới vẫn còn nguyên.
+    /// Đừng nhầm với <see cref="Order.ShippingAddress"/> — đó là chuỗi địa chỉ đã chụp lại.
     /// </summary>
     public int? AddressId { get; set; }
 
@@ -47,7 +48,7 @@ public class Order
 
     public ApplicationUser User { get; set; } = null!;
 
-    public Address? Address { get; set; }
+    public ShippingAddress? SavedAddress { get; set; }
 
     public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 }
