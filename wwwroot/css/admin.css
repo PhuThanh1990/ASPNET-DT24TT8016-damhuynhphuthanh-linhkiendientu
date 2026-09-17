@@ -20,6 +20,18 @@
     font-weight: 600;
 }
 
+/* ---------- Bảng ---------- */
+
+/* .visually-hidden của Bootstrap là position:absolute. Trong khi đó .table-responsive chỉ
+   có overflow-x:auto mà không phải khối định vị, nên phần tử absolute bên trong KHÔNG bị
+   vùng cuộn cắt: nó neo theo trang và đẩy chiều rộng trang ra bằng bề rộng thật của bảng.
+   Hậu quả: trang bị cuộn ngang ở khổ mobile dù bảng đã có thanh cuộn riêng.
+   Thêm position:relative để .table-responsive tự làm khối định vị — không đổi layout,
+   chỉ khiến phần tử absolute nằm gọn trong vùng cuộn của bảng. */
+.table-responsive {
+    position: relative;
+}
+
 /* ---------- Ảnh trong bảng ---------- */
 
 .admin-thumb {
@@ -100,6 +112,19 @@
 /* Cho phép ô flex con co lại để text-truncate hoạt động. */
 .admin-min-w-0 {
     min-width: 0;
+}
+
+/* Trong bảng thì min-width:0 chưa đủ: table-layout mặc định là auto nên ô luôn nong rộng
+   theo nội dung, .text-truncate không có bề ngang nào để bấu vào và tên sản phẩm / tên
+   khách dài sẽ kéo cả bảng ra ngoài thẻ (card sinh thanh cuộn ngang ngay ở desktop).
+   max-width:0 khiến thuật toán chia cột coi ô này là phần co giãn được: nó nhận đúng phần
+   bề ngang còn thừa, và chữ dài được cắt bằng "…" như thiết kế.
+
+   Chỉ dùng cho bảng nằm trong thẻ hẹp của Dashboard, nơi bề ngang bị giới hạn nên cắt chữ
+   luôn là hành vi đúng. Các bảng CRUD toàn trang vẫn giữ nguyên tên đầy đủ và cuộn ngang
+   trong .table-responsive — đúng thỏa thuận "table scroll có kiểm soát" của khu vực Admin. */
+td.admin-cell-truncate {
+    max-width: 0;
 }
 
 /* asp-validation-summary luôn render thẻ bao, kể cả khi không có lỗi (khi đó nó gắn class

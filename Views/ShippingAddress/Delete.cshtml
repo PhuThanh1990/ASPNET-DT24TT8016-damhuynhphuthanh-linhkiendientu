@@ -1,0 +1,57 @@
+@model AddressListItemViewModel
+@{
+    ViewData["Title"] = "Xóa địa chỉ";
+}
+
+<div class="container">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Sổ địa chỉ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Xóa địa chỉ</li>
+        </ol>
+    </nav>
+
+    <div class="section-head">
+        <div>
+            <h1 class="section-title">Xóa địa chỉ</h1>
+            <p class="section-subtitle">Thao tác này không thể hoàn tác.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 col-lg-8">
+            <div class="panel">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span class="fw-semibold">@Model.FullName</span>
+                    <span class="text-secondary">@Model.PhoneNumber</span>
+                    @if (Model.IsDefault)
+                    {
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">
+                            Mặc định
+                        </span>
+                    }
+                </div>
+
+                <p class="mb-3">@Model.FullAddress</p>
+
+                @if (Model.IsDefault)
+                {
+                    <div class="alert alert-warning" role="alert">
+                        Đây là địa chỉ mặc định. Nếu bạn còn địa chỉ khác, hệ thống sẽ tự
+                        chọn một địa chỉ khác làm mặc định sau khi xóa.
+                    </div>
+                }
+
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="submit" class="btn btn-danger">Xóa địa chỉ</button>
+                        <a class="btn btn-outline-secondary" asp-action="Index">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
