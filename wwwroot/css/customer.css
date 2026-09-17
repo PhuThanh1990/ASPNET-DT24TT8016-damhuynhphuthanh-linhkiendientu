@@ -1368,6 +1368,49 @@ textarea.form-control {
     color: var(--c-text-muted);
 }
 
+/* ADDR-03 — sổ địa chỉ ở trang thanh toán. */
+.address-current {
+    padding: var(--s-4);
+    background-color: var(--c-surface-2);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+}
+
+.address-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+}
+
+/* Mỗi lựa chọn là một thẻ bấm được, vùng chạm đủ lớn cho điện thoại. */
+.address-option {
+    margin: 0;
+    padding: var(--s-4) var(--s-4) var(--s-4) var(--s-8);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    background-color: var(--c-surface);
+    transition: border-color var(--t-fast), background-color var(--t-fast);
+}
+
+.address-option:hover {
+    border-color: var(--c-border-strong);
+}
+
+.address-option:has(.form-check-input:checked) {
+    border-color: var(--c-primary);
+    background-color: var(--c-primary-soft);
+}
+
+.address-option .form-check-input {
+    margin-left: calc(-1 * var(--s-6));
+    margin-top: .2rem;
+}
+
+.address-option .form-check-label {
+    display: block;
+    cursor: pointer;
+}
+
 .filter-chips {
     display: flex;
     flex-wrap: wrap;

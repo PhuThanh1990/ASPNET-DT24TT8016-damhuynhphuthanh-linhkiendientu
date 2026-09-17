@@ -37,6 +37,88 @@
         });
     });
 
+    // ADDR-03 — sổ địa chỉ ở trang thanh toán.
+    // Chỉ là lớp tiện dụng: form vẫn gửi SelectedAddressId / UseNewAddress như bình thường,
+    // nên tắt JavaScript thì khách vẫn chọn được radio rồi bấm "Đặt hàng".
+    (function () {
+        var picker = document.querySelector('[data-address-picker]');
+        if (!picker) {
+            return;
+        }
+
+        var useNewInput = document.getElementById('useNewAddress');
+        var newForm = document.getElementById('newAddressForm');
+        var current = document.getElementById('addressCurrent');
+        var currentBody = document.getElementById('addressCurrentBody');
+        var pickerPanel = document.getElementById('addressPicker');
+
+        function collapse(show) {
+            if (!pickerPanel || typeof bootstrap === 'undefined' || !bootstrap.Collapse) {
+                // Không có Bootstrap JS thì đổi class trực tiếp, vẫn dùng được.
+                if (pickerPanel) { pickerPanel.classList.toggle('show', show); }
+                return;
+            }
+            bootstrap.Collapse.getOrCreateInstance(pickerPanel, { toggle: false })[show ? 'show' : 'hide']();
+        }
+
+        function useSaved() {
+            if (useNewInput) { useNewInput.value = 'false'; }
+            if (newForm) { newForm.classList.add('d-none'); }
+            if (current) { current.classList.remove('d-none'); }
+        }
+
+        // Chọn một địa chỉ trong sổ: cập nhật khối xem trước rồi thu gọn danh sách lại.
+        picker.querySelectorAll('[data-address-option]').forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                if (!radio.checked) {
+                    return;
+                }
+
+                useSaved();
+
+                var label = picker.querySelector('label[for="' + radio.id + '"]');
+                if (label && currentBody) {
+                    currentBody.innerHTML = label.innerHTML;
+                }
+
+                collapse(false);
+            });
+        });
+
+        // "Thêm địa chỉ mới": bỏ chọn trong sổ và mở form nhập tay.
+        var addButton = document.querySelector('[data-address-new]');
+        if (addButton) {
+            addButton.addEventListener('click', function () {
+                picker.querySelectorAll('[data-address-option]').forEach(function (radio) {
+                    radio.checked = false;
+                });
+
+                if (useNewInput) { useNewInput.value = 'true'; }
+                if (newForm) { newForm.classList.remove('d-none'); }
+                if (current) { current.classList.add('d-none'); }
+
+                collapse(false);
+            });
+        }
+
+        // "Dùng địa chỉ đã lưu": quay lại sổ, chọn lại mục đang được đánh dấu (hoặc mục đầu).
+        var cancelButton = document.querySelector('[data-address-cancel-new]');
+        if (cancelButton) {
+            cancelButton.addEventListener('click', function () {
+                var options = picker.querySelectorAll('[data-address-option]');
+                if (options.length === 0) {
+                    return;
+                }
+
+                var chosen = picker.querySelector('[data-address-option]:checked') || options[0];
+                chosen.checked = true;
+                chosen.dispatchEvent(new Event('change', { bubbles: true }));
+
+                collapse(true);
+            });
+        }
+    })();
+
     // Quantity steppers on the product detail page: [-] [input] [+]. The cart page uses
     // real submit buttons instead, because there the change has to reach the server.
     document.querySelectorAll('[data-qty-stepper]').forEach(function (stepper) {

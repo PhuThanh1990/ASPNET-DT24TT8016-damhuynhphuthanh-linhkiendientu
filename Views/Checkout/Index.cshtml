@@ -45,6 +45,93 @@
                 <div class="panel">
                     <h2 class="h6 fw-bold mb-3">Thông tin nhận hàng</h2>
 
+                    @* ADDR-03 — sổ địa chỉ. Chỉ gửi lên SelectedAddressId; tên/điện thoại/địa chỉ
+                       do IOrderService đọc lại từ database rồi chụp vào đơn. *@
+                    <input type="hidden" asp-for="UseNewAddress" id="useNewAddress" />
+                    <span class="text-danger small d-block mb-2" asp-validation-for="SelectedAddressId"></span>
+
+                    @if (Model.HasSavedAddresses)
+                    {
+                        <div class="address-current mb-3 @(Model.ShowNewAddressForm ? "d-none" : null)" id="addressCurrent">
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                                @* JS thay nội dung khối này khi khách chọn radio khác. *@
+                                <div class="min-w-0" id="addressCurrentBody">
+                                    @if (Model.SelectedAddress is { } selected)
+                                    {
+                                        <span class="fw-semibold">
+                                            @selected.ReceiverName
+                                            <span class="text-secondary fw-normal">· @selected.PhoneNumber</span>
+                                        </span>
+                                        @if (selected.IsDefault)
+                                        {
+                                            <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle ms-1">Mặc định</span>
+                                        }
+                                        <span class="product-meta d-block">@selected.FullAddress</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-secondary">Chưa chọn địa chỉ giao hàng.</span>
+                                    }
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm flex-shrink-0" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#addressPicker"
+                                        aria-expanded="@(Model.SelectedAddress is null ? "true" : "false")"
+                                        aria-controls="addressPicker">
+                                    Thay đổi địa chỉ
+                                </button>
+                            </div>
+                        </div>
+
+                        @* Mở sẵn khi chưa chọn được địa chỉ nào (ví dụ vừa bị lỗi validate). *@
+                        <div class="collapse @(Model.SelectedAddress is null ? "show" : null) mb-3" id="addressPicker">
+                            <div class="address-list" data-address-picker>
+                                @foreach (var address in Model.SavedAddresses)
+                                {
+                                    var radioId = $"address-{address.Id}";
+                                    <div class="form-check address-option">
+                                        <input class="form-check-input" type="radio" asp-for="SelectedAddressId"
+                                               id="@radioId" value="@address.Id" data-address-option />
+                                        <label class="form-check-label" for="@radioId">
+                                            <span class="fw-semibold">
+                                                @address.ReceiverName
+                                                <span class="text-secondary fw-normal">· @address.PhoneNumber</span>
+                                            </span>
+                                            @if (address.IsDefault)
+                                            {
+                                                <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle ms-1">Mặc định</span>
+                                            }
+                                            <span class="product-meta d-block">@address.FullAddress</span>
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+
+                            <button class="btn btn-outline-secondary btn-sm mt-3" type="button" data-address-new>
+                                + Thêm địa chỉ mới
+                            </button>
+                        </div>
+                    }
+
+                    @* Form nhập tay: hiện khi sổ rỗng hoặc khách bấm "Thêm địa chỉ mới".
+                       Khi bị ẩn, jQuery validate bỏ qua (ignore ":hidden") nên không chặn submit. *@
+                    <div id="newAddressForm" class="@(Model.ShowNewAddressForm ? null : "d-none")">
+                        @if (Model.HasSavedAddresses)
+                        {
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                                <span class="fw-semibold">Địa chỉ mới</span>
+                                <button class="btn btn-link btn-sm p-0" type="button" data-address-cancel-new>
+                                    Dùng địa chỉ đã lưu
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="product-meta mb-3">
+                                Bạn chưa có địa chỉ nào trong sổ. Nhập địa chỉ nhận hàng bên dưới,
+                                đơn hàng sẽ được giao tới đúng địa chỉ này.
+                            </p>
+                        }
+
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label class="form-label" asp-for="FullName"></label>
@@ -84,12 +171,14 @@
                             <span class="text-danger small" asp-validation-for="Province"></span>
                         </div>
 
-                        <div class="col-12">
-                            <label class="form-label" asp-for="Note"></label>
-                            <textarea class="form-control" asp-for="Note" rows="2"
-                                      placeholder="Ví dụ: giao giờ hành chính"></textarea>
-                            <span class="text-danger small" asp-validation-for="Note"></span>
-                        </div>
+                    </div>
+                    </div>@* /#newAddressForm *@
+
+                    <div class="mt-3">
+                        <label class="form-label" asp-for="Note"></label>
+                        <textarea class="form-control" asp-for="Note" rows="2"
+                                  placeholder="Ví dụ: giao giờ hành chính"></textarea>
+                        <span class="text-danger small" asp-validation-for="Note"></span>
                     </div>
 
                     <p class="product-meta mt-3 mb-0">
