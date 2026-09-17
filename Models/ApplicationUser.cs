@@ -21,9 +21,7 @@ public class ApplicationUser : IdentityUser
     /// <summary>Soft-delete flag: admin disables an account instead of deleting it.</summary>
     public bool IsActive { get; set; } = true;
 
-    public ICollection<Address> Addresses { get; set; } = new List<Address>();
-
-    /// <summary>ADDR-01 — sổ địa chỉ giao hàng của tài khoản.</summary>
+    /// <summary>Sổ địa chỉ giao hàng của tài khoản (ADDR-01).</summary>
     public ICollection<ShippingAddress> ShippingAddresses { get; set; } = new List<ShippingAddress>();
 
     public ICollection<Order> Orders { get; set; } = new List<Order>();

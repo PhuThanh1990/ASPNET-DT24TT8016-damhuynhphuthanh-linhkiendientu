@@ -51,7 +51,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         // SetNull: the customer may delete the address book entry later; the order keeps
         // its own copy of the shipping details, so only the back-reference is cleared.
-        builder.HasOne(o => o.Address)
+        // Cột vẫn tên AddressId để không phải đổi tên cột khi gộp hai model địa chỉ.
+        builder.HasOne(o => o.SavedAddress)
             .WithMany()
             .HasForeignKey(o => o.AddressId)
             .OnDelete(DeleteBehavior.SetNull);
