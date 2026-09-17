@@ -98,7 +98,7 @@ public class CategoryController : AdminControllerBase
         }
 
         TempData["SuccessMessage"] = $"Đã tạo danh mục \"{category.Name}\".";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
     }
 
     // GET /Admin/Category/Edit/5
@@ -199,7 +199,7 @@ public class CategoryController : AdminControllerBase
         }
 
         TempData["SuccessMessage"] = $"Đã cập nhật danh mục \"{category.Name}\".";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
     }
 
     // GET /Admin/Category/Delete/5
@@ -242,7 +242,7 @@ public class CategoryController : AdminControllerBase
             TempData["ErrorMessage"] =
                 $"Không thể xóa danh mục \"{category.Name}\": đang có {productCount} sản phẩm và {childCount} danh mục con. " +
                 "Hãy chuyển chúng sang danh mục khác, hoặc bỏ chọn \"Đang hoạt động\" để ẩn danh mục này.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
         }
 
         _db.Categories.Remove(category);
@@ -256,11 +256,11 @@ public class CategoryController : AdminControllerBase
             // A product/child added in the meantime trips the Restrict foreign key.
             TempData["ErrorMessage"] =
                 $"Không thể xóa danh mục \"{category.Name}\": dữ liệu khác đang tham chiếu tới danh mục này.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
         }
 
         TempData["SuccessMessage"] = $"Đã xóa danh mục \"{category.Name}\".";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
     }
 
     /// <summary>

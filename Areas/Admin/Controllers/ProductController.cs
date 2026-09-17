@@ -116,7 +116,7 @@ public class ProductController : AdminControllerBase
         }
 
         TempData["SuccessMessage"] = $"Đã tạo sản phẩm \"{product.Name}\".";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
     }
 
     // GET /Admin/Product/Edit/5
@@ -227,7 +227,7 @@ public class ProductController : AdminControllerBase
         }
 
         TempData["SuccessMessage"] = $"Đã cập nhật sản phẩm \"{product.Name}\".";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
     }
 
     // POST /Admin/Product/Disable/5 — the safe, everyday "remove from shop" (ADM-11).
@@ -285,7 +285,7 @@ public class ProductController : AdminControllerBase
             TempData["ErrorMessage"] =
                 $"Không thể xóa vĩnh viễn \"{product.Name}\": sản phẩm đã xuất hiện trong {orderLineCount} " +
                 "dòng đơn hàng. Hãy dùng \"Ngừng bán\" để ẩn khỏi cửa hàng mà vẫn giữ lịch sử đơn.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
         }
 
         // Snapshot the paths before the rows go away, so the files can be cleaned up after a
@@ -302,7 +302,7 @@ public class ProductController : AdminControllerBase
         {
             TempData["ErrorMessage"] =
                 $"Không thể xóa \"{product.Name}\": dữ liệu khác đang tham chiếu tới sản phẩm này.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
         }
 
         // Files are deleted only once the database is committed; the other order would leave
@@ -313,7 +313,7 @@ public class ProductController : AdminControllerBase
         }
 
         TempData["SuccessMessage"] = $"Đã xóa vĩnh viễn sản phẩm \"{product.Name}\".";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
     }
 
     // POST /Admin/Product/AdjustStock/5 — quick stock correction from the list (ADM-13).
@@ -336,7 +336,7 @@ public class ProductController : AdminControllerBase
         if (newQuantity < 0)
         {
             TempData["ErrorMessage"] = "Số lượng tồn kho không được âm.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
         }
 
         var previous = product.StockQuantity;
@@ -347,7 +347,7 @@ public class ProductController : AdminControllerBase
 
         TempData["SuccessMessage"] =
             $"Đã cập nhật tồn kho \"{product.Name}\": {previous} → {newQuantity}.";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
     }
 
     // GET /Admin/Product/Images/5 (ADM-12)
@@ -435,7 +435,7 @@ public class ProductController : AdminControllerBase
             // The row failed, so the freshly written file would be an orphan.
             _imageStorage.Delete(imageUrl);
             TempData["ErrorMessage"] = "Không lưu được ảnh, vui lòng thử lại.";
-            return RedirectToAction(nameof(Images), new { id });
+            return RedirectToAction(nameof(Images), new { area = AdminArea.Name, id });
         }
 
         // The first image of a product always becomes the thumbnail, otherwise only when asked.
@@ -445,7 +445,7 @@ public class ProductController : AdminControllerBase
         }
 
         TempData["SuccessMessage"] = "Đã tải ảnh lên.";
-        return RedirectToAction(nameof(Images), new { id });
+        return RedirectToAction(nameof(Images), new { area = AdminArea.Name, id });
     }
 
     // POST /Admin/Product/SetPrimaryImage/5
@@ -468,7 +468,7 @@ public class ProductController : AdminControllerBase
         await PromoteToPrimaryAsync(id, imageId, cancellationToken);
 
         TempData["SuccessMessage"] = "Đã đặt ảnh chính.";
-        return RedirectToAction(nameof(Images), new { id });
+        return RedirectToAction(nameof(Images), new { area = AdminArea.Name, id });
     }
 
     // POST /Admin/Product/DeleteImage/5
@@ -514,7 +514,7 @@ public class ProductController : AdminControllerBase
         }
 
         TempData["SuccessMessage"] = "Đã xóa ảnh.";
-        return RedirectToAction(nameof(Images), new { id });
+        return RedirectToAction(nameof(Images), new { area = AdminArea.Name, id });
     }
 
     /// <summary>
@@ -574,7 +574,7 @@ public class ProductController : AdminControllerBase
             ? $"Đã mở bán lại \"{product.Name}\"."
             : $"Đã ngừng bán \"{product.Name}\". Sản phẩm bị ẩn khỏi cửa hàng nhưng lịch sử đơn hàng giữ nguyên.";
 
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
     }
 
     private async Task<ProductDeleteViewModel?> BuildDeleteViewModelAsync(
