@@ -83,6 +83,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 // is what lets PlaceOrder/Cancel wrap their work in a single transaction.
 builder.Services.AddScoped<IOrderService, OrderService>();
 
+// ADDR-02 — dữ liệu địa giới hành chính đọc từ file JSON kèm repo, không đổi lúc chạy nên
+// nạp một lần và dùng chung cho mọi request.
+builder.Services.AddSingleton<IAdministrativeUnitService, AdministrativeUnitService>();
+
 // CUS-16 — Cart và Checkout dùng chung một chỗ đối chiếu giỏ hàng với database.
 builder.Services.AddScoped<ICartService, CartService>();
 
@@ -145,6 +149,10 @@ app.UseAuthorization();
 app.UseSession();
 
 app.MapStaticAssets();
+
+// Các controller dùng attribute routing (API nội bộ dưới /api/...). Route quy ước của
+// storefront vẫn khai báo bên dưới.
+app.MapControllers();
 
 // SEO-friendly catalog URLs, matching the slug convention in docs/database-schema.md:
 //   /san-pham                              -> product list
