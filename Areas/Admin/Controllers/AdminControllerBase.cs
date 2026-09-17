@@ -14,6 +14,19 @@ namespace ElectronicStore.Areas.Admin.Controllers;
 [Authorize(Roles = AppRoles.Admin)]
 public abstract class AdminControllerBase : Controller
 {
+    // QUY ƯỚC: mọi RedirectToAction trong khu Admin PHẢI truyền area = AdminArea.Name.
+    //
+    // Program.cs đăng ký một loạt route "đẹp" cho khách hàng (san-pham, don-hang, gio-hang...)
+    // TRƯỚC route {area:exists}. Những route đó chỉ khai báo {controller, action}, không có
+    // area, nên khi sinh URL, LinkGenerator duyệt theo thứ tự đăng ký và chúng khớp trước —
+    // kể cả khi đang đứng trong Admin. Ambient area KHÔNG tự động được coi là ràng buộc.
+    //
+    // Hậu quả nếu quên: RedirectToAction(nameof(Details), new { id }) ở Admin/Order sinh ra
+    // /don-hang/{id} (trang đơn hàng của khách → 404 → trang lỗi storefront), còn
+    // RedirectToAction(nameof(Index)) ở Admin/Product sinh ra /san-pham (danh sách sản phẩm
+    // của khách). Ghi rõ area là cách duy nhất chặn được; đặt area = "" cho các route khách
+    // trong Program.cs đã thử và KHÔNG có tác dụng.
+
     /// <summary>
     /// Normalizes a slug typed by the admin and refreshes its <see cref="Controller.ModelState"/>
     /// entry.

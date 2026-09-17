@@ -137,7 +137,7 @@ public class OrderController : AdminControllerBase
             TempData["ErrorMessage"] = result.FirstError;
         }
 
-        return RedirectToAction(nameof(Details), new { id });
+        return RedirectToAction(nameof(Details), new { area = AdminArea.Name, id });
     }
 
     // POST /Admin/Order/Cancel/5 (ADM-16)
@@ -164,7 +164,7 @@ public class OrderController : AdminControllerBase
             TempData["ErrorMessage"] = result.FirstError;
         }
 
-        return RedirectToAction(nameof(Details), new { id });
+        return RedirectToAction(nameof(Details), new { area = AdminArea.Name, id });
     }
 
     private async Task<OrderDetailViewModel?> BuildDetailViewModelAsync(

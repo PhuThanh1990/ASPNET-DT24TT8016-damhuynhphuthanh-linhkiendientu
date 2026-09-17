@@ -77,7 +77,7 @@ public class BrandController : AdminControllerBase
         }
 
         TempData["SuccessMessage"] = $"Đã tạo thương hiệu \"{brand.Name}\".";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
     }
 
     // GET /Admin/Brand/Edit/5
@@ -163,7 +163,7 @@ public class BrandController : AdminControllerBase
         }
 
         TempData["SuccessMessage"] = $"Đã cập nhật thương hiệu \"{brand.Name}\".";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
     }
 
     // GET /Admin/Brand/Delete/5
@@ -215,7 +215,7 @@ public class BrandController : AdminControllerBase
             TempData["ErrorMessage"] =
                 $"Không thể xóa thương hiệu \"{brand.Name}\": đang có {productCount} sản phẩm. " +
                 "Hãy chuyển chúng sang thương hiệu khác, hoặc bỏ chọn \"Đang hoạt động\" để ẩn thương hiệu này.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
         }
 
         _db.Brands.Remove(brand);
@@ -228,11 +228,11 @@ public class BrandController : AdminControllerBase
         {
             TempData["ErrorMessage"] =
                 $"Không thể xóa thương hiệu \"{brand.Name}\": dữ liệu khác đang tham chiếu tới thương hiệu này.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
         }
 
         TempData["SuccessMessage"] = $"Đã xóa thương hiệu \"{brand.Name}\".";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { area = AdminArea.Name });
     }
 
     /// <summary>
