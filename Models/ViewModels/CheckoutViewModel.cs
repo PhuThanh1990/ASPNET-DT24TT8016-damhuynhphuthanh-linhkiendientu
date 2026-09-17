@@ -50,23 +50,6 @@ public class CheckoutViewModel : IValidatableObject
     [StringLength(60, ErrorMessage = "Tỉnh/thành phố tối đa {1} ký tự.")]
     public string Province { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Địa chỉ trong sổ mà khách chọn, hoặc null khi khách tự nhập địa chỉ mới.
-    /// Chỉ là con trỏ: tên, số điện thoại và địa chỉ vẫn do <c>IOrderService</c> đọc lại từ
-    /// database sau khi kiểm tra quyền sở hữu, nên sửa giá trị này trên form cũng không
-    /// dùng được địa chỉ của tài khoản khác.
-    /// </summary>
-    [Display(Name = "Địa chỉ đã lưu")]
-    public int? SelectedAddressId { get; set; }
-
-    /// <summary>Sổ địa chỉ của khách, chỉ để hiển thị.</summary>
-    [BindNever]
-    [ValidateNever]
-    public IReadOnlyList<ShippingAddressListItemViewModel> SavedAddresses { get; set; } = [];
-
-    /// <summary>True khi khách đang chọn một địa chỉ có sẵn thay vì nhập tay.</summary>
-    public bool UsesSavedAddress => SelectedAddressId.HasValue;
-
     [Display(Name = "Ghi chú")]
     [StringLength(500, ErrorMessage = "Ghi chú tối đa {1} ký tự.")]
     public string? Note { get; set; }
@@ -87,7 +70,7 @@ public class CheckoutViewModel : IValidatableObject
 
     /// <summary>
     /// Bốn phần địa chỉ gộp thành một dòng để lưu vào <c>Order.ShippingAddress</c>, đúng
-    /// định dạng mà <see cref="ShippingAddress.FullAddress"/> dùng cho sổ địa chỉ.
+    /// định dạng mà <see cref="Address.FullAddress"/> dùng cho sổ địa chỉ.
     /// </summary>
     public string BuildShippingAddress() =>
         string.Join(", ", new[] { AddressLine, Ward, District, Province }
@@ -97,12 +80,6 @@ public class CheckoutViewModel : IValidatableObject
     /// <summary>Bốn ô địa chỉ đều hợp lệ riêng lẻ vẫn có thể vượt độ dài cột khi gộp lại.</summary>
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        // Chọn địa chỉ trong sổ thì các ô nhập tay không được dùng tới.
-        if (UsesSavedAddress)
-        {
-            yield break;
-        }
-
         if (BuildShippingAddress().Length > MaxShippingAddressLength)
         {
             yield return new ValidationResult(

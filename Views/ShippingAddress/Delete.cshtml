@@ -1,4 +1,4 @@
-@model ShippingAddressListItemViewModel
+@model AddressListItemViewModel
 @{
     ViewData["Title"] = "Xóa địa chỉ";
 }
@@ -24,7 +24,7 @@
         <div class="col-12 col-lg-8">
             <div class="panel">
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                    <span class="fw-semibold">@Model.ReceiverName</span>
+                    <span class="fw-semibold">@Model.FullName</span>
                     <span class="text-secondary">@Model.PhoneNumber</span>
                     @if (Model.IsDefault)
                     {
