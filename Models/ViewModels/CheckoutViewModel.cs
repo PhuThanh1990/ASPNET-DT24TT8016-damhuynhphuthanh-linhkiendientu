@@ -54,6 +54,39 @@ public class CheckoutViewModel : IValidatableObject
     [StringLength(500, ErrorMessage = "Ghi chú tối đa {1} ký tự.")]
     public string? Note { get; set; }
 
+    // ----- ADDR-03: sổ địa chỉ -----
+
+    /// <summary>
+    /// Id địa chỉ đã lưu mà khách đang chọn; null nghĩa là nhập tay.
+    /// </summary>
+    /// <remarks>
+    /// Chỉ là *lựa chọn*, không phải dữ liệu tin cậy: controller đối chiếu lại id này với sổ
+    /// địa chỉ của chính tài khoản đang đăng nhập, và <c>IOrderService</c> kiểm tra quyền sở
+    /// hữu một lần nữa trước khi chụp thông tin vào đơn.
+    /// </remarks>
+    public int? SelectedAddressId { get; set; }
+
+    /// <summary>True khi khách bấm "Thêm địa chỉ mới" và muốn dùng 6 ô nhập tay.</summary>
+    public bool UseNewAddress { get; set; }
+
+    /// <summary>Sổ địa chỉ của khách, do controller nạp — không nhận từ form.</summary>
+    [BindNever]
+    [ValidateNever]
+    public IReadOnlyList<SavedAddressViewModel> SavedAddresses { get; set; } = [];
+
+    public bool HasSavedAddresses => SavedAddresses.Count > 0;
+
+    /// <summary>Địa chỉ đang được chọn trong sổ; null khi nhập tay hoặc chưa chọn.</summary>
+    public SavedAddressViewModel? SelectedAddress =>
+        SelectedAddressId is { } id ? SavedAddresses.FirstOrDefault(a => a.Id == id) : null;
+
+    /// <summary>
+    /// Form nhập tay chỉ hiện khi sổ địa chỉ rỗng hoặc khách chủ động thêm địa chỉ mới.
+    /// Khi ẩn, jQuery validate bỏ qua các ô này (mặc định <c>ignore: ":hidden"</c>) nên
+    /// không chặn submit; phía server controller cũng gỡ lỗi Required tương ứng.
+    /// </summary>
+    public bool ShowNewAddressForm => !HasSavedAddresses || UseNewAddress;
+
     /// <summary>Giỏ hàng đã đối chiếu database, chỉ để hiển thị.</summary>
     [BindNever]
     [ValidateNever]
