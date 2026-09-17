@@ -1835,6 +1835,101 @@ textarea.form-control {
 }
 
 /* ============================================================================
+   17b. SELECTBOX ĐỊA CHỈ CÓ TÌM KIẾM (ADDR-02)
+   Dựng bởi wwwroot/js/address-select.js. Thẻ <select> thật vẫn nằm trong DOM và vẫn là
+   thứ được submit — chỉ bị ẩn đi sau khi combobox dựng xong.
+   ========================================================================== */
+
+.addr-combo {
+    position: relative;
+}
+
+/* display:none vẫn submit bình thường, chỉ select bị disabled mới không gửi. */
+.addr-combo__native {
+    display: none;
+}
+
+.addr-combo__button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.addr-combo__button.is-placeholder {
+    color: var(--c-text-muted);
+}
+
+.addr-combo__button:disabled {
+    background-color: var(--c-surface-2);
+    color: var(--c-text-muted);
+    cursor: not-allowed;
+}
+
+.addr-combo__panel {
+    position: absolute;
+    z-index: 1030;
+    top: calc(100% + var(--s-1));
+    left: 0;
+    right: 0;
+    padding: var(--s-2);
+    background-color: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    box-shadow: var(--sh-md);
+}
+
+.addr-combo__search {
+    margin-bottom: var(--s-2);
+}
+
+.addr-combo__list {
+    max-height: 15rem;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.addr-combo__option {
+    padding: var(--s-2) var(--s-3);
+    font-size: var(--fs-sm);
+    color: var(--c-text);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+}
+
+.addr-combo__option:hover,
+.addr-combo__option.is-active {
+    background-color: var(--c-surface-2);
+}
+
+.addr-combo__option[aria-selected="true"] {
+    background-color: var(--c-primary-soft);
+    color: var(--c-primary);
+    font-weight: var(--fw-semibold);
+}
+
+.addr-combo__option.is-placeholder {
+    color: var(--c-text-muted);
+}
+
+.addr-combo__empty {
+    margin: 0;
+    padding: var(--s-3);
+    font-size: var(--fs-sm);
+    color: var(--c-text-secondary);
+    text-align: center;
+}
+
+.addr-combo__error {
+    margin-top: var(--s-2);
+    font-size: var(--fs-xs);
+    color: var(--c-danger);
+}
+
+/* ============================================================================
    18. FOOTER (UI-02)
    Tối giản: khối thương hiệu rộng + các cột liên kết, gạch chân mảnh phía dưới.
    ========================================================================== */

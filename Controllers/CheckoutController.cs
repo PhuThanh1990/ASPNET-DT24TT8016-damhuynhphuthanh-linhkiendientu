@@ -23,17 +23,20 @@ public class CheckoutController : Controller
 {
     private readonly ICartService _cart;
     private readonly IOrderService _orders;
+    private readonly IAdministrativeUnitService _units;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<CheckoutController> _logger;
 
     public CheckoutController(
         ICartService cart,
         IOrderService orders,
+        IAdministrativeUnitService units,
         UserManager<ApplicationUser> userManager,
         ILogger<CheckoutController> logger)
     {
         _cart = cart;
         _orders = orders;
+        _units = units;
         _userManager = userManager;
         _logger = logger;
     }
@@ -82,6 +85,10 @@ public class CheckoutController : Controller
         {
             return RedirectToEmptyCart(cart);
         }
+
+        // ADDR-02 — đổi mã tỉnh/phường thành tên ngay tại đây, trước khi xét ModelState,
+        // để lỗi mã sai hiện cùng lượt với các lỗi nhập liệu khác.
+        ResolveAdministrativeUnits(model);
 
         if (!ModelState.IsValid)
         {
@@ -176,6 +183,80 @@ public class CheckoutController : Controller
     {
         model.Cart = cart;
         model.ShippingFee = _orders.QuoteShippingFee(cart.SubTotal);
+
+        // ADDR-02 — đổ dữ liệu cho hai selectbox. Phường/xã render sẵn theo tỉnh đang chọn
+        // nên khi mở lại form (lỗi validate) lựa chọn cũ vẫn còn dù JavaScript chưa chạy.
+        model.SelectorsAvailable = _units.IsAvailable;
+        model.Provinces = _units.GetProvinces();
+        model.Wards = _units.GetWards(model.ProvinceCode);
+    }
+
+    /// <summary>
+    /// ADDR-02 — đổi <c>ProvinceCode</c>/<c>WardCode</c> thành tên và kiểm tra tính hợp lệ.
+    /// </summary>
+    /// <remarks>
+    /// Tên tỉnh/phường LUÔN lấy từ dataset chứ không lấy từ form: người dùng có thể sửa
+    /// <c>&lt;option&gt;</c> trong DevTools, nhưng tên ghi vào đơn hàng vẫn là tên thật ứng
+    /// với mã. Hàm cũng kiểm tra phường/xã có đúng thuộc tỉnh đã chọn hay không, vì ghép hai
+    /// mã có thật của hai tỉnh khác nhau sẽ ra một địa chỉ không tồn tại.
+    ///
+    /// Khi dataset không nạp được thì form đã đổi sang ô nhập chữ, nên ở đây bỏ ràng buộc
+    /// theo mã và quay lại kiểm tra hai ô tên.
+    /// </remarks>
+    private void ResolveAdministrativeUnits(CheckoutViewModel model)
+    {
+        if (!_units.IsAvailable)
+        {
+            ModelState.Remove(nameof(model.ProvinceCode));
+            ModelState.Remove(nameof(model.WardCode));
+            model.ProvinceCode = string.Empty;
+            model.WardCode = string.Empty;
+            model.Province = model.Province.Trim();
+            model.Ward = model.Ward.Trim();
+
+            if (model.Province.Length == 0)
+            {
+                ModelState.AddModelError(nameof(model.Province), "Vui lòng nhập tỉnh/thành phố.");
+            }
+
+            if (model.Ward.Length == 0)
+            {
+                ModelState.AddModelError(nameof(model.Ward), "Vui lòng nhập phường/xã.");
+            }
+
+            return;
+        }
+
+        model.Province = string.Empty;
+        model.Ward = string.Empty;
+
+        var province = _units.FindProvince(model.ProvinceCode);
+        if (province is null)
+        {
+            // Bỏ trống thì [Required] đã báo rồi, ở đây chỉ báo trường hợp gửi mã lạ.
+            if (!string.IsNullOrWhiteSpace(model.ProvinceCode))
+            {
+                ModelState.AddModelError(nameof(model.ProvinceCode), "Tỉnh/thành phố không hợp lệ.");
+            }
+
+            return;
+        }
+
+        model.Province = province.Name;
+
+        var ward = _units.FindWard(model.ProvinceCode, model.WardCode);
+        if (ward is null)
+        {
+            if (!string.IsNullOrWhiteSpace(model.WardCode))
+            {
+                ModelState.AddModelError(nameof(model.WardCode),
+                    "Phường/xã không hợp lệ hoặc không thuộc tỉnh/thành phố đã chọn.");
+            }
+
+            return;
+        }
+
+        model.Ward = ward.Name;
     }
 
     /// <summary>
