@@ -9,15 +9,20 @@
     <section class="shop-hero p-4 p-lg-5">
         <div class="row align-items-center g-4">
             <div class="col-lg-7">
-                <span class="badge hero-badge mb-3">Linh kiện chính hãng &middot; Bảo hành đầy đủ</span>
-                <h1 class="mb-3">Xây dựng cấu hình máy tính của bạn</h1>
+                <span class="badge hero-badge mb-3">Linh kiện chính hãng &middot; Đủ nhóm cho mọi dự án</span>
+                <h1 class="mb-3">Linh kiện điện tử cho mọi dự án</h1>
                 <p class="mb-4">
-                    CPU, mainboard, RAM, VGA, ổ cứng SSD, nguồn và tản nhiệt — đầy đủ linh kiện
-                    cho một dàn máy chơi game, làm đồ họa hay học tập.
+                    Từ cảm biến, module, IC, nguồn, relay đến phụ kiện và dụng cụ — đầy đủ linh kiện
+                    cho học tập, sửa chữa và phát triển các dự án điện tử.
                 </p>
-                <a class="btn btn-accent btn-lg" asp-controller="Product" asp-action="Index">
-                    Xem tất cả sản phẩm
-                </a>
+                <div class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-accent btn-lg" asp-controller="Product" asp-action="Index">
+                        Khám phá sản phẩm
+                    </a>
+                    <a class="btn btn-outline-secondary btn-lg" href="#danh-muc">
+                        Xem danh mục
+                    </a>
+                </div>
             </div>
             <div class="col-lg-5">
                 <div class="row g-2 g-sm-3 text-center">
@@ -29,8 +34,8 @@
                     </div>
                     <div class="col-4">
                         <div class="shop-hero-stat p-3 h-100">
-                            <div class="fw-bold fs-5">36</div>
-                            <div class="small opacity-75">Tháng bảo hành</div>
+                            <div class="fw-bold fs-5">1 đổi 1</div>
+                            <div class="small opacity-75">Đổi hàng lỗi</div>
                         </div>
                     </div>
                     <div class="col-4">
@@ -45,7 +50,7 @@
     </section>
 
     @* ── Danh mục ────────────────────────────────────────────────────────────── *@
-    <section class="section">
+    <section class="section" id="danh-muc">
         <div class="section-head">
             <div>
                 <h2 class="section-title">Danh mục nổi bật</h2>

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ElectronicStore.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
@@ -35,19 +36,29 @@ public class CheckoutViewModel : IValidatableObject
     [StringLength(200, ErrorMessage = "Địa chỉ tối đa {1} ký tự.")]
     public string AddressLine { get; set; } = string.Empty;
 
-    [Display(Name = "Phường/Xã")]
-    [Required(ErrorMessage = "Vui lòng nhập phường/xã.")]
-    [StringLength(60, ErrorMessage = "Phường/xã tối đa {1} ký tự.")]
-    public string Ward { get; set; } = string.Empty;
-
-    [Display(Name = "Quận/Huyện")]
-    [Required(ErrorMessage = "Vui lòng nhập quận/huyện.")]
-    [StringLength(60, ErrorMessage = "Quận/huyện tối đa {1} ký tự.")]
-    public string District { get; set; } = string.Empty;
+    // ── ADDR-02: địa giới hành chính ──────────────────────────────────────────────
+    // Form chỉ gửi lên MÃ. Tên tỉnh/phường do server tra từ dataset rồi gán vào Province và
+    // Ward bên dưới, nên sửa <option> trong DevTools cũng không đổi được tên lưu vào đơn.
 
     [Display(Name = "Tỉnh/Thành phố")]
-    [Required(ErrorMessage = "Vui lòng nhập tỉnh/thành phố.")]
-    [StringLength(60, ErrorMessage = "Tỉnh/thành phố tối đa {1} ký tự.")]
+    [Required(ErrorMessage = "Vui lòng chọn tỉnh/thành phố.")]
+    public string ProvinceCode { get; set; } = string.Empty;
+
+    [Display(Name = "Phường/Xã")]
+    [Required(ErrorMessage = "Vui lòng chọn phường/xã.")]
+    public string WardCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Tên phường/xã. Bình thường do server tra từ mã; chỉ được nhập tay khi dataset hỏng
+    /// (xem <see cref="SelectorsAvailable"/>), lúc đó form rơi về ô nhập chữ.
+    /// </summary>
+    [Display(Name = "Phường/Xã")]
+    [StringLength(100, ErrorMessage = "Phường/xã tối đa {1} ký tự.")]
+    public string Ward { get; set; } = string.Empty;
+
+    /// <summary>Tên tỉnh/thành phố; cùng cơ chế với <see cref="Ward"/>.</summary>
+    [Display(Name = "Tỉnh/Thành phố")]
+    [StringLength(100, ErrorMessage = "Tỉnh/thành phố tối đa {1} ký tự.")]
     public string Province { get; set; } = string.Empty;
 
     [Display(Name = "Ghi chú")]
@@ -72,12 +83,12 @@ public class CheckoutViewModel : IValidatableObject
     /// <summary>Sổ địa chỉ của khách, do controller nạp — không nhận từ form.</summary>
     [BindNever]
     [ValidateNever]
-    public IReadOnlyList<SavedAddressViewModel> SavedAddresses { get; set; } = [];
+    public IReadOnlyList<AddressListItemViewModel> SavedAddresses { get; set; } = [];
 
     public bool HasSavedAddresses => SavedAddresses.Count > 0;
 
     /// <summary>Địa chỉ đang được chọn trong sổ; null khi nhập tay hoặc chưa chọn.</summary>
-    public SavedAddressViewModel? SelectedAddress =>
+    public AddressListItemViewModel? SelectedAddress =>
         SelectedAddressId is { } id ? SavedAddresses.FirstOrDefault(a => a.Id == id) : null;
 
     /// <summary>
@@ -97,20 +108,42 @@ public class CheckoutViewModel : IValidatableObject
     [ValidateNever]
     public decimal ShippingFee { get; set; }
 
+    /// <summary>Danh sách tỉnh/thành đổ vào selectbox.</summary>
+    [BindNever]
+    [ValidateNever]
+    public IReadOnlyList<ProvinceOption> Provinces { get; set; } = [];
+
+    /// <summary>
+    /// Phường/xã của tỉnh đang chọn. Render sẵn từ server để khi mở lại form (validate lỗi
+    /// hoặc sửa địa chỉ cũ) select đã có đúng lựa chọn mà không cần chờ JavaScript.
+    /// </summary>
+    [BindNever]
+    [ValidateNever]
+    public IReadOnlyList<WardOption> Wards { get; set; } = [];
+
+    /// <summary>
+    /// False khi không nạp được dataset địa giới hành chính. View sẽ đổi sang ô nhập chữ để
+    /// khách vẫn đặt được hàng thay vì gặp hai selectbox rỗng.
+    /// </summary>
+    [BindNever]
+    [ValidateNever]
+    public bool SelectorsAvailable { get; set; } = true;
+
     public decimal SubTotal => Cart.SubTotal;
 
     public decimal Total => Cart.SubTotal + ShippingFee;
 
     /// <summary>
-    /// Bốn phần địa chỉ gộp thành một dòng để lưu vào <c>Order.ShippingAddress</c>, đúng
-    /// định dạng mà <see cref="Address.FullAddress"/> dùng cho sổ địa chỉ.
+    /// Các phần địa chỉ gộp thành một dòng để lưu vào <c>Order.ShippingAddress</c>, đúng
+    /// định dạng mà <see cref="Address.FullAddress"/> dùng cho sổ địa chỉ. Không còn phần
+    /// quận/huyện: cấp này đã bỏ từ 01/07/2025.
     /// </summary>
     public string BuildShippingAddress() =>
-        string.Join(", ", new[] { AddressLine, Ward, District, Province }
+        string.Join(", ", new[] { AddressLine, Ward, Province }
             .Select(part => part?.Trim() ?? string.Empty)
             .Where(part => part.Length > 0));
 
-    /// <summary>Bốn ô địa chỉ đều hợp lệ riêng lẻ vẫn có thể vượt độ dài cột khi gộp lại.</summary>
+    /// <summary>Các ô địa chỉ hợp lệ riêng lẻ vẫn có thể vượt độ dài cột khi gộp lại.</summary>
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (BuildShippingAddress().Length > MaxShippingAddressLength)

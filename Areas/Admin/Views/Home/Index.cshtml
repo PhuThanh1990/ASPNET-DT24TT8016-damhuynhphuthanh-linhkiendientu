@@ -117,7 +117,7 @@
                                              src="@DisplayHelper.ImageOrPlaceholder(product.ImageUrl)"
                                              alt="@product.ProductName" loading="lazy" />
                                     </td>
-                                    <td class="admin-min-w-0">
+                                    <td class="admin-min-w-0 admin-cell-truncate">
                                         <a class="text-truncate d-block" asp-area="Admin" asp-controller="Product"
                                            asp-action="Edit" asp-route-id="@product.ProductId">@product.ProductName</a>
                                     </td>
@@ -171,7 +171,7 @@
                                         <a class="font-monospace" asp-area="Admin" asp-controller="Order"
                                            asp-action="Details" asp-route-id="@order.Id">@order.OrderCode</a>
                                     </td>
-                                    <td class="admin-min-w-0">
+                                    <td class="admin-min-w-0 admin-cell-truncate">
                                         <div class="text-truncate">
                                             @(string.IsNullOrWhiteSpace(order.CustomerName) ? "(chưa đặt tên)" : order.CustomerName)
                                         </div>

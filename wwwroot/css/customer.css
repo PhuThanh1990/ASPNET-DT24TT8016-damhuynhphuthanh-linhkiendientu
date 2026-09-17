@@ -935,6 +935,12 @@ textarea.form-control {
     margin-bottom: var(--space-section);
 }
 
+/* Section được trỏ tới bằng neo (#danh-muc) phải chừa chỗ cho header dính mép trên,
+   nếu không tiêu đề sẽ nằm khuất bên dưới header khi cuộn tới. */
+.section[id] {
+    scroll-margin-top: calc(var(--control-h-lg) + var(--s-8));
+}
+
 .section:last-child {
     margin-bottom: 0;
 }
@@ -1564,6 +1570,16 @@ textarea.form-control {
     flex-shrink: 0;
 }
 
+/* .visually-hidden của Bootstrap là position:absolute. Trong khi đó .table-responsive chỉ
+   có overflow-x:auto mà không phải khối định vị, nên phần tử absolute bên trong KHÔNG bị
+   vùng cuộn cắt: nó neo theo trang và đẩy chiều rộng trang ra bằng bề rộng thật của bảng.
+   Hậu quả: trang bị cuộn ngang ở khổ mobile dù bảng đã có thanh cuộn riêng.
+   Thêm position:relative để .table-responsive tự làm khối định vị — không đổi layout,
+   chỉ khiến phần tử absolute nằm gọn trong vùng cuộn của bảng. */
+.table-responsive {
+    position: relative;
+}
+
 .cart-table {
     --bs-table-border-color: var(--c-border);
     --tblr-table-border-color: var(--c-border);
@@ -1859,6 +1875,101 @@ textarea.form-control {
     .product-card .product-thumb {
         transition: none;
     }
+}
+
+/* ============================================================================
+   17b. SELECTBOX ĐỊA CHỈ CÓ TÌM KIẾM (ADDR-02)
+   Dựng bởi wwwroot/js/address-select.js. Thẻ <select> thật vẫn nằm trong DOM và vẫn là
+   thứ được submit — chỉ bị ẩn đi sau khi combobox dựng xong.
+   ========================================================================== */
+
+.addr-combo {
+    position: relative;
+}
+
+/* display:none vẫn submit bình thường, chỉ select bị disabled mới không gửi. */
+.addr-combo__native {
+    display: none;
+}
+
+.addr-combo__button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.addr-combo__button.is-placeholder {
+    color: var(--c-text-muted);
+}
+
+.addr-combo__button:disabled {
+    background-color: var(--c-surface-2);
+    color: var(--c-text-muted);
+    cursor: not-allowed;
+}
+
+.addr-combo__panel {
+    position: absolute;
+    z-index: 1030;
+    top: calc(100% + var(--s-1));
+    left: 0;
+    right: 0;
+    padding: var(--s-2);
+    background-color: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    box-shadow: var(--sh-md);
+}
+
+.addr-combo__search {
+    margin-bottom: var(--s-2);
+}
+
+.addr-combo__list {
+    max-height: 15rem;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.addr-combo__option {
+    padding: var(--s-2) var(--s-3);
+    font-size: var(--fs-sm);
+    color: var(--c-text);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+}
+
+.addr-combo__option:hover,
+.addr-combo__option.is-active {
+    background-color: var(--c-surface-2);
+}
+
+.addr-combo__option[aria-selected="true"] {
+    background-color: var(--c-primary-soft);
+    color: var(--c-primary);
+    font-weight: var(--fw-semibold);
+}
+
+.addr-combo__option.is-placeholder {
+    color: var(--c-text-muted);
+}
+
+.addr-combo__empty {
+    margin: 0;
+    padding: var(--s-3);
+    font-size: var(--fs-sm);
+    color: var(--c-text-secondary);
+    text-align: center;
+}
+
+.addr-combo__error {
+    margin-top: var(--s-2);
+    font-size: var(--fs-xs);
+    color: var(--c-danger);
 }
 
 /* ============================================================================

@@ -1,0 +1,81 @@
+@model AddressListViewModel
+@{
+    ViewData["Title"] = "Sổ địa chỉ";
+}
+
+<div class="container">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Sổ địa chỉ</li>
+        </ol>
+    </nav>
+
+    <div class="section-head d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <h1 class="section-title">Sổ địa chỉ</h1>
+            @if (!Model.IsEmpty)
+            {
+                <p class="section-subtitle">@Model.Addresses.Count địa chỉ đã lưu</p>
+            }
+        </div>
+        <a class="btn btn-primary" asp-action="Create">
+            <i class="ti ti-plus" aria-hidden="true"></i> Thêm địa chỉ
+        </a>
+    </div>
+
+    @if (Model.IsEmpty)
+    {
+        <div class="empty-state">
+            <div class="empty-icon">📍</div>
+            <h2 class="h5 text-body">Bạn chưa lưu địa chỉ nào</h2>
+            <p class="mb-3">Lưu sẵn địa chỉ để những lần đặt hàng sau không phải nhập lại.</p>
+            <a class="btn btn-primary" asp-action="Create">Thêm địa chỉ đầu tiên</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var address in Model.Addresses)
+            {
+                <div class="col-12 col-lg-6">
+                    <div class="panel h-100 d-flex flex-column">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                            <span class="fw-semibold">@address.FullName</span>
+                            <span class="text-secondary">@address.PhoneNumber</span>
+                            @if (address.IsDefault)
+                            {
+                                <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">
+                                    Mặc định
+                                </span>
+                            }
+                        </div>
+
+                        <p class="mb-3">@address.FullAddress</p>
+
+                        <div class="mt-auto d-flex flex-wrap gap-2">
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@address.Id">
+                                <i class="ti ti-pencil" aria-hidden="true"></i> Sửa
+                            </a>
+
+                            @if (!address.IsDefault)
+                            {
+                                <form asp-action="SetDefault" asp-route-id="@address.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                                        <i class="ti ti-star" aria-hidden="true"></i> Đặt mặc định
+                                    </button>
+                                </form>
+                            }
+
+                            <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@address.Id">
+                                <i class="ti ti-trash" aria-hidden="true"></i> Xóa
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

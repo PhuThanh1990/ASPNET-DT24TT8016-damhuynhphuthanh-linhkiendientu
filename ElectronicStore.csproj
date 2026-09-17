@@ -20,4 +20,13 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- ADDR-02: dataset địa giới hành chính phải đi theo khi publish, không chỉ khi
+         chạy từ thư mục project. -->
+    <Content Update="Data\AdministrativeUnits\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
