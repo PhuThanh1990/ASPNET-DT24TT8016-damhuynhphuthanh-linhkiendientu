@@ -160,7 +160,7 @@ public class ShippingAddressController : Controller
             FullName = address.FullName,
             PhoneNumber = address.PhoneNumber,
             Province = address.Province,
-            District = address.District,
+            District = address.District ?? string.Empty,
             Ward = address.Ward,
             AddressLine = address.AddressLine,
             IsDefault = address.IsDefault,
