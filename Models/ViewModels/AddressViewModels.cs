@@ -1,4 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using ElectronicStore.Services;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace ElectronicStore.Models.ViewModels;
 
@@ -10,6 +13,12 @@ namespace ElectronicStore.Models.ViewModels;
 ///
 /// Không có <c>UserId</c>: chủ sở hữu luôn lấy từ cookie đăng nhập ở controller, không bao
 /// giờ nhận từ form. <see cref="Id"/> chỉ dùng để đối chiếu với id trên route khi sửa.
+///
+/// FINAL-ADDR — phần địa giới hành chính dùng đúng cơ chế của ADDR-02 ở trang thanh toán:
+/// form chỉ gửi lên <see cref="ProvinceCode"/>/<see cref="WardCode"/>, còn
+/// <see cref="Province"/>/<see cref="Ward"/> do controller tra từ
+/// <see cref="IAdministrativeUnitService"/> rồi gán đè. Sửa <c>&lt;option&gt;</c> trong
+/// DevTools vì vậy không đổi được tên lưu vào database.
 ///
 /// Độ dài các trường đặt đúng bằng độ dài cột trong <c>AddressConfiguration</c> để lỗi hiện
 /// ra dưới dạng thông báo thay vì lỗi cắt chuỗi từ SQL Server.
@@ -32,22 +41,43 @@ public class AddressFormViewModel
     [Display(Name = "Số điện thoại")]
     public string PhoneNumber { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Vui lòng nhập Tỉnh/Thành phố.")]
+    // ── FINAL-ADDR: địa giới hành chính ───────────────────────────────────────────
+    // Hai ô người dùng thật sự chọn. Khi dataset hỏng (SelectorsAvailable == false) form
+    // đổi sang ô nhập chữ, lúc đó controller gỡ [Required] của hai mã này và quay lại kiểm
+    // tra Province/Ward — xem ShippingAddressController.ResolveAdministrativeUnits.
+
+    [Required(ErrorMessage = "Vui lòng chọn Tỉnh/Thành phố.")]
+    [Display(Name = "Tỉnh/Thành phố")]
+    public string ProvinceCode { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Vui lòng chọn Phường/Xã.")]
+    [Display(Name = "Phường/Xã")]
+    public string WardCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Tên tỉnh/thành phố. Bình thường do server tra từ <see cref="ProvinceCode"/>; chỉ được
+    /// nhập tay khi dataset hỏng (xem <see cref="SelectorsAvailable"/>).
+    /// </summary>
     [StringLength(100, ErrorMessage = "Tỉnh/Thành phố tối đa {1} ký tự.")]
     [Display(Name = "Tỉnh/Thành phố")]
     public string Province { get; set; } = string.Empty;
 
-    // Cột Address.District là NOT NULL nên bắt buộc nhập. Khi ADDR-02 bổ sung dữ liệu
-    // tỉnh/phường và địa chỉ hai cấp, đây là chỗ nới lỏng ràng buộc.
-    [Required(ErrorMessage = "Vui lòng nhập Quận/Huyện.")]
-    [StringLength(100, ErrorMessage = "Quận/Huyện tối đa {1} ký tự.")]
-    [Display(Name = "Quận/Huyện")]
-    public string District { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "Vui lòng nhập Phường/Xã.")]
+    /// <summary>Tên phường/xã; cùng cơ chế với <see cref="Province"/>.</summary>
     [StringLength(100, ErrorMessage = "Phường/Xã tối đa {1} ký tự.")]
     [Display(Name = "Phường/Xã")]
     public string Ward { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Cấp quận/huyện đã bỏ từ 01/07/2025 nên form không còn ô này, và
+    /// <see cref="BindNeverAttribute"/> chặn luôn việc client tự post kèm — giá trị ghi vào
+    /// database do controller quyết định. Vẫn giữ lại (nullable, không <c>[Required]</c>) để
+    /// view model soi đúng cột của <see cref="Address"/> và để địa chỉ cũ mang theo được
+    /// quận/huyện của nó khi mở form sửa.
+    /// </summary>
+    [BindNever]
+    [ValidateNever]
+    [Display(Name = "Quận/Huyện")]
+    public string? District { get; set; }
 
     [Required(ErrorMessage = "Vui lòng nhập địa chỉ cụ thể.")]
     [StringLength(255, ErrorMessage = "Địa chỉ cụ thể tối đa {1} ký tự.")]
@@ -69,6 +99,41 @@ public class AddressFormViewModel
     /// mặc định ở trang danh sách.
     /// </summary>
     public bool IsCurrentDefault { get; set; }
+
+    // ── Dữ liệu đổ vào form, do controller nạp — không bao giờ nhận từ client ──────
+
+    /// <summary>34 tỉnh/thành phố đổ vào selectbox.</summary>
+    [BindNever]
+    [ValidateNever]
+    public IReadOnlyList<ProvinceOption> Provinces { get; set; } = [];
+
+    /// <summary>
+    /// Phường/xã của tỉnh đang chọn. Render sẵn từ server để khi mở lại form (sửa địa chỉ cũ
+    /// hoặc vừa lỗi validate) lựa chọn cũ vẫn đúng dù JavaScript chưa chạy.
+    /// </summary>
+    [BindNever]
+    [ValidateNever]
+    public IReadOnlyList<WardOption> Wards { get; set; } = [];
+
+    /// <summary>
+    /// False khi không nạp được dataset địa giới hành chính. View đổi sang ô nhập chữ để
+    /// khách vẫn lưu được địa chỉ thay vì gặp hai selectbox rỗng.
+    /// </summary>
+    [BindNever]
+    [ValidateNever]
+    public bool SelectorsAvailable { get; set; } = true;
+
+    /// <summary>
+    /// Địa chỉ cũ ghi trước ADDR-02 (chưa có mã) hiển thị nguyên văn ở đầu form, để người
+    /// dùng biết mình đang sửa cái gì trước khi chọn lại tỉnh/phường. Rỗng ở mọi trường hợp
+    /// khác. Do controller dựng từ bản ghi trong database, không nhận từ form.
+    /// </summary>
+    [BindNever]
+    [ValidateNever]
+    public string LegacyLocation { get; set; } = string.Empty;
+
+    /// <summary>True khi bản ghi đang sửa là địa chỉ kiểu cũ và selector đang hoạt động.</summary>
+    public bool NeedsReselect => SelectorsAvailable && LegacyLocation.Length > 0;
 }
 
 /// <summary>Một dòng trong trang danh sách sổ địa chỉ.</summary>

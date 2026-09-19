@@ -1,13 +1,28 @@
 @model AddressFormViewModel
 @*
-    ADDR-01 — form dùng chung cho Thêm và Sửa. Bind thẳng vào các field của entity Address
-    hiện có (FullName / PhoneNumber / Province / District / Ward / AddressLine).
+    FINAL-ADDR — form dùng chung cho Thêm và Sửa. Bind thẳng vào các field của entity
+    Address hiện có (FullName / PhoneNumber / ProvinceCode / WardCode / AddressLine).
 
-    Tỉnh - Quận/Huyện - Phường/Xã hiện nhập tay. Ô chọn từ danh sách hành chính là phần
-    việc của ADDR-02, task đó sẽ bổ sung mã tỉnh/phường và thay các ô này bằng dropdown.
+    Tỉnh/Thành phố và Phường/Xã chọn từ danh sách địa giới hành chính, đúng bộ điều khiển mà
+    trang thanh toán dùng (wwwroot/js/address-select.js) nên hai màn hình thao tác như nhau.
+    Form chỉ gửi lên MÃ; tên do server tra lại từ dataset. Cấp Quận/Huyện đã bỏ theo cơ cấu
+    hành chính 2 cấp áp dụng từ 01/07/2025 nên không còn ô nhập.
 *@
 
 <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+@if (Model.NeedsReselect)
+{
+    @* Địa chỉ lưu trước ADDR-02 chưa có mã tỉnh/phường. Hiện lại nguyên văn phần địa giới cũ
+       để người dùng biết mình đang sửa cái gì trước khi chọn lại từ danh sách mới. *@
+    <div class="alert alert-warning">
+        <p class="fw-semibold mb-1">Địa chỉ này được lưu theo đơn vị hành chính cũ.</p>
+        <p class="mb-0">
+            Phần địa giới đang lưu: <span class="fw-semibold">@Model.LegacyLocation</span>.
+            Vui lòng chọn lại Tỉnh/Thành phố và Phường/Xã theo danh sách mới rồi lưu.
+        </p>
+    </div>
+}
 
 <div class="row g-3">
     <div class="col-12 col-md-6">
@@ -22,23 +37,65 @@
         <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
     </div>
 
-    <div class="col-12 col-md-4">
-        <label asp-for="Province" class="form-label"></label>
-        <input asp-for="Province" class="form-control" />
-        <span asp-validation-for="Province" class="text-danger small"></span>
-    </div>
+    @if (Model.SelectorsAvailable)
+    {
+        <div class="col-12 col-md-6">
+            <label asp-for="ProvinceCode" class="form-label"></label>
+            <select asp-for="ProvinceCode" class="form-select"
+                    data-address-select
+                    data-search-placeholder="Tìm tỉnh/thành phố...">
+                <option value="">— Chọn tỉnh/thành phố —</option>
+                @foreach (var province in Model.Provinces)
+                {
+                    <option value="@province.Code">@province.Name</option>
+                }
+            </select>
+            <span asp-validation-for="ProvinceCode" class="text-danger small"></span>
+        </div>
 
-    <div class="col-12 col-md-4">
-        <label asp-for="District" class="form-label"></label>
-        <input asp-for="District" class="form-control" />
-        <span asp-validation-for="District" class="text-danger small"></span>
-    </div>
+        <div class="col-12 col-md-6">
+            <label asp-for="WardCode" class="form-label"></label>
+            @* Danh sách render sẵn từ server theo tỉnh đang chọn, nên mở trang sửa hay mở lại
+               form sau khi validate lỗi vẫn đúng lựa chọn cũ dù JavaScript chưa chạy. *@
+            <select asp-for="WardCode" class="form-select"
+                    data-address-select
+                    data-search-placeholder="Tìm phường/xã..."
+                    data-depends-on="ProvinceCode"
+                    data-wards-url="@(Url.Action("GetWards", "AdministrativeUnits") ?? "/api/dia-gioi/phuong-xa")"
+                    data-empty-option="— Chọn phường/xã —"
+                    data-placeholder-option="— Chọn tỉnh/thành phố trước —">
+                <option value="">@(Model.Wards.Count > 0 ? "— Chọn phường/xã —" : "— Chọn tỉnh/thành phố trước —")</option>
+                @foreach (var ward in Model.Wards)
+                {
+                    <option value="@ward.Code">@ward.Name</option>
+                }
+            </select>
+            <span asp-validation-for="WardCode" class="text-danger small"></span>
+        </div>
+    }
+    else
+    {
+        @* Dataset địa giới hành chính không nạp được — cho nhập tay để vẫn lưu được địa chỉ,
+           thay vì dựng hai selectbox rỗng rồi chặn cả màn hình. *@
+        <div class="col-12">
+            <div class="alert alert-warning mb-0">
+                Hiện chưa tải được danh sách tỉnh/thành và phường/xã.
+                Bạn vui lòng nhập tay hai ô bên dưới.
+            </div>
+        </div>
 
-    <div class="col-12 col-md-4">
-        <label asp-for="Ward" class="form-label"></label>
-        <input asp-for="Ward" class="form-control" />
-        <span asp-validation-for="Ward" class="text-danger small"></span>
-    </div>
+        <div class="col-12 col-md-6">
+            <label asp-for="Province" class="form-label"></label>
+            <input asp-for="Province" class="form-control" autocomplete="address-level1" />
+            <span asp-validation-for="Province" class="text-danger small"></span>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <label asp-for="Ward" class="form-label"></label>
+            <input asp-for="Ward" class="form-control" autocomplete="address-level2" />
+            <span asp-validation-for="Ward" class="text-danger small"></span>
+        </div>
+    }
 
     <div class="col-12">
         <label asp-for="AddressLine" class="form-label"></label>

@@ -38,4 +38,9 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    @if (Model.SelectorsAvailable)
+    {
+        @* Dùng lại đúng bộ selectbox của trang thanh toán (ADDR-02), không có hệ thống thứ hai. *@
+        <script src="~/js/address-select.js" asp-append-version="true"></script>
+    }
 }
