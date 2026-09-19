@@ -43,6 +43,15 @@ namespace ElectronicStore.Controllers;
 [Authorize]
 public class ShippingAddressController : Controller
 {
+    /// <summary>
+    /// Độ dài cột Address.Province / Address.Ward (xem AddressConfiguration). Chỉ dùng cho
+    /// nhánh nhập tay khi dataset địa giới hành chính không nạp được; nhánh chọn từ danh
+    /// sách lấy tên thẳng từ dataset nên luôn nằm trong giới hạn.
+    /// </summary>
+    private const int ProvinceNameMaxLength = 100;
+
+    private const int WardNameMaxLength = 100;
+
     private readonly ApplicationDbContext _db;
     private readonly IAdministrativeUnitService _units;
     private readonly UserManager<ApplicationUser> _userManager;
@@ -430,17 +439,37 @@ public class ShippingAddressController : Controller
             ModelState.Remove(nameof(model.WardCode));
             model.ProvinceCode = string.Empty;
             model.WardCode = string.Empty;
-            model.Province = model.Province.Trim();
-            model.Ward = model.Ward.Trim();
+
+            // Ô để trống được model binder đổi thành null (ConvertEmptyStringToNull), nên
+            // .Trim() phải là ?. — gọi thẳng là NullReferenceException đúng vào trường hợp
+            // người dùng bỏ trống hai ô này. Và vì đây là string không nullable, MVC cũng đã
+            // tự thêm lỗi required mặc định bằng tiếng Anh; gỡ hai entry đó rồi tự kiểm tra
+            // để thông báo thống nhất tiếng Việt, kèm luôn giới hạn độ dài vì [StringLength]
+            // nằm trong chính entry vừa gỡ.
+            model.Province = model.Province?.Trim() ?? string.Empty;
+            model.Ward = model.Ward?.Trim() ?? string.Empty;
+
+            ModelState.Remove(nameof(model.Province));
+            ModelState.Remove(nameof(model.Ward));
 
             if (model.Province.Length == 0)
             {
                 ModelState.AddModelError(nameof(model.Province), "Vui lòng nhập Tỉnh/Thành phố.");
             }
+            else if (model.Province.Length > ProvinceNameMaxLength)
+            {
+                ModelState.AddModelError(nameof(model.Province),
+                    $"Tỉnh/Thành phố tối đa {ProvinceNameMaxLength} ký tự.");
+            }
 
             if (model.Ward.Length == 0)
             {
                 ModelState.AddModelError(nameof(model.Ward), "Vui lòng nhập Phường/Xã.");
+            }
+            else if (model.Ward.Length > WardNameMaxLength)
+            {
+                ModelState.AddModelError(nameof(model.Ward),
+                    $"Phường/Xã tối đa {WardNameMaxLength} ký tự.");
             }
 
             return;

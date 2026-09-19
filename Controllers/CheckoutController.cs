@@ -24,6 +24,15 @@ namespace ElectronicStore.Controllers;
 [Authorize]
 public class CheckoutController : Controller
 {
+    /// <summary>
+    /// Độ dài cột Address.Province / Address.Ward (xem AddressConfiguration). Chỉ dùng cho
+    /// nhánh nhập tay khi dataset địa giới hành chính không nạp được; nhánh chọn từ danh
+    /// sách lấy tên thẳng từ dataset nên luôn nằm trong giới hạn.
+    /// </summary>
+    private const int ProvinceNameMaxLength = 100;
+
+    private const int WardNameMaxLength = 100;
+
     private readonly ICartService _cart;
     private readonly IOrderService _orders;
     private readonly IAdministrativeUnitService _units;
@@ -165,8 +174,15 @@ public class CheckoutController : Controller
             // sửa sổ địa chỉ sau này cũng không làm đổi đơn cũ. Ba field dưới chỉ được service
             // dùng khi AddressId là null (luồng nhập tay).
             AddressId = model.SelectedAddressId,
-            ShippingFullName = model.FullName.Trim(),
-            ShippingPhone = model.Phone.Trim(),
+
+            // Phải là ?. : khi khách chọn địa chỉ trong sổ, các input của form "địa chỉ mới"
+            // vẫn nằm trong DOM (chỉ bị ẩn bằng d-none) nên trình duyệt vẫn gửi lên chuỗi
+            // rỗng, và model binder đổi chuỗi rỗng thành null. Lỗi [Required] tương ứng đã
+            // được RemoveNewAddressValidationErrors gỡ nên ModelState hợp lệ — gọi thẳng
+            // .Trim() ở đây là NullReferenceException, tức 500 cho cả luồng đặt hàng bằng
+            // địa chỉ đã lưu.
+            ShippingFullName = model.FullName?.Trim(),
+            ShippingPhone = model.Phone?.Trim(),
             ShippingAddress = model.BuildShippingAddress(),
             Note = model.Note,
 
@@ -262,17 +278,37 @@ public class CheckoutController : Controller
             ModelState.Remove(nameof(model.WardCode));
             model.ProvinceCode = string.Empty;
             model.WardCode = string.Empty;
-            model.Province = model.Province.Trim();
-            model.Ward = model.Ward.Trim();
+
+            // Ô để trống được model binder đổi thành null (ConvertEmptyStringToNull), nên
+            // .Trim() phải là ?. — gọi thẳng là NullReferenceException đúng vào trường hợp
+            // người dùng bỏ trống hai ô này. Và vì đây là string không nullable, MVC cũng đã
+            // tự thêm lỗi required mặc định bằng tiếng Anh; gỡ hai entry đó rồi tự kiểm tra
+            // để thông báo thống nhất tiếng Việt, kèm luôn giới hạn độ dài vì [StringLength]
+            // nằm trong chính entry vừa gỡ.
+            model.Province = model.Province?.Trim() ?? string.Empty;
+            model.Ward = model.Ward?.Trim() ?? string.Empty;
+
+            ModelState.Remove(nameof(model.Province));
+            ModelState.Remove(nameof(model.Ward));
 
             if (model.Province.Length == 0)
             {
                 ModelState.AddModelError(nameof(model.Province), "Vui lòng nhập tỉnh/thành phố.");
             }
+            else if (model.Province.Length > ProvinceNameMaxLength)
+            {
+                ModelState.AddModelError(nameof(model.Province),
+                    $"Tỉnh/thành phố tối đa {ProvinceNameMaxLength} ký tự.");
+            }
 
             if (model.Ward.Length == 0)
             {
                 ModelState.AddModelError(nameof(model.Ward), "Vui lòng nhập phường/xã.");
+            }
+            else if (model.Ward.Length > WardNameMaxLength)
+            {
+                ModelState.AddModelError(nameof(model.Ward),
+                    $"Phường/xã tối đa {WardNameMaxLength} ký tự.");
             }
 
             return;
