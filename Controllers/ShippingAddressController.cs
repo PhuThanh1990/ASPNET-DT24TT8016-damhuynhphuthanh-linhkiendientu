@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using ElectronicStore.Data;
 using ElectronicStore.Models;
 using ElectronicStore.Models.ViewModels;
+using ElectronicStore.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,12 @@ namespace ElectronicStore.Controllers;
 /// chỉ nhận về 404 chứ không chạm được địa chỉ của người khác.
 /// </para>
 /// <para>
+/// FINAL-ADDR: phần Tỉnh/Thành phố và Phường/Xã dùng chung cơ chế ADDR-02 với trang thanh
+/// toán — form chỉ gửi lên mã, controller tra tên từ <see cref="IAdministrativeUnitService"/>
+/// rồi lưu cả mã lẫn tên. Cấp Quận/Huyện không còn trong luồng nhập mới (cơ cấu hành chính
+/// 2 cấp từ 01/07/2025).
+/// </para>
+/// <para>
 /// Quy tắc "mỗi tài khoản nhiều nhất một địa chỉ mặc định" được database ép bằng filtered
 /// unique index <c>UX_Addresses_UserId_Default</c>. Vì vậy mọi thao tác đổi cờ mặc định đều
 /// chạy trong một transaction và bỏ cờ cũ TRƯỚC khi gắn cờ mới, dùng
@@ -37,11 +44,16 @@ namespace ElectronicStore.Controllers;
 public class ShippingAddressController : Controller
 {
     private readonly ApplicationDbContext _db;
+    private readonly IAdministrativeUnitService _units;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public ShippingAddressController(ApplicationDbContext db, UserManager<ApplicationUser> userManager)
+    public ShippingAddressController(
+        ApplicationDbContext db,
+        IAdministrativeUnitService units,
+        UserManager<ApplicationUser> userManager)
     {
         _db = db;
+        _units = units;
         _userManager = userManager;
     }
 
@@ -84,7 +96,10 @@ public class ShippingAddressController : Controller
         var isFirst = !await OwnedBy(userId).AnyAsync(cancellationToken);
 
         // Địa chỉ đầu tiên bắt buộc là mặc định nên tick sẵn và khóa ô lại.
-        return View(new AddressFormViewModel { IsFirstAddress = isFirst, IsDefault = isFirst });
+        var model = new AddressFormViewModel { IsFirstAddress = isFirst, IsDefault = isFirst };
+        FillSelectors(model);
+
+        return View(model);
     }
 
     // POST /ShippingAddress/Create
@@ -101,8 +116,13 @@ public class ShippingAddressController : Controller
         var isFirst = !await OwnedBy(userId).AnyAsync(cancellationToken);
         model.IsFirstAddress = isFirst;
 
+        // Phải chạy TRƯỚC khi xét ModelState: hàm này vừa gỡ vừa thêm lỗi tùy theo dataset
+        // có nạp được hay không.
+        ResolveAdministrativeUnits(model);
+
         if (!ModelState.IsValid)
         {
+            FillSelectors(model);
             return View(model);
         }
 
@@ -122,9 +142,14 @@ public class ShippingAddressController : Controller
             UserId = userId,
             FullName = model.FullName.Trim(),
             PhoneNumber = NormalizePhone(model.PhoneNumber),
-            Province = model.Province.Trim(),
-            District = model.District.Trim(),
-            Ward = model.Ward.Trim(),
+            Province = model.Province,
+            ProvinceCode = model.ProvinceCode,
+            Ward = model.Ward,
+            WardCode = model.WardCode,
+
+            // Địa chỉ mới luôn theo cơ cấu 2 cấp nên không có quận/huyện. Cột nullable nên
+            // để null thay vì chuỗi rỗng, và FullAddress tự bỏ qua phần này.
+            District = null,
             AddressLine = model.AddressLine.Trim(),
             IsDefault = makeDefault,
             CreatedAt = DateTime.UtcNow
@@ -154,18 +179,27 @@ public class ShippingAddressController : Controller
             return NotFound();
         }
 
-        return View(new AddressFormViewModel
+        var model = new AddressFormViewModel
         {
             Id = address.Id,
             FullName = address.FullName,
             PhoneNumber = address.PhoneNumber,
             Province = address.Province,
-            District = address.District ?? string.Empty,
+            ProvinceCode = address.ProvinceCode,
             Ward = address.Ward,
+            WardCode = address.WardCode,
+            District = address.District,
             AddressLine = address.AddressLine,
             IsDefault = address.IsDefault,
-            IsCurrentDefault = address.IsDefault
-        });
+            IsCurrentDefault = address.IsDefault,
+            LegacyLocation = DescribeLegacyLocation(address)
+        };
+
+        // FillSelectors nạp phường/xã theo ProvinceCode đang có, nên select thứ hai đã sẵn
+        // đúng lựa chọn cũ ngay lần render đầu, không phải chờ JavaScript gọi API.
+        FillSelectors(model);
+
+        return View(model);
     }
 
     // POST /ShippingAddress/Edit/5
@@ -196,9 +230,13 @@ public class ShippingAddressController : Controller
         }
 
         model.IsCurrentDefault = address.IsDefault;
+        model.LegacyLocation = DescribeLegacyLocation(address);
+
+        ResolveAdministrativeUnits(model);
 
         if (!ModelState.IsValid)
         {
+            FillSelectors(model);
             return View(model);
         }
 
@@ -215,9 +253,20 @@ public class ShippingAddressController : Controller
 
         address.FullName = model.FullName.Trim();
         address.PhoneNumber = NormalizePhone(model.PhoneNumber);
-        address.Province = model.Province.Trim();
-        address.District = model.District.Trim();
-        address.Ward = model.Ward.Trim();
+        address.Province = model.Province;
+        address.ProvinceCode = model.ProvinceCode;
+        address.Ward = model.Ward;
+        address.WardCode = model.WardCode;
+
+        // Chọn lại được tỉnh/phường nghĩa là địa chỉ đã chuyển sang cơ cấu 2 cấp: quận/huyện
+        // cũ không còn ứng với phường/xã vừa chọn nên phải bỏ, nếu giữ thì FullAddress sẽ
+        // ghép ra một địa chỉ không có thật. Ở nhánh nhập tay (dataset hỏng) thì không đụng
+        // tới cột này vì người dùng chưa chọn lại gì.
+        if (_units.IsAvailable)
+        {
+            address.District = null;
+        }
+
         address.AddressLine = model.AddressLine.Trim();
         address.IsDefault = makeDefault;
         address.UpdatedAt = DateTime.UtcNow;
@@ -342,6 +391,112 @@ public class ShippingAddressController : Controller
 
         SetMessage("success", "Đã đặt địa chỉ mặc định.");
         return RedirectToAction(nameof(Index));
+    }
+
+    /// <summary>
+    /// FINAL-ADDR — đổ dữ liệu cho hai selectbox Tỉnh/Thành phố và Phường/Xã.
+    /// </summary>
+    /// <remarks>
+    /// Phường/xã render sẵn theo tỉnh đang chọn để khi mở lại form (sửa địa chỉ cũ hoặc vừa
+    /// lỗi validate) lựa chọn cũ vẫn còn dù JavaScript chưa chạy. Giống hệt
+    /// <c>CheckoutController.Fill</c> nên hai màn hình luôn hiển thị cùng một danh sách.
+    /// </remarks>
+    private void FillSelectors(AddressFormViewModel model)
+    {
+        model.SelectorsAvailable = _units.IsAvailable;
+        model.Provinces = _units.GetProvinces();
+        model.Wards = _units.GetWards(model.ProvinceCode);
+    }
+
+    /// <summary>
+    /// FINAL-ADDR — đổi <c>ProvinceCode</c>/<c>WardCode</c> thành tên và kiểm tra hợp lệ.
+    /// </summary>
+    /// <remarks>
+    /// Tên tỉnh/phường LUÔN lấy từ dataset chứ không lấy từ form: người dùng có thể sửa
+    /// <c>&lt;option&gt;</c> hay thêm <c>&lt;input name="Province"&gt;</c> trong DevTools,
+    /// nhưng tên ghi vào database vẫn là tên thật ứng với mã. Hàm cũng kiểm tra phường/xã có
+    /// đúng thuộc tỉnh đã chọn hay không, vì ghép hai mã có thật của hai tỉnh khác nhau sẽ
+    /// ra một địa chỉ không tồn tại.
+    ///
+    /// Khi dataset không nạp được thì form đã đổi sang ô nhập chữ, nên ở đây bỏ ràng buộc
+    /// theo mã và quay lại kiểm tra hai ô tên — mất file JSON không được làm website mất
+    /// luôn khả năng thêm địa chỉ.
+    /// </remarks>
+    private void ResolveAdministrativeUnits(AddressFormViewModel model)
+    {
+        if (!_units.IsAvailable)
+        {
+            ModelState.Remove(nameof(model.ProvinceCode));
+            ModelState.Remove(nameof(model.WardCode));
+            model.ProvinceCode = string.Empty;
+            model.WardCode = string.Empty;
+            model.Province = model.Province.Trim();
+            model.Ward = model.Ward.Trim();
+
+            if (model.Province.Length == 0)
+            {
+                ModelState.AddModelError(nameof(model.Province), "Vui lòng nhập Tỉnh/Thành phố.");
+            }
+
+            if (model.Ward.Length == 0)
+            {
+                ModelState.AddModelError(nameof(model.Ward), "Vui lòng nhập Phường/Xã.");
+            }
+
+            return;
+        }
+
+        // Hai ô này không có trong form ở chế độ selectbox. Client vẫn post kèm được, nên gỡ
+        // cả giá trị lẫn lỗi validate của chúng trước khi tự tra tên — không thì một
+        // "Province" dài 500 ký tự do client bịa ra sẽ chặn form vì một field vô hình.
+        ModelState.Remove(nameof(model.Province));
+        ModelState.Remove(nameof(model.Ward));
+        model.Province = string.Empty;
+        model.Ward = string.Empty;
+
+        var province = _units.FindProvince(model.ProvinceCode);
+        if (province is null)
+        {
+            // Bỏ trống thì [Required] đã báo rồi, ở đây chỉ báo trường hợp gửi mã lạ.
+            if (!string.IsNullOrWhiteSpace(model.ProvinceCode))
+            {
+                ModelState.AddModelError(nameof(model.ProvinceCode), "Tỉnh/Thành phố không hợp lệ.");
+            }
+
+            return;
+        }
+
+        model.Province = province.Name;
+
+        var ward = _units.FindWard(model.ProvinceCode, model.WardCode);
+        if (ward is null)
+        {
+            if (!string.IsNullOrWhiteSpace(model.WardCode))
+            {
+                ModelState.AddModelError(nameof(model.WardCode),
+                    "Phường/Xã không hợp lệ hoặc không thuộc Tỉnh/Thành phố đã chọn.");
+            }
+
+            return;
+        }
+
+        model.Ward = ward.Name;
+    }
+
+    /// <summary>
+    /// Địa chỉ ghi trước ADDR-02 chưa có mã tỉnh/phường: trả về phần địa giới cũ dưới dạng
+    /// một dòng chữ để form hiện lại cho người dùng đối chiếu trước khi chọn lại. Địa chỉ đã
+    /// có mã thì trả về chuỗi rỗng.
+    /// </summary>
+    private static string DescribeLegacyLocation(Address address)
+    {
+        if (!string.IsNullOrWhiteSpace(address.ProvinceCode) && !string.IsNullOrWhiteSpace(address.WardCode))
+        {
+            return string.Empty;
+        }
+
+        return string.Join(", ", new[] { address.Ward, address.District, address.Province }
+            .Where(part => !string.IsNullOrWhiteSpace(part)));
     }
 
     private static AddressListItemViewModel ToListItem(Address address) => new()
