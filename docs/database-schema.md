@@ -10,12 +10,20 @@ Tài liệu thiết kế database cho website bán linh kiện điện tử.
 > | `Categories`, `Brands` | CORE-06 | ✅ đã triển khai |
 > | `Products`, `ProductImages` | CORE-07 | ✅ đã triển khai |
 > | `AspNetUsers` + các bảng Identity | CORE-08 | ✅ đã triển khai |
-> | `Addresses` | CORE-14 | ✅ đã triển khai |
+> | `Addresses` | CORE-14, ADDR-01 → FINAL-ADDR | ✅ đã triển khai |
 > | `Orders`, `OrderDetails` | CORE-15 | ✅ đã triển khai |
-> | `Reviews` | CORE-16+ | ⏳ chưa làm |
 >
-> Migration: `*_AddCatalogModels.cs` (catalog) và `*_AddIdentityAndOrderFoundation.cs`
-> (Identity + Address + Order).
+> Toàn bộ 8 bảng nghiệp vụ ở trên (cộng các bảng Identity) là **tất cả** những gì database
+> hiện có. Không có bảng `ShippingAddresses` riêng: sổ địa chỉ và checkout dùng chung đúng
+> một entity `Address` (xem mục 8). Các bảng ghi ở mục 11 và 13 **chưa được triển khai**.
+>
+> Migration (đúng thứ tự, xem `Migrations/`):
+>
+> | # | Migration | Nội dung |
+> | --- | --- | --- |
+> | 1 | `AddCatalogModels` | `Categories`, `Brands`, `Products`, `ProductImages` |
+> | 2 | `AddIdentityAndOrderFoundation` | Các bảng Identity + `Addresses`, `Orders`, `OrderDetails` |
+> | 3 | `AddAdministrativeUnitCodesToAddress` | `Addresses`: thêm `ProvinceCode`, `WardCode`; `District` thành `NULL` |
 
 - **DBMS:** SQL Server
 - **ORM:** Entity Framework Core 10 (Code First + Migrations)
@@ -47,13 +55,11 @@ Tài liệu thiết kế database cho website bán linh kiện điện tử.
 erDiagram
     ApplicationUser ||--o{ Address     : "có"
     ApplicationUser ||--o{ Order       : "đặt"
-    ApplicationUser ||--o{ Review      : "viết"
     Category        ||--o{ Product     : "chứa"
     Category        ||--o{ Category    : "danh mục con"
     Brand           ||--o{ Product     : "sản xuất"
     Product         ||--o{ ProductImage: "có"
     Product         ||--o{ OrderDetail : "được bán trong"
-    Product         ||--o{ Review      : "được đánh giá"
     Order           ||--o{ OrderDetail : "gồm"
     Address         |o--o{ Order       : "tham chiếu (snapshot)"
 ```
@@ -70,8 +76,7 @@ Tóm tắt quan hệ:
 | User 1 → N Order | 1-N | Lịch sử đơn hàng |
 | Order 1 → N OrderDetail | 1-N | Dòng hàng trong đơn |
 | Product 1 → N OrderDetail | 1-N | Chỉ để truy vết, dữ liệu hiển thị đã snapshot |
-| User 1 → N Review | 1-N | |
-| Product 1 → N Review | 1-N | 1 user chỉ review 1 lần / 1 sản phẩm |
+| Address 0..1 → N Order | 1-N tùy chọn | `Order.AddressId` chỉ để truy vết; `SET NULL` khi khách xóa địa chỉ |
 
 ---
 
@@ -279,7 +284,9 @@ Một sản phẩm có nhiều ảnh (gallery ở trang chi tiết).
 
 ## 8. Address
 
-Sổ địa chỉ giao hàng của khách.
+Sổ địa chỉ giao hàng của khách. **Đây là entity địa chỉ duy nhất của hệ thống** — sổ địa chỉ
+(`/ShippingAddress`), trang checkout và `OrderService` đều đọc/ghi cùng bảng `Addresses` này.
+Không tồn tại bảng `ShippingAddresses` nào khác.
 
 **PK:** `Id` — `int IDENTITY`
 
@@ -288,23 +295,51 @@ Sổ địa chỉ giao hàng của khách.
 | `Id` | `int` | ✅ | PK |
 | `UserId` | `nvarchar(450)` | ✅ | **FK → AspNetUsers.Id** |
 | `FullName` | `nvarchar(100)` | ✅ | Người nhận (có thể khác chủ tài khoản) |
-| `PhoneNumber` | `nvarchar(20)` | ✅ | |
+| `PhoneNumber` | `nvarchar(20)` | ✅ | Đã chuẩn hóa: chỉ còn chữ số |
 | `AddressLine` | `nvarchar(255)` | ✅ | Số nhà, tên đường |
-| `Ward` | `nvarchar(100)` | ✅ | Phường / Xã |
-| `District` | `nvarchar(100)` | ✅ | Quận / Huyện |
-| `Province` | `nvarchar(100)` | ✅ | Tỉnh / Thành phố |
+| `Ward` | `nvarchar(100)` | ✅ | **Tên** Phường / Xã, vd `Phường Ba Đình` |
+| `WardCode` | `nvarchar(10)` | ✅ | Mã phường/xã của Tổng cục Thống kê, vd `00004`. `DEFAULT ''` |
+| `District` | `nvarchar(100)` | ❌ | **NULL** — cấp Quận/Huyện đã bỏ từ 01/07/2025, xem 8.1 |
+| `Province` | `nvarchar(100)` | ✅ | **Tên** Tỉnh / Thành phố, vd `Thành phố Hà Nội` |
+| `ProvinceCode` | `nvarchar(10)` | ✅ | Mã tỉnh/thành của Tổng cục Thống kê, vd `01`. `DEFAULT ''` |
 | `IsDefault` | `bit` | ✅ | Mặc định `0`. Địa chỉ chọn sẵn khi checkout |
 | `CreatedAt` | `datetime2` | ✅ | |
 | `UpdatedAt` | `datetime2` | ❌ | |
 
-**Khóa ngoại:** `UserId → AspNetUsers.Id`, `ON DELETE CASCADE`.
+**Khóa ngoại:** `UserId → AspNetUsers.Id`, `ON DELETE CASCADE` — sổ địa chỉ thuộc về đúng một
+tài khoản. Đơn hàng cũ **không** mất vì đã snapshot địa chỉ (xem mục 9.1).
 
 **Index:**
-- `INDEX (UserId)`
-- `UNIQUE INDEX (UserId) WHERE IsDefault = 1` — mỗi user chỉ có 1 địa chỉ mặc định
+- `INDEX (UserId)` — nạp sổ địa chỉ của một khách
+- `INDEX (ProvinceCode)` — lọc / đối soát theo đơn vị hành chính
+- `UNIQUE INDEX UX_Addresses_UserId_Default (UserId) WHERE IsDefault = 1` — mỗi user chỉ có
+  **tối đa 1** địa chỉ mặc định; đây là ràng buộc do DB ép, không chỉ do code
 
-> Entity có thêm property `FullAddress` ghép 4 phần địa chỉ thành 1 dòng. Đây **không phải
-> cột** (`builder.Ignore`), chỉ để checkout copy sang `Order.ShippingAddress`.
+> Entity có thêm property `FullAddress` ghép `AddressLine, Ward, District, Province` thành 1
+> dòng, **bỏ qua phần rỗng/NULL**. Đây **không phải cột** (`builder.Ignore`), chỉ để checkout
+> copy sang `Order.ShippingAddress`.
+
+### 8.1. Lưu cả mã và tên đơn vị hành chính (ADDR-02 → FINAL-ADDR)
+
+Form nhập địa chỉ ở **cả** sổ địa chỉ và trang checkout dùng hai selectbox
+Tỉnh/Thành phố → Phường/Xã, dữ liệu đọc từ file JSON kèm repo
+(`Data/AdministrativeUnits/`, nạp một lần qua `IAdministrativeUnitService`).
+
+Hai quyết định thiết kế:
+
+1. **Lưu cả mã lẫn tên.** Form chỉ post lên `ProvinceCode`/`WardCode`; controller tra tên
+   thật từ dataset rồi ghi cả 4 cột. Tên được lưu kèm vì một bản cập nhật dataset về sau có
+   thể đổi tên hoặc sáp nhập đơn vị — địa chỉ khách đã lưu phải đọc lên đúng như lúc họ nhập.
+   Tên **không bao giờ** lấy từ form, nên sửa `<option>` trong DevTools không ghi được tên giả
+   vào database. Controller cũng kiểm tra phường/xã có đúng thuộc tỉnh đã chọn.
+2. **`District` nullable.** Từ 01/07/2025 Việt Nam áp dụng cơ cấu hành chính 2 cấp
+   (Tỉnh → Phường/Xã), không còn cấp Quận/Huyện. Cột được giữ lại và đổi thành `NULL` thay vì
+   xóa, để các dòng ghi trước mốc đó không mất dữ liệu và để còn map được với API vận chuyển
+   nào vẫn đòi quận/huyện. Luồng nhập mới không ghi cột này nữa.
+
+`ProvinceCode`/`WardCode` để `DEFAULT ''` (không `NOT NULL` nội dung bắt buộc) vì các dòng tạo
+trước ADDR-02 chưa có mã; chuỗi rỗng nghĩa là *"địa chỉ nhập tay kiểu cũ"*, và form sửa địa chỉ
+sẽ hiện phần địa giới cũ để khách chọn lại.
 
 ---
 
@@ -440,7 +475,12 @@ Dòng hàng trong đơn. **Đây là bản ghi lịch sử — sau khi tạo th�
 
 ---
 
-## 11. Review
+## 11. Review — ⏳ CHƯA TRIỂN KHAI
+
+> ⚠️ **Không có bảng `Reviews` trong database hiện tại** và không có entity `Review` trong
+> `Models/`. Mục này chỉ là bản thiết kế dự phòng, giữ lại để sau này không phải thiết kế
+> lại — **không dùng để vẽ ERD hay mô tả database trong báo cáo.** Danh sách bảng thật là 8
+> bảng nghiệp vụ liệt kê ở đầu tài liệu.
 
 **PK:** `Id` — `int IDENTITY`
 
@@ -524,7 +564,9 @@ Tạo entity theo đúng thứ tự phụ thuộc để migration không bị l�
 5. ✅ `Address` (phụ thuộc User) — CORE-14
 6. ✅ `Order` (phụ thuộc User, Address) — CORE-15
 7. ✅ `OrderDetail` (phụ thuộc Order, Product) — CORE-15
-8. `Review` (phụ thuộc Product, User) — CORE-16+
+
+Bước 8 trong bản thiết kế ban đầu (`Review`, phụ thuộc Product + User) **không nằm trong phạm
+vi đồ án** và chưa được triển khai — xem mục 11.
 
 Mỗi entity nên có 1 file cấu hình riêng dạng `IEntityTypeConfiguration<T>` trong
 `Data/Configurations/` — `ApplicationDbContext.OnModelCreating` đã gọi sẵn
