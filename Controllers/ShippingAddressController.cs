@@ -18,8 +18,9 @@ namespace ElectronicStore.Controllers;
 /// <para>
 /// Dữ liệu bên dưới là entity <see cref="Address"/> có sẵn của project — cùng bảng
 /// <c>Addresses</c> mà <c>Order.AddressId</c>, <c>OrderService</c> và luồng checkout đang
-/// dùng. Cố ý không tạo model địa chỉ thứ hai, để địa chỉ khách lưu ở màn hình này dùng
-/// được ngay khi ADDR-03 nối vào trang thanh toán.
+/// dùng. Cố ý không tạo model địa chỉ thứ hai, nhờ vậy ADDR-03 nối được thẳng sổ địa chỉ này
+/// vào trang thanh toán: khách chọn một địa chỉ đã lưu và <c>OrderService</c> tự chụp lại
+/// thông tin giao hàng vào đơn.
 /// </para>
 /// <para>
 /// Chống IDOR: không action nào nhận <c>UserId</c> từ URL hay từ form. Id tài khoản lấy từ

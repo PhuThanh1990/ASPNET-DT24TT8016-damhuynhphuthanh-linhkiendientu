@@ -11,7 +11,7 @@ Website thương mại điện tử bán **linh kiện điện tử**, xây dự
 | Entity Framework Core | 10.0.12 (provider SQL Server) |
 | ASP.NET Core Identity | 10.0.12 |
 | Database | SQL Server |
-| Frontend | Bootstrap 5 + JavaScript |
+| Frontend | Bootstrap 5 + Tabler UI (Admin) + JavaScript thuần (không framework SPA) |
 
 ## Yêu cầu môi trường
 
@@ -89,22 +89,30 @@ Mặc định ứng dụng chạy tại `https://localhost:7036` và `http://loc
 
 ```
 ├── Areas/Admin/                 # Khu vực Admin (chỉ role Admin truy cập được)
-├── Controllers/                 # MVC controllers
+│   ├── Controllers/             # Dashboard, Category, Brand, Product, Order
+│   ├── Models/                  # ViewModel riêng của Admin
+│   ├── Services/                # DashboardService (báo cáo), ProductImageStorage (upload)
+│   └── Views/                   # Razor views + _AdminLayout (Tabler UI)
+├── Controllers/                 # MVC controllers phía khách hàng
+│   └── Api/                     # API nội bộ: /api/dia-gioi (tỉnh/thành, phường/xã)
 ├── Data/
 │   ├── ApplicationDbContext.cs  # EF Core DbContext (IdentityDbContext)
 │   ├── DbInitializer.cs         # Migrate + seed role, admin, catalog
 │   ├── CatalogSeedData.cs       # Dữ liệu catalog mẫu
+│   ├── AdministrativeUnits/     # Dataset địa giới hành chính VN (JSON, kèm repo)
 │   └── Configurations/          # Fluent API config cho từng entity
-├── Helpers/                     # Helper hiển thị (định dạng giá, ảnh mặc định)
+├── Helpers/                     # Helper hiển thị (giá, ảnh), Session, giỏ hàng, parse spec
 ├── Migrations/                  # EF Core migrations
 ├── Models/                      # Entities + enum + quy tắc chuyển trạng thái đơn
 │   └── ViewModels/              # ViewModel cho form và cho trang khách hàng
-├── Services/                    # Nghiệp vụ dùng chung (OrderService)
-├── ViewComponents/              # View component (menu danh mục ở navbar)
-├── Views/                       # Razor views
+├── Services/                    # Nghiệp vụ dùng chung: OrderService, CartService,
+│                                #   AdministrativeUnitService
+├── ViewComponents/              # View component (menu danh mục, badge giỏ hàng ở navbar)
+├── Views/                       # Razor views phía khách hàng
 ├── wwwroot/                     # CSS, JS, ảnh, thư viện client
 ├── docs/
-│   └── database-schema.md       # Thiết kế database của toàn hệ thống
+│   ├── database-schema.md       # Thiết kế database của toàn hệ thống
+│   └── design-system.md         # Design system (màu, typography, component)
 ├── Program.cs                   # Entry point + đăng ký DI
 ├── appsettings.json             # Cấu hình chung (KHÔNG chứa secret)
 ├── appsettings.Development.json # Cấu hình môi trường Development
@@ -161,10 +169,11 @@ dotnet tool restore
 
 Migration hiện có:
 
-| Migration | Nội dung |
-| --- | --- |
-| `AddCatalogModels` | Tạo 4 bảng `Categories`, `Brands`, `Products`, `ProductImages` |
-| `AddIdentityAndOrderFoundation` | Tạo các bảng Identity (`AspNetUsers`, `AspNetRoles`, ...) và `Addresses`, `Orders`, `OrderDetails` |
+| # | Migration | Nội dung |
+| --- | --- | --- |
+| 1 | `AddCatalogModels` | Tạo 4 bảng `Categories`, `Brands`, `Products`, `ProductImages` |
+| 2 | `AddIdentityAndOrderFoundation` | Tạo các bảng Identity (`AspNetUsers`, `AspNetRoles`, ...) và `Addresses`, `Orders`, `OrderDetails` |
+| 3 | `AddAdministrativeUnitCodesToAddress` | `Addresses`: thêm `ProvinceCode` / `WardCode`, đổi `District` thành nullable (cơ cấu hành chính 2 cấp từ 01/07/2025) |
 
 Áp dụng lên database local (chỉ chạy khi đã cấu hình connection string ở trên):
 
@@ -196,6 +205,9 @@ dotnet ef migrations script -o out.sql    # xem SQL sinh ra mà không cần dat
 | `/dat-hang-thanh-cong/{id}` | `Checkout/Success` | Xác nhận đặt hàng — chỉ chủ đơn xem được |
 | `/don-hang` | `Order/Index` | Đơn hàng của tôi — cần đăng nhập |
 | `/don-hang/{id}` | `Order/Details` | Chi tiết đơn — chỉ chủ đơn xem được |
+| `/ShippingAddress` | `ShippingAddress/Index` | Sổ địa chỉ giao hàng — cần đăng nhập |
+| `/Account/Register`, `/Account/Login` | `Account/*` | Đăng ký / đăng nhập |
+| `/api/dia-gioi/tinh-thanh`, `/api/dia-gioi/phuong-xa?provinceCode=` | `Api/AdministrativeUnits` | API nội bộ đổ selectbox địa chỉ |
 
 Danh sách sản phẩm nhận các tham số query string, kết hợp được với nhau và luôn được giữ
 lại trên link phân trang:
@@ -212,9 +224,38 @@ Sai đường dẫn hoặc slug không tồn tại sẽ trả về trang 404 `Ho
 Giá trị `category` / `brand` / `sort` / `page` không hợp lệ thì trang vẫn hiển thị bình
 thường (0 kết quả hoặc quay về giá trị mặc định), không báo lỗi.
 
+## Chức năng phía khách hàng (Customer)
+
+| Nhóm | Chức năng |
+| --- | --- |
+| Tài khoản | Đăng ký (luôn nhận role `Customer`), đăng nhập, đăng xuất; khóa tài khoản sau 5 lần sai mật khẩu trong 15 phút |
+| Catalog | Trang chủ (danh mục, sản phẩm nổi bật, mới nhất); danh sách sản phẩm; chi tiết sản phẩm kèm thông số kỹ thuật dạng JSON |
+| Tìm & lọc | Tìm theo tên / SKU / thương hiệu; lọc theo danh mục và thương hiệu; sắp xếp theo giá và ngày; phân trang server-side |
+| Giỏ hàng | Thêm vào giỏ, sửa số lượng, xóa dòng, xóa giỏ; giỏ lưu trong Session; badge số lượng trên navbar; tự điều chỉnh và cảnh báo khi giá hoặc tồn kho đã đổi |
+| Sổ địa chỉ | Thêm / sửa / xóa địa chỉ, đặt địa chỉ mặc định; chọn Tỉnh/Thành phố → Phường/Xã bằng selectbox |
+| Đặt hàng | Checkout bằng địa chỉ đã lưu hoặc nhập địa chỉ mới; phí ship và tổng tiền do server tính; trang đặt hàng thành công |
+| Đơn hàng | Danh sách đơn của tôi (phân trang, lọc trạng thái), chi tiết đơn kèm thanh tiến trình trạng thái, tự hủy đơn khi còn `Pending` |
+
+## Chức năng phía quản trị (Admin)
+
+Toàn bộ nằm trong `Areas/Admin`, **bắt buộc role `Admin`** (`AdminControllerBase`).
+
+| Module | URL | Chức năng |
+| --- | --- | --- |
+| Dashboard | `/Admin/Home` | KPI (số đơn, đơn chờ / hoàn tất / đã hủy, doanh thu, sản phẩm, sản phẩm hết hàng, số khách); biểu đồ doanh thu 7 / 30 / 90 ngày; sản phẩm bán chạy; đơn mới nhất |
+| Danh mục | `/Admin/Category` | Danh sách, thêm, sửa, xóa; danh mục cha/con; tự sinh slug |
+| Thương hiệu | `/Admin/Brand` | Danh sách, thêm, sửa, xóa; tự sinh slug |
+| Sản phẩm | `/Admin/Product` | Danh sách, thêm, sửa, xóa; bật/tắt bán (`IsActive`); điều chỉnh tồn kho |
+| Ảnh sản phẩm | `/Admin/Product/Images/{id}` | Upload ảnh (kiểm tra đuôi, content-type và **magic bytes**, tối đa 2MB), đặt ảnh đại diện, xóa ảnh |
+| Đơn hàng | `/Admin/Order` | Danh sách kèm badge đếm theo trạng thái, lọc theo trạng thái, chi tiết đơn; chuyển trạng thái theo đúng state machine; hủy đơn và **hoàn trả tồn kho** |
+
+Doanh thu chỉ tính trên đơn `Completed`. Mọi thay đổi trạng thái đơn và tồn kho đều đi qua
+`Services/OrderService.cs`; Admin **không** có state machine riêng.
+
 ## Tài liệu
 
 - [Thiết kế database](docs/database-schema.md) — bảng, khóa, quan hệ, index. **Đọc file này trước khi tạo entity.**
+- [Design system](docs/design-system.md) — màu, typography, component dùng chung.
 
 ## Tiến độ
 
@@ -238,7 +279,7 @@ thường (0 kết quả hoặc quay về giá trị mặc định), không báo
 | CORE-16 | `OrderService` | ✅ |
 | CORE-17 | Validate tồn kho khi đặt hàng | ✅ |
 | CORE-18 | Order status workflow + hủy đơn | ✅ |
-| CORE-19+ | Cart, Checkout, Admin Order... | ⏳ Chưa làm |
+| CORE-20 | Chặn tài khoản bị khóa (`IsActive = 0`) ngay ở request kế tiếp | ✅ |
 | CUS-01 | Customer Layout | ✅ |
 | CUS-02 | Navbar & Footer responsive | ✅ |
 | CUS-03 | Home Page | ✅ |
@@ -259,4 +300,15 @@ thường (0 kết quả hoặc quay về giá trị mặc định), không báo
 | CUS-18 | Order Success + clear Cart | ✅ |
 | CUS-19 | My Orders, Order Detail, hủy đơn | ✅ |
 | CUS-20 | Responsive, UI polish, test customer flow | ✅ |
-| CUS-21+ | Thanh toán online (VNPay), đánh giá sản phẩm... | ⏳ Chưa làm |
+| ADM-04 → ADM-13 | Admin layout, CRUD Category / Brand / Product, upload ảnh | ✅ |
+| ADM-14 | Danh sách đơn hàng + lọc theo trạng thái | ✅ |
+| ADM-15 | Chi tiết đơn hàng | ✅ |
+| ADM-16 | Chuyển trạng thái đơn + hủy đơn (hoàn kho) | ✅ |
+| ADM-17 → ADM-20 | Dashboard: KPI, biểu đồ doanh thu, bán chạy, đơn mới | ✅ |
+| UI-00 → UI-08 | Design system, Tabler UI, redesign storefront + admin, responsive | ✅ |
+| ADDR-01 | Sổ địa chỉ CRUD trên entity `Address` có sẵn | ✅ |
+| ADDR-02 | Selectbox Tỉnh/Thành phố → Phường/Xã (cơ cấu 2 cấp) | ✅ |
+| ADDR-03 | Checkout dùng địa chỉ đã lưu | ✅ |
+| FINAL-ADDR | Thống nhất sổ địa chỉ và checkout dùng chung một cơ chế địa chỉ | ✅ |
+| FINAL-QA | Rà soát và sửa lỗi end-to-end | ✅ |
+| Ngoài phạm vi | Thanh toán online (VNPay), đánh giá sản phẩm, wishlist, mã giảm giá | ⏳ Chưa làm |
