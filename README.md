@@ -1,4 +1,9 @@
-# ASPNET-DT24TT8016-tranphattai-linhkiendientu
+# ASPNET-DT24TT8016-damhuynhphuthanh-linhkiendientu
+
+- **Sinh viên:** Đàm Huỳnh Phú Thành
+- **MSSV:** 170124365
+- **Lớp:** DT24TT8016
+- **Giảng viên hướng dẫn:** TS. Đoàn Phước Miền
 
 Website thương mại điện tử bán **linh kiện điện tử**, xây dựng bằng ASP.NET Core MVC.
 
@@ -56,6 +61,7 @@ docker run -d --name sqlserver \
 Ghi connection string vào **User Secrets** (file này nằm ngoài repo nên không bị commit):
 
 ```bash
+cd src
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" \
   "Server=localhost,1433;Database=ElectronicStoreDb;User Id=sa;Password=<mat-khau-cua-ban>;TrustServerCertificate=True;MultipleActiveResultSets=True"
 ```
@@ -63,6 +69,7 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" \
 Kiểm tra lại:
 
 ```bash
+cd src
 dotnet user-secrets list
 ```
 
@@ -74,20 +81,45 @@ export ConnectionStrings__DefaultConnection="Server=...;Database=...;User Id=...
 
 > Thứ tự ưu tiên cấu hình: **biến môi trường** > **User Secrets** > `appsettings.{Environment}.json` > `appsettings.json`.
 
+## Cấu trúc repository
+
+```
+.
+├── README.md
+├── setup/                       # File phục vụ cài đặt/chạy chương trình (nếu có)
+├── src/                         # Source code và dữ liệu thử nghiệm
+└── thesis/
+    ├── doc/                     # Báo cáo Word
+    └── pdf/                     # Báo cáo PDF
+```
+
+| Thư mục | Nội dung |
+| --- | --- |
+| `setup/` | Các file phục vụ cài đặt / chạy chương trình |
+| `src/` | Source code của hệ thống và dữ liệu thử nghiệm |
+| `thesis/doc/` | File báo cáo Word |
+| `thesis/pdf/` | File báo cáo PDF |
+
+`ElectronicStore.sln`, `global.json` (pin .NET SDK), `.config/dotnet-tools.json`
+(pin `dotnet-ef`) và `.gitignore` nằm ở root vì phải áp dụng cho cả repository.
+
 ## Chạy dự án
 
 ```bash
 dotnet restore
-dotnet build
-dotnet run
+dotnet build            # chạy từ root, dùng ElectronicStore.sln
+
+cd src
+dotnet run              # chạy web app
 ```
 
 Mặc định ứng dụng chạy tại `https://localhost:7036` và `http://localhost:5155`
-(xem `Properties/launchSettings.json`).
+(xem `src/Properties/launchSettings.json`).
 
-## Cấu trúc thư mục
+## Cấu trúc source (`src/`)
 
 ```
+src/
 ├── Areas/Admin/                 # Khu vực Admin (chỉ role Admin truy cập được)
 │   ├── Controllers/             # Dashboard, Category, Brand, Product, Order
 │   ├── Models/                  # ViewModel riêng của Admin
@@ -115,10 +147,11 @@ Mặc định ứng dụng chạy tại `https://localhost:7036` và `http://loc
 │   └── design-system.md         # Design system (màu, typography, component)
 ├── Program.cs                   # Entry point + đăng ký DI
 ├── appsettings.json             # Cấu hình chung (KHÔNG chứa secret)
-├── appsettings.Development.json # Cấu hình môi trường Development
-├── global.json                  # Pin phiên bản .NET SDK cho cả nhóm
-└── ElectronicStore.sln
+└── appsettings.Development.json # Cấu hình môi trường Development
 ```
+
+Dataset địa giới hành chính được đọc qua `IWebHostEnvironment.ContentRootPath` nên
+đường dẫn `Data/AdministrativeUnits/` vẫn đúng sau khi source chuyển vào `src/`.
 
 ## Tài khoản và phân quyền
 
@@ -127,7 +160,7 @@ Hệ thống dùng **ASP.NET Core Identity** (email làm username). Có 2 role: 
 - Đăng ký ở `/Account/Register` → tài khoản **luôn** nhận role `Customer`. Không có cách nào
   tự chọn role `Admin` từ form.
 - Đăng nhập `/Account/Login`, đăng xuất bằng POST từ thanh điều hướng.
-- Khu vực `Areas/Admin` yêu cầu role `Admin`; ai không đủ quyền bị đưa về `/Account/AccessDenied`.
+- Khu vực `src/Areas/Admin` yêu cầu role `Admin`; ai không đủ quyền bị đưa về `/Account/AccessDenied`.
 
 ### Tài khoản Admin mặc định
 
@@ -137,6 +170,7 @@ Email lấy từ `SeedAdmin:Email` trong `appsettings.json`
 Cách đặt mật khẩu admin cho máy của bạn:
 
 ```bash
+cd src
 dotnet user-secrets set "SeedAdmin:Password" "<mat-khau-cua-ban>"
 ```
 
@@ -144,7 +178,7 @@ Nếu chưa đặt:
 
 | Môi trường | Hành vi |
 | --- | --- |
-| Development | Dùng mật khẩu dev có sẵn trong `Data/DbInitializer.cs` (`Admin@123456`) và ghi cảnh báo ra log. Chỉ để chạy thử trên máy cá nhân |
+| Development | Dùng mật khẩu dev có sẵn trong `src/Data/DbInitializer.cs` (`Admin@123456`) và ghi cảnh báo ra log. Chỉ để chạy thử trên máy cá nhân |
 | Ngoài Development | **Không tạo** tài khoản admin, chỉ ghi cảnh báo. Không có mật khẩu mặc định nào lọt ra production |
 
 > ⚠️ Mật khẩu dev ở trên là công khai trong source. Đừng dùng nó cho bất kỳ máy chủ nào
@@ -152,7 +186,7 @@ Nếu chưa đặt:
 
 ### Dữ liệu seed
 
-Khi chạy ở Development, `Data/DbInitializer.cs` tự động: apply migration → tạo role
+Khi chạy ở Development, `src/Data/DbInitializer.cs` tự động: apply migration → tạo role
 `Admin`/`Customer` → tạo admin mặc định → seed 5 category, 4 brand và 5 sản phẩm mẫu
 (ESP32 DevKit, Arduino Uno R3, DHT22, HC-SR04, Module Relay 5V).
 
@@ -178,6 +212,7 @@ Migration hiện có:
 Áp dụng lên database local (chỉ chạy khi đã cấu hình connection string ở trên):
 
 ```bash
+cd src
 dotnet ef database update
 ```
 
@@ -188,6 +223,7 @@ dotnet ef database update
 Các lệnh hay dùng:
 
 ```bash
+cd src
 dotnet ef migrations add <TenMigration>   # tạo migration mới
 dotnet ef migrations list                 # xem danh sách
 dotnet ef migrations script -o out.sql    # xem SQL sinh ra mà không cần database
@@ -238,7 +274,7 @@ thường (0 kết quả hoặc quay về giá trị mặc định), không báo
 
 ## Chức năng phía quản trị (Admin)
 
-Toàn bộ nằm trong `Areas/Admin`, **bắt buộc role `Admin`** (`AdminControllerBase`).
+Toàn bộ nằm trong `src/Areas/Admin`, **bắt buộc role `Admin`** (`AdminControllerBase`).
 
 | Module | URL | Chức năng |
 | --- | --- | --- |
@@ -250,12 +286,12 @@ Toàn bộ nằm trong `Areas/Admin`, **bắt buộc role `Admin`** (`AdminContr
 | Đơn hàng | `/Admin/Order` | Danh sách kèm badge đếm theo trạng thái, lọc theo trạng thái, chi tiết đơn; chuyển trạng thái theo đúng state machine; hủy đơn và **hoàn trả tồn kho** |
 
 Doanh thu chỉ tính trên đơn `Completed`. Mọi thay đổi trạng thái đơn và tồn kho đều đi qua
-`Services/OrderService.cs`; Admin **không** có state machine riêng.
+`src/Services/OrderService.cs`; Admin **không** có state machine riêng.
 
 ## Tài liệu
 
-- [Thiết kế database](docs/database-schema.md) — bảng, khóa, quan hệ, index. **Đọc file này trước khi tạo entity.**
-- [Design system](docs/design-system.md) — màu, typography, component dùng chung.
+- [Thiết kế database](src/docs/database-schema.md) — bảng, khóa, quan hệ, index. **Đọc file này trước khi tạo entity.**
+- [Design system](src/docs/design-system.md) — màu, typography, component dùng chung.
 
 ## Tiến độ
 
